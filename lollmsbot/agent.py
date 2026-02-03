@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, cast
 
 from lollmsbot.config import BotConfig
 from lollmsbot.lollms_client import LollmsClient
@@ -135,9 +135,9 @@ class Agent:
         self._state: AgentState = AgentState.IDLE
         self._tools: Dict[str, Tool] = {}
         self._memory: Dict[str, Any] = {
-            "conversation_history": [] as List[ConversationTurn],
-            "working_memory": {} as Dict[str, Any],
-            "context": {} as Dict[str, Any],
+            "conversation_history": cast(List[ConversationTurn], []),
+            "working_memory": cast(Dict[str, Any], {}),
+            "context": cast(Dict[str, Any], {}),
         }
         
         self.lollms_client: LollmsClient = lollms_client

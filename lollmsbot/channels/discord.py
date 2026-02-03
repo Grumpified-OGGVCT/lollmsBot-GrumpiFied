@@ -1,320 +1,200 @@
-"""
-Discord channel implementation for LollmsBot.
-
-This module provides the DiscordChannel class for integrating with the
-Discord messaging platform using the discord.py library.
-"""
-
+import asyncio
 import logging
-from typing import Any, Awaitable, Callable, List, Optional, Set
+from typing import Optional, Any
 
 import discord
 from discord.ext import commands
-
-from lollmsbot.channels import Channel
-from lollmsbot.agent import Agent
-
+import httpx
 
 logger = logging.getLogger(__name__)
 
+class DiscordChannel:
+    """Discord bot channel that forwards messages to lollmsBot gateway."""
 
-class DiscordBot(commands.Bot):
-    """Discord bot subclass for handling events and messages.
-    
-    This internal bot class handles Discord-specific events and routes
-    them to the parent DiscordChannel for standardized processing.
-    
-    Attributes:
-        channel: Parent DiscordChannel instance for message routing.
-        allowed_guild_ids: Optional set of allowed guild IDs for security.
-    """
-    
     def __init__(
         self,
-        channel: "DiscordChannel",
-        allowed_guild_ids: Optional[Set[int]] = None,
-    ) -> None:
-        """Initialize the Discord bot.
+        bot_token: Optional[str] = None,
+        gateway_url: str = "http://localhost:8800",
+        command_prefix: str = "!",
+    ):
+        self.bot_token = bot_token
+        self.gateway_url = gateway_url
+        self.client = httpx.AsyncClient(timeout=30.0)
+        self._is_running = False
+        self._ready_event = asyncio.Event()
+        self.command_prefix = command_prefix
         
-        Args:
-            channel: Parent DiscordChannel instance.
-            allowed_guild_ids: Optional set of allowed guild IDs.
-        """
-        self._parent_channel = channel
-        self._allowed_guild_ids = allowed_guild_ids
+        # Discord intents - ALL required for proper message handling
+        self.intents = discord.Intents.default()
+        self.intents.message_content = True
+        self.intents.guilds = True
+        self.intents.guild_messages = True
+        self.intents.dm_messages = True
         
-        # Setup intents for message content and guild members
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.guilds = True
-        intents.members = True
-        
-        super().__init__(
-            command_prefix="!",
-            intents=intents,
-            help_command=None,
-        )
-    
-    async def setup_hook(self) -> None:
-        """Called when the bot is setting up."""
-        logger.info("Discord bot setup complete")
-    
-    async def on_ready(self) -> None:
-        """Called when the bot is ready and connected."""
-        logger.info(f"Discord bot logged in as {self.user} (ID: {self.user.id})")
-    
-    async def on_message(self, message: discord.Message) -> None:
-        """Handle incoming Discord messages.
-        
-        Routes messages to the parent channel for standardized processing.
-        
-        Args:
-            message: Discord message object.
-        """
-        # Ignore messages from the bot itself
-        if message.author == self.user:
-            return
-        
-        # Check allowed guilds if configured
-        if self._allowed_guild_ids is not None:
-            if message.guild is None or message.guild.id not in self._allowed_guild_ids:
-                logger.warning(f"Message from unauthorized guild {message.guild.id if message.guild else 'DM'} rejected")
-                return
-        
-        # Ignore DMs if not explicitly allowed (when allowed_guild_ids is set)
-        if self._allowed_guild_ids is not None and message.guild is None:
-            logger.warning("Direct message rejected (guild-only mode)")
-            return
-        
-        # Convert to standardized format
-        sender_id = str(message.author.id)
-        message_text = message.content
-        
-        # Get channel ID for responses
-        channel_id = str(message.channel.id)
-        
-        logger.info(f"Received message from {message.author} in channel {channel_id}: {message_text[:50]}...")
-        
-        # Store reference for sending responses
-        self._parent_channel._last_message_channel = message.channel
-        
-        # Route to parent channel handler
-        await self._parent_channel._handle_incoming_message(sender_id, message_text, message)
-        
-        # Process commands if any
-        await self.process_commands(message)
-    
-    async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
-        """Handle errors in event processing.
-        
-        Args:
-            event_method: Name of the event that caused the error.
-            *args: Positional arguments passed to the event.
-            **kwargs: Keyword arguments passed to the event.
-        """
-        logger.exception(f"Error in Discord event {event_method}")
+        # Use discord.Client instead of commands.Bot to avoid command framework conflicts
+        self.bot = discord.Client(intents=self.intents)
 
-
-class DiscordChannel(Channel):
-    """Discord messaging channel implementation.
-    
-    Provides integration with Discord API using discord.py library.
-    Handles message events and sending via Discord bot.
-    
-    Attributes:
-        bot_token: Discord bot authentication token.
-        allowed_guild_ids: Optional set of allowed guild IDs for security.
-        bot: DiscordBot instance for Discord operations.
-        _last_message_channel: Reference to last message channel for responses.
-        _message_callback: Registered callback for incoming messages.
-    """
-    
-    def __init__(
-        self,
-        bot_token: str,
-        allowed_guild_ids: Optional[List[int]] = None,
-        agent: Optional[Agent] = None,
-    ) -> None:
-        """Initialize the Discord channel.
-        
-        Args:
-            bot_token: Discord bot token from Discord Developer Portal.
-            allowed_guild_ids: Optional list of allowed guild (server) IDs.
-                              If provided, only these guilds can interact.
-            agent: Optional Agent instance for message processing.
-        """
-        super().__init__(name="discord", agent=agent)
-        
-        self.bot_token: str = bot_token
-        self.allowed_guild_ids: Optional[Set[int]] = (
-            set(allowed_guild_ids) if allowed_guild_ids else None
-        )
-        self.bot: Optional[DiscordBot] = None
-        self._last_message_channel: Optional[discord.abc.Messageable] = None
-        self._message_callback: Optional[
-            Callable[[str, str], Awaitable[None]]
-        ] = None
-    
-    async def start(self) -> None:
-        """Start the Discord bot and begin listening for messages.
-        
-        Initializes the DiscordBot instance and starts the event loop
-        to connect to Discord's gateway.
-        """
-        if self._is_running:
-            logger.warning("Discord channel is already running")
-            return
-        
-        try:
-            self.bot = DiscordBot(
-                channel=self,
-                allowed_guild_ids=self.allowed_guild_ids,
-            )
-            
-            # Start the bot in a task (non-blocking for the channel)
-            import asyncio
-            self._bot_task = asyncio.create_task(self.bot.start(self.bot_token))
+        @self.bot.event
+        async def on_ready():
             self._is_running = True
+            self._ready_event.set()
+            logger.info(f"🤖 Discord bot '{self.bot.user}' ({self.bot.user.id}) connected!")
+            logger.info(f"   Guilds: {len(self.bot.guilds)} servers")
+            for guild in self.bot.guilds:
+                logger.info(f"   - {guild.name} (ID: {guild.id})")
+                # Log channel permissions
+                for channel in guild.text_channels[:3]:  # Log first 3 channels
+                    perms = channel.permissions_for(guild.me)
+                    logger.info(f"     #{channel.name}: read_messages={perms.read_messages}, send_messages={perms.send_messages}")
+            print(f"🤖 Discord bot '{self.bot.user}' ready!")
+
+        @self.bot.event
+        async def on_message(message: discord.Message):
+            # CRITICAL: Log ALL messages to see if event fires
+            logger.info(f"RAW MESSAGE from {message.author} in #{getattr(message.channel, 'name', 'DM')}: '{message.content[:100]}'")
+            logger.info(f"  Message type: {message.type}, System: {message.is_system()}")
+            logger.info(f"  Author bot? {message.author.bot}, Self? {message.author == self.bot.user}")
+            logger.info(f"  Guild? {message.guild is not None}")
             
-            logger.info("Discord channel started successfully")
+            # Ignore own messages
+            if message.author == self.bot.user:
+                logger.debug("  -> Ignoring: own message")
+                return
             
-        except Exception as exc:
-            logger.error(f"Failed to start Discord channel: {exc}")
-            self._is_running = False
-            raise
-    
-    async def stop(self) -> None:
-        """Stop the Discord bot and clean up resources.
+            # Ignore other bots
+            if message.author.bot:
+                logger.debug("  -> Ignoring: other bot")
+                return
+            
+            # Check if bot is mentioned in any form
+            is_mentioned = False
+            content_mentions_bot = False
+            
+            if self.bot.user:
+                # Check mentions list
+                is_mentioned = self.bot.user in message.mentions
+                logger.info(f"  In mentions list: {is_mentioned}")
+                
+                # Check content for mention patterns
+                mention_patterns = [
+                    f"<@{self.bot.user.id}>",
+                    f"<@!{self.bot.user.id}>",
+                ]
+                for pattern in mention_patterns:
+                    if pattern in message.content:
+                        content_mentions_bot = True
+                        logger.info(f"  Found mention pattern: {pattern}")
+                        break
+                
+                # Also check if message starts with @botname (though Discord converts this)
+                if message.content.startswith(f"@{self.bot.user.name}"):
+                    content_mentions_bot = True
+                    logger.info(f"  Found @username mention")
+            
+            # Check for command prefix
+            is_command = message.content.startswith(self.command_prefix + "ask")
+            logger.info(f"  is_mentioned={is_mentioned}, content_mentions_bot={content_mentions_bot}, is_command={is_command}")
+            
+            # Must be mentioned OR use command
+            if not is_mentioned and not content_mentions_bot and not is_command:
+                logger.debug("  -> Ignoring: not mentioned and not command")
+                return
+            
+            # Security: Don't respond to DMs unless explicitly enabled
+            if not message.guild:
+                logger.info(f"DM from {message.author}: {message.content[:50]}...")
+            # Enable DMs - process normally
+
+            logger.info(f"PROCESSING message from {message.author} in #{message.channel}: {message.content[:80]}...")
+            
+            # Clean message content - remove bot mentions for cleaner processing
+            clean_content = message.content
+            if self.bot.user:
+                # Remove all mention patterns
+                mention_patterns = [
+                    f"<@{self.bot.user.id}>",
+                    f"<@!{self.bot.user.id}>",
+                    f"@{self.bot.user.name}",
+                ]
+                if self.bot.user.discriminator != "0":
+                    mention_patterns.append(f"@{self.bot.user.name}#{self.bot.user.discriminator}")
+                
+                for pattern in mention_patterns:
+                    clean_content = clean_content.replace(pattern, "")
+                
+                clean_content = clean_content.strip()
+                logger.info(f"  Cleaned content: '{clean_content[:80]}'")
+
+            # Show typing indicator while processing
+            async with message.channel.typing():
+                try:
+                    payload = {"message": clean_content if clean_content else message.content}
+                    logger.info(f"  POST to {self.gateway_url}/chat: {payload}")
+                    
+                    resp = await self.client.post(
+                        f"{self.gateway_url}/chat",
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                    )
+                    
+                    logger.info(f"  Gateway response: {resp.status_code}")
+                    
+                    if resp.status_code == 200:
+                        reply = resp.json().get("reply", "No response")[:1900]  # Discord limit
+                        logger.info(f"  Reply: {reply[:80]}...")
+                        await message.reply(f"```{reply}```")
+                        logger.info(f"  -> Reply sent successfully")
+                    else:
+                        error_msg = f"Gateway error: HTTP {resp.status_code}"
+                        logger.error(f"  {error_msg}")
+                        await message.reply(f"❌ {error_msg}")
+                        
+                except httpx.RequestError as e:
+                    error_msg = f"Network error connecting to gateway: {e}"
+                    logger.error(f"  {error_msg}")
+                    await message.reply(f"🌐 {error_msg}")
+                except Exception as e:
+                    error_msg = f"Unexpected error: {e}"
+                    logger.error(f"  {error_msg}", exc_info=True)
+                    await message.reply(f"🚨 {error_msg}")
+
+    async def start(self):
+        """Start Discord bot."""
+        if not self.bot_token:
+            raise ValueError("Discord bot token is required to start the channel")
         
-        Gracefully closes the Discord connection and stops event processing.
-        """
-        if not self._is_running:
-            logger.warning("Discord channel is not running")
-            return
-        
-        try:
-            if self.bot:
-                await self.bot.close()
-                self.bot = None
-            
-            self._is_running = False
-            logger.info("Discord channel stopped successfully")
-            
-        except Exception as exc:
-            logger.error(f"Error stopping Discord channel: {exc}")
-            raise
-    
-    async def send_message(self, to: str, content: str) -> bool:
-        """Send a message to a specific Discord channel or user.
+        logger.info(f"Starting Discord bot (connecting to gateway at {self.gateway_url})...")
+        # Set logging to INFO to see all messages
+        logging.getLogger('discord').setLevel(logging.INFO)
+        await self.bot.start(self.bot_token)
+
+    async def stop(self):
+        """Graceful shutdown."""
+        self._is_running = False
+        await self.client.aclose()
+        await self.bot.close()
+        logger.info("Discord bot stopped")
+
+    @property
+    def is_running(self) -> bool:
+        """Check if the bot is running and ready."""
+        return self._is_running and self._ready_event.is_set()
+
+    async def wait_for_ready(self, timeout: float = 30.0) -> bool:
+        """Wait for the bot to become ready.
         
         Args:
-            to: Discord channel ID or user ID (as string).
-            content: Message text to send.
+            timeout: Maximum time to wait in seconds.
             
         Returns:
-            True if message was sent successfully, False otherwise.
+            True if ready, False if timeout.
         """
-        if not self.bot or not self._is_running:
-            logger.error("Cannot send message: Discord channel is not running")
-            return False
-        
         try:
-            # Try to get channel from cache
-            channel_id = int(to)
-            channel = self.bot.get_channel(channel_id)
-            
-            # If not found, try to fetch it
-            if channel is None:
-                try:
-                    channel = await self.bot.fetch_channel(channel_id)
-                except discord.NotFound:
-                    # Try as user ID
-                    try:
-                        user = await self.bot.fetch_user(channel_id)
-                        channel = await user.create_dm()
-                    except discord.NotFound:
-                        logger.error(f"Channel or user not found: {to}")
-                        return False
-            
-            if channel is None:
-                logger.error(f"Could not resolve destination: {to}")
-                return False
-            
-            # Send the message
-            await channel.send(content)
-            logger.debug(f"Message sent to {to}")
+            await asyncio.wait_for(self._ready_event.wait(), timeout=timeout)
             return True
-            
-        except ValueError:
-            logger.error(f"Invalid Discord ID: {to}")
+        except asyncio.TimeoutError:
             return False
-            
-        except discord.Forbidden:
-            logger.error(f"Permission denied sending message to {to}")
-            return False
-            
-        except Exception as exc:
-            logger.error(f"Failed to send message to {to}: {exc}")
-            return False
-    
-    def on_message(self, callback: Callable[[str, str], Awaitable[None]]) -> None:
-        """Register a callback for incoming messages.
-        
-        Args:
-            callback: Async function to call when a message is received.
-                     Receives (sender_id: str, message: str) parameters.
-        """
-        self._message_callback = callback
-        logger.debug("Message callback registered for Discord channel")
-    
-    async def _handle_incoming_message(
-        self,
-        sender_id: str,
-        message: str,
-        discord_message: discord.Message,
-    ) -> None:
-        """Internal handler for incoming Discord messages.
-        
-        Routes messages to the registered callback if available,
-        or to the agent if configured. Also handles direct replies.
-        
-        Args:
-            sender_id: Discord user ID of the sender.
-            message: Message content.
-            discord_message: Original Discord message object.
-        """
-        if self._message_callback is not None:
-            await self._message_callback(sender_id, message)
-        elif self.agent is not None:
-            try:
-                response = await self.agent.run(message)
-                
-                # Send response as reply to the original message
-                await discord_message.reply(response)
-                
-            except Exception as exc:
-                logger.error(f"Error processing message from {sender_id}: {exc}")
-                try:
-                    await discord_message.reply(
-                        "❌ Sorry, an error occurred while processing your message."
-                    )
-                except Exception:
-                    pass  # Ignore errors in error handling
-        else:
-            # No handler configured
-            try:
-                await discord_message.reply(
-                    "⚠️ Bot is not fully configured. No message handler available."
-                )
-            except Exception:
-                pass
-    
+
     def __repr__(self) -> str:
-        status = "running" if self._is_running else "stopped"
-        restricted = (
-            f", restricted={len(self.allowed_guild_ids)} guilds"
-            if self.allowed_guild_ids
-            else ""
-        )
-        user_info = f", user={self.bot.user}" if self.bot and self.bot.user else ""
-        return f"DiscordChannel({status}{restricted}{user_info})"
+        status = "ready" if self.is_running else "connecting" if self._is_running else "stopped"
+        return f"DiscordChannel({status}, guilds={len(self.bot.guilds) if self.bot.user else 'N/A'})"
