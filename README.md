@@ -75,7 +75,7 @@ docker-compose up -d
 **.env** (create this file):
 ```env
 # LoLLMS Backend
-LOLLMS_HOST_ADDRESS=http://localhost:9600
+LOLLMS_HOST_ADDRESS=http://localhost:9642
 LOLLMS_API_KEY=                        # Optional
 LOLLMS_VERIFY_SSL=true
 LOLLMS_BINDING_NAME=                   # ollama, openai, etc.
