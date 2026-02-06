@@ -252,4 +252,3 @@ __all__ = [
     # Utility functions
     "get_default_tools",
 ]
-]
