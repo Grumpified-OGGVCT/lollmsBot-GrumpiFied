@@ -1,0 +1,33 @@
+# Lightweight Alpine sandbox for LollmsBot tool execution
+# This container provides a minimal, secure environment for running shell commands
+
+FROM alpine:latest
+
+# Install common utilities needed for typical operations
+RUN apk add --no-cache \
+    bash \
+    curl \
+    wget \
+    python3 \
+    py3-pip \
+    git \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create workspace directory
+RUN mkdir /workspace && chmod 777 /workspace
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command (overridden at runtime)
+CMD ["/bin/sh"]
+
+# Security: Run as non-root user
+RUN adduser -D -u 1000 lollms
+USER lollms
+
+# Labels for identification
+LABEL maintainer="lollmsBot"
+LABEL description="Secure sandbox environment for lollmsBot tool execution"
+LABEL version="1.0"
