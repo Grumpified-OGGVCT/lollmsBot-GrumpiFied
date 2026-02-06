@@ -46,6 +46,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | Feature | Why It Matters |
 |--------|---------------|
 | **🧬 7-Pillar Architecture** | Soul, Guardian, Heartbeat, Memory, Skills, Tools, Identity — a complete cognitive framework |
+| **🧠 Self-Awareness System** | Introspection, meta-cognition, decision logging, pattern recognition with user-adjustable controls |
 | **🌟 Awesome Claude Skills** | Production-ready AI workflows from the community — dozens of specialized skills and growing |
 | **🔌 17+ LLM Backends** | Freedom to use OpenAI, Claude, Ollama, vLLM, Groq, Gemini, or any OpenAI-compatible API |
 | **🔀 Multi-Provider Routing** | Cost optimization with OpenRouter free tier + Ollama fallback (40-70% savings) |
@@ -85,6 +86,51 @@ lollmsbot wizard                    # Interactive management
 ```
 
 **[📖 Full Documentation](AWESOME_SKILLS_GUIDE.md)** | **[🌐 Skills Repository](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)**
+
+### 🧠 NEW: Self-Awareness & Introspection
+
+lollmsBot now has comprehensive **self-awareness capabilities** with user-adjustable controls:
+
+**Features:**
+- **State Tracking** - Monitor internal state in real-time
+- **Decision Logging** - Record all decisions with reasoning & confidence
+- **Pattern Recognition** - Identify behavioral patterns automatically
+- **On-Demand Introspection** - Query internal state anytime
+- **Meta-Cognition** - Think about thinking (configurable depth 1-10)
+- **Reflection Loops** - Periodic self-analysis
+- **Goal Tracking** - Awareness of active goals and motivations
+
+**Awareness Levels** (user-selectable):
+- **MINIMAL** (0): Basic state tracking
+- **LOW** (2): + Decision logging
+- **MODERATE** (5): + Pattern recognition (DEFAULT)
+- **HIGH** (7): + Real-time introspection
+- **MAXIMUM** (10): + Full meta-cognition
+
+**Safety Restraints:**
+- Introspection depth limits (prevents infinite loops)
+- Timeout protection (default: 5 seconds)
+- Confidence thresholds (flags low-confidence decisions)
+- Resource limits (caps history size)
+- Per-feature toggles (fine-grained control)
+
+**Quick Start:**
+```bash
+lollmsbot introspect status                  # Show awareness status
+lollmsbot introspect state                   # Current internal state
+lollmsbot introspect decisions               # Recent decisions
+lollmsbot introspect patterns                # Behavioral patterns
+lollmsbot introspect query "Why did I...?"   # Ask introspective questions
+```
+
+**Configuration:**
+```bash
+# In .env
+SELF_AWARENESS_LEVEL=MODERATE    # MINIMAL, LOW, MODERATE, HIGH, MAXIMUM
+SELF_AWARENESS_MAX_DEPTH=3       # Meta-reasoning depth (1-10)
+```
+
+**[📖 Full Documentation](SELF_AWARENESS_GUIDE.md)**
 
 ---
 
