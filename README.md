@@ -1,5 +1,5 @@
 # lollmsBot 🤖
-[![Apache 2.0](https://img.shields.io/github/license/ParisNeo/lollmsBot?color=blue)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Apache 2.0](https://img.shields.io/github/license/Grumpified-OGGVCT/lollmsBot-GrumpiFied?color=blue)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/Docker-%231721F5.svg?&logo=docker&logoColor=white)](https://hub.docker.com/r/parisneo/lollmsbot)
 [![LoLLMS](https://img.shields.io/badge/Backend-LoLLMS-brightgreen)](https://lollms.com)
@@ -8,10 +8,10 @@
 > _Agentic • Multi-Backend • Self-Healing • Production-Ready_
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/ParisNeo/lollmsBot" alt="Stars">
-  <img src="https://img.shields.io/github/forks/ParisNeo/lollmsBot" alt="Forks">
-  <img src="https://img.shields.io/github/issues/ParisNeo/lollmsBot" alt="Issues">
-  <img src="https://img.shields.io/github/last-commit/ParisNeo/lollmsBot" alt="Last Commit">
+  <img src="https://img.shields.io/github/stars/Grumpified-OGGVCT/lollmsBot-GrumpiFied" alt="Stars">
+  <img src="https://img.shields.io/github/forks/Grumpified-OGGVCT/lollmsBot-GrumpiFied" alt="Forks">
+  <img src="https://img.shields.io/github/issues/Grumpified-OGGVCT/lollmsBot-GrumpiFied" alt="Issues">
+  <img src="https://img.shields.io/github/last-commit/Grumpified-OGGVCT/lollmsBot-GrumpiFied" alt="Last Commit">
 </p>
 
 ## 🎯 What is lollmsBot?
@@ -64,8 +64,8 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 
 ```bash
 # Clone and install
-git clone https://github.com/ParisNeo/lollmsBot
-cd lollmsBot
+git clone https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied
+cd lollmsBot-GrumpiFied
 
 # Windows
 .\install.bat
@@ -94,8 +94,8 @@ pip install -e ".[all]"
 
 ```bash
 # Clone and start
-git clone https://github.com/ParisNeo/lollmsBot
-cd lollmsBot
+git clone https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied
+cd lollmsBot-GrumpiFied
 cp .env.example .env
 
 # Edit .env with your settings, then:
@@ -109,7 +109,7 @@ docker-compose up -d
 
 ```bash
 # With Python 3.10+ and pip
-pip install git+https://github.com/ParisNeo/lollmsBot.git
+pip install git+https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied.git
 lollmsbot gateway --ui
 ```
 
@@ -890,7 +890,7 @@ you may not use this file except in compliance with the License.
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ParisNeo/lollmsBot&type=Timeline)](https://star-history.com/#ParisNeo/lollmsBot&Timeline)
+[![Star History Chart](https://api.star-history.com/svg?repos=Grumpified-OGGVCT/lollmsBot-GrumpiFied&type=Timeline)](https://star-history.com/#Grumpified-OGGVCT/lollmsBot-GrumpiFied&Timeline)
 
 ---
 
