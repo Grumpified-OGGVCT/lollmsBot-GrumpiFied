@@ -58,10 +58,10 @@ class LaneTask:
         result: Result from the coroutine (if completed successfully)
         error: Exception if the task failed
     """
-    task_id: str
-    lane: LanePriority
-    coro: Coroutine[Any, Any, Any]
-    name: str
+    task_id: str = ""
+    lane: LanePriority = LanePriority.SYSTEM
+    coro: Optional[Coroutine[Any, Any, Any]] = None
+    name: str = "unnamed_task"
     created_at: datetime = field(default_factory=datetime.now)
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None

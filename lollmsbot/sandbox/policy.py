@@ -20,6 +20,18 @@ class PermissionMode(Enum):
     NO_ACCESS = "none"
 
 
+def _default_denied_paths():
+    """Factory function for default denied paths."""
+    return {
+        Path("/etc"),
+        Path("/sys"),
+        Path("/proc"),
+        Path("/dev"),
+        Path("/boot"),
+        Path("/root"),
+    }
+
+
 @dataclass
 class MountPolicy:
     """Policy for mounting directories in sandbox.
@@ -33,14 +45,7 @@ class MountPolicy:
     allowed_paths: Set[Path] = field(default_factory=set)
     default_mode: PermissionMode = PermissionMode.READ_ONLY
     path_modes: Dict[Path, PermissionMode] = field(default_factory=dict)
-    denied_paths: Set[Path] = field(default_factory=lambda: {
-        Path("/etc"),
-        Path("/sys"),
-        Path("/proc"),
-        Path("/dev"),
-        Path("/boot"),
-        Path("/root"),
-    })
+    denied_paths: Set[Path] = field(default_factory=_default_denied_paths)
     
     def can_mount(self, path: Path) -> bool:
         """Check if a path can be mounted.

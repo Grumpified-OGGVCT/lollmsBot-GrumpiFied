@@ -252,7 +252,7 @@ class DockerExecutor:
                 try:
                     container.kill()
                     container.remove()
-                except:
+                except Exception:
                     pass
                 
                 return SandboxResult(
@@ -367,5 +367,5 @@ def is_docker_available() -> bool:
     try:
         executor = get_docker_executor()
         return executor is not None
-    except:
+    except Exception:
         return False

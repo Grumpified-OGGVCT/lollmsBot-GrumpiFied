@@ -334,7 +334,6 @@ class ShellTool(Tool):
             )
         
         # Prepare mounts (mount working directory)
-        from pathlib import Path
         mounts = {
             work_dir: Path("/workspace")
         }

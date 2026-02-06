@@ -188,7 +188,7 @@ class ComputeManager:
             early_exit_candidate=early_exit
         )
     
-    def get_generation_params(self, complexity: ComplexityScore) -> Dict[str, any]:
+    def get_generation_params(self, complexity: ComplexityScore) -> Dict[str, Any]:
         """Get recommended generation parameters based on complexity.
         
         Args:
