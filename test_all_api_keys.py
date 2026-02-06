@@ -26,11 +26,10 @@ def test_ollama_key(key_name: str, api_key: str) -> Dict:
         "error": None
     }
     
-    # Test connection with multiple possible endpoints
+    # Official Ollama Cloud endpoint from documentation
+    # https://docs.ollama.com/cloud
     endpoints = [
-        "https://api.ollama.cloud/v1",
-        "https://ollama.cloud/api",
-        "https://api.ollama.ai/v1",
+        "https://ollama.com/api",  # Official endpoint
     ]
     
     for endpoint in endpoints:
@@ -38,7 +37,7 @@ def test_ollama_key(key_name: str, api_key: str) -> Dict:
         try:
             import requests
             
-            # Test list models
+            # Test list models (Ollama uses /api/tags for listing)
             start_time = time.time()
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -46,7 +45,7 @@ def test_ollama_key(key_name: str, api_key: str) -> Dict:
             }
             
             response = requests.get(
-                f"{endpoint}/models",
+                f"{endpoint}/tags",  # Ollama uses /tags not /models
                 headers=headers,
                 timeout=10
             )
@@ -56,16 +55,16 @@ def test_ollama_key(key_name: str, api_key: str) -> Dict:
                 result["latency_ms"] = round(latency, 2)
                 result["status"] = "success"
                 
-                # Parse models
+                # Parse models (Ollama format: {"models": [...]})
                 data = response.json()
-                if isinstance(data, dict) and "data" in data:
-                    models = data["data"]
+                if isinstance(data, dict) and "models" in data:
+                    models = data["models"]
                 elif isinstance(data, list):
                     models = data
                 else:
                     models = []
                 
-                result["models_available"] = [m.get("id", m.get("name", str(m))) for m in models[:10]]
+                result["models_available"] = [m.get("name", m.get("model", str(m))) for m in models[:10]]
                 
                 print(f"  ✅ Connection successful!")
                 print(f"  ⚡ Latency: {latency:.2f}ms")
@@ -125,6 +124,7 @@ def test_openrouter_key(key_name: str, api_key: str) -> Dict:
         "error": None
     }
     
+    # Official OpenRouter endpoint from documentation
     endpoint = "https://openrouter.ai/api/v1"
     
     try:
@@ -161,13 +161,14 @@ def test_openrouter_key(key_name: str, api_key: str) -> Dict:
             print(f"  📋 Found {len(models)} models")
             print(f"  🎯 Sample models: {', '.join(result['models_available'][:5])}")
             
-            # Test inference with a free model
+            # Test inference with OpenRouter's free model router
+            # https://openrouter.ai/docs/guides/routing/routers/free-router
             try:
                 inference_response = requests.post(
                     f"{endpoint}/chat/completions",
                     headers=headers,
                     json={
-                        "model": "google/gemini-2.0-flash-exp:free",  # Free tier model
+                        "model": "openrouter/free",  # Free Models Router
                         "messages": [{"role": "user", "content": "Say 'OK'"}],
                         "max_tokens": 5
                     },
@@ -176,7 +177,10 @@ def test_openrouter_key(key_name: str, api_key: str) -> Dict:
                 
                 if inference_response.status_code == 200:
                     result["test_inference"] = "success"
-                    print(f"  ✅ Inference test passed")
+                    resp_data = inference_response.json()
+                    # Log which free model was actually used
+                    actual_model = resp_data.get("model", "unknown")
+                    print(f"  ✅ Inference test passed (used: {actual_model})")
                 else:
                     result["test_inference"] = f"failed: {inference_response.status_code}"
                     print(f"  ⚠️  Inference test failed: {inference_response.status_code}")
