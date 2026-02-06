@@ -1691,12 +1691,38 @@ class Wizard:
                     console.print("[yellow]Enabling awesome-claude-skills...[/yellow]")
                     console.print("[dim]This will clone the repository to ~/.lollmsbot/awesome-skills[/dim]")
                     
-                    # Update config
+                    # Update config in memory
                     self.config.setdefault("awesome_skills", {})
                     self.config["awesome_skills"]["enabled"] = True
                     self._save_config()
                     
+                    # Persist to .env file for environment-based loading
+                    env_path = Path.home() / ".lollmsbot" / ".env"
+                    env_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Read existing .env or create new
+                    env_lines = []
+                    if env_path.exists():
+                        with open(env_path, 'r') as f:
+                            env_lines = f.readlines()
+                    
+                    # Update or add AWESOME_SKILLS_ENABLED
+                    found = False
+                    for i, line in enumerate(env_lines):
+                        if line.startswith('AWESOME_SKILLS_ENABLED='):
+                            env_lines[i] = 'AWESOME_SKILLS_ENABLED=true\n'
+                            found = True
+                            break
+                    
+                    if not found:
+                        env_lines.append('AWESOME_SKILLS_ENABLED=true\n')
+                    
+                    # Write back to .env
+                    with open(env_path, 'w') as f:
+                        f.writelines(env_lines)
+                    
                     console.print("[green]✅ Awesome-claude-skills enabled![/green]")
+                    console.print(f"[dim]Configuration saved to {env_path}[/dim]")
                     console.print("[yellow]Please restart the wizard to load skills.[/yellow]")
                     return
                 else:

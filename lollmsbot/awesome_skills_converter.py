@@ -5,9 +5,7 @@ Converts awesome-claude-skills format to lollmsBot's skill format.
 
 import logging
 import re
-from pathlib import Path
 from typing import Optional, List, Dict, Any
-from dataclasses import dataclass
 
 from lollmsbot.skills import Skill, SkillParameter, SkillComplexity, SkillMetadata
 from lollmsbot.awesome_skills_manager import SkillInfo

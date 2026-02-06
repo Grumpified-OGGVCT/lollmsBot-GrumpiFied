@@ -364,8 +364,9 @@ class AwesomeSkillsManager:
                                             if line.strip() and not line.startswith('#'):
                                                 description = line.strip()
                                                 break
-                                except Exception:
-                                    pass
+                                except Exception as e:
+                                    # Could not read description from system_prompt
+                                    logger.debug(f"Could not read description from {system_prompt}: {e}")
                                 
                                 skills[skill_name] = SkillInfo(
                                     name=skill_name,

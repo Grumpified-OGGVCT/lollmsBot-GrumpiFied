@@ -15,17 +15,16 @@ import asyncio
 import logging
 import os
 import re
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Body, Request, Header, Depends
+from typing import Dict, Optional, Any
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query
 from pydantic import BaseModel, Field, validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from lollmsbot.cognitive_core import get_cognitive_core, CognitiveState
+from lollmsbot.cognitive_core import get_cognitive_core
 from lollmsbot.constitutional_restraints import (
     get_constitutional_restraints,
     RestraintDimension,
-    ConstitutionalRestraints,
 )
 from lollmsbot.reflective_council import (
     get_reflective_council,
@@ -120,23 +119,6 @@ class DebtRepaymentRequest(BaseModel):
         if v and not re.match(r'^[a-zA-Z0-9_-]+$', v):
             raise ValueError("Decision ID must contain only alphanumeric characters, hyphens, and underscores")
         return v
-    value: float = Field(..., ge=0.0, le=1.0, description="New value (0.0-1.0)")
-    authorized: bool = Field(default=False, description="Has authorization key")
-    authorization_key: Optional[str] = Field(default=None, description="Hex authorization key")
-
-
-class DeliberationRequest(BaseModel):
-    """Request to trigger a council deliberation."""
-    action_id: str = Field(..., description="Unique action ID")
-    action_type: str = Field(..., description="Type of action")
-    description: str = Field(..., description="Action description")
-    context: Dict[str, Any] = Field(default_factory=dict, description="Action context")
-    stakes: str = Field(default="medium", description="Stakes level")
-
-
-class DebtRepaymentRequest(BaseModel):
-    """Request to repay cognitive debt."""
-    decision_id: Optional[str] = Field(default=None, description="Specific decision ID, or None for highest priority")
 
 
 # ============================================================================
@@ -979,5 +961,6 @@ async def rcl2_websocket(websocket: WebSocket):
         logger.error(f"RCL-2 WebSocket error: {e}")
         try:
             await websocket.close()
-        except:
-            pass
+        except Exception as close_err:
+            # Suppress non-critical exceptions during websocket close
+            logger.debug(f"Failed to close RCL-2 WebSocket cleanly: {close_err}")

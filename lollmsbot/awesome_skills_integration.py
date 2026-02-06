@@ -167,6 +167,10 @@ class AwesomeSkillsIntegration:
         
         try:
             # Remove from registry
+            # Note: This bypasses SkillRegistry's internal bookkeeping
+            # (_categories, _tags, _search_index, _version_history).
+            # TODO: Implement proper unregister() method on SkillRegistry
+            # to maintain consistency across all internal indexes.
             if skill_name in self.registry._skills:
                 del self.registry._skills[skill_name]
             
@@ -174,6 +178,10 @@ class AwesomeSkillsIntegration:
             del self.loaded_skills[skill_name]
             
             logger.info(f"Unloaded skill: {skill_name}")
+            logger.warning(
+                f"Skill '{skill_name}' may still appear in registry searches "
+                f"until a proper unregister() method is implemented"
+            )
             return True
             
         except Exception as e:

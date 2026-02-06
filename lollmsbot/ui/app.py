@@ -31,8 +31,13 @@ from lollmsbot.agent import Agent
 
 logger = logging.getLogger(__name__)
 
-# Rate limiter for API endpoints
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+# Rate limiter for API endpoints (configurable via env)
+rate_limit_str = os.getenv("RATE_LIMIT_PER_MINUTE", "100")
+try:
+    rate_limit = f"{int(rate_limit_str)}/minute"
+except ValueError:
+    rate_limit = "100/minute"  # Fallback to default
+limiter = Limiter(key_func=get_remote_address, default_limits=[rate_limit])
 
 
 class ConnectionManager:
@@ -995,12 +1000,19 @@ window.chatApp = app;
         app.state.limiter = limiter
         app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         
-        # Add CORS middleware (C01 fix)
-        allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+        # Add CORS middleware (C01 fix - secured)
+        allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5000")
+        allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+        
+        # Security: Disable credentials if wildcard is used
+        use_credentials = "*" not in allowed_origins
+        if "*" in allowed_origins and os.getenv("ENVIRONMENT") == "production":
+            logger.warning("⚠️ SECURITY: CORS wildcard (*) with credentials disabled in production")
+        
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=allowed_origins,  # Configure in production
-            allow_credentials=True,
+            allow_origins=allowed_origins if allowed_origins else ["http://localhost:5000"],
+            allow_credentials=use_credentials,
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allow_headers=["*"],
             expose_headers=["Content-Disposition"],
@@ -1015,11 +1027,12 @@ window.chatApp = app;
         @app.middleware("http")
         async def add_security_headers(request: Request, call_next):
             response = await call_next(request)
-            # Content Security Policy
+            # Content Security Policy (hardened - no unsafe-eval/unsafe-inline)
+            # Use nonces or external scripts only for maximum security
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com; "
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "script-src 'self' https://fonts.googleapis.com; "
+                "style-src 'self' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https:; "
                 "connect-src 'self' ws: wss:;"

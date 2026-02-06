@@ -125,31 +125,32 @@ class RestraintMatrix {
                 const key = dim.toLowerCase();
                 const value = this.restraints[key] || 0;
                 const hardLimit = this.hardLimits[dim] || null;
-                const isLocked = hardLimit !== null && value >= hardLimit;
+                // Only lock if at hard limit (allow reduction)
+                const isAtLimit = hardLimit !== null && value >= hardLimit;
                 
                 return `
                     <div class="restraint-control">
                         <div class="restraint-header">
                             <span class="restraint-label">${this.formatDimensionName(dim)}</span>
-                            <span class="restraint-value ${isLocked ? 'locked' : ''}" id="value-${key}">
+                            <span class="restraint-value ${isAtLimit ? 'locked' : ''}" id="value-${key}">
                                 ${value.toFixed(2)}
-                                ${isLocked ? '<span class="lock-icon">🔒</span>' : ''}
+                                ${isAtLimit ? '<span class="lock-icon">🔒</span>' : ''}
                             </span>
                         </div>
                         <input 
                             type="range" 
-                            class="restraint-slider ${isLocked ? 'locked' : ''}" 
+                            class="restraint-slider ${isAtLimit ? 'at-limit' : ''}" 
                             id="slider-${key}"
                             data-dimension="${dim}"
                             min="0" 
-                            max="1" 
+                            max="${hardLimit !== null ? hardLimit : 1}" 
                             step="0.01" 
                             value="${value}"
-                            ${isLocked ? 'disabled' : ''}
+                            data-hard-limit="${hardLimit !== null ? hardLimit : 1}"
                         />
                         <div class="restraint-hint">
                             ${this.dimensionDescriptions[dim] || ''}
-                            ${hardLimit !== null ? ` <strong>Hard limit: ${hardLimit.toFixed(2)}</strong>` : ''}
+                            ${hardLimit !== null ? ` <strong>Hard limit: ${hardLimit.toFixed(2)} (can reduce below this)</strong>` : ''}
                         </div>
                     </div>
                 `;
