@@ -9,6 +9,7 @@ import secrets
 import hashlib
 import hmac
 import threading
+import time
 from typing import Any, Dict, List, Optional, Set
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -232,12 +233,12 @@ _cors_env = os.getenv("LOLLMSBOT_CORS_ORIGINS", "")
 if _cors_env:
     _cors_origins = [origin.strip() for origin in _cors_env.split(",") if origin.strip()]
 else:
-    # Default: only localhost for local-only mode
+    # Default: only localhost for local-only mode, empty list for external mode (no CORS)
     _cors_origins = ["http://localhost", "http://127.0.0.1"] if HOST in ("127.0.0.1", "localhost", "::1") else []
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins if _cors_origins else ["*"],  # Allow all if explicitly set to empty or external mode
+    allow_origins=_cors_origins,  # Use configured origins, never fall back to allow-all
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],

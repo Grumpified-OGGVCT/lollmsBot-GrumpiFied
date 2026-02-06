@@ -236,12 +236,13 @@ class StorageRegistry:
         cls._default = None
 
 
-# Import SqliteStore after BaseStorage is defined to avoid circular import
-from lollmsbot.storage.sqlite_store import SqliteStore
+# Import SqliteStore and StorageError after BaseStorage is defined to avoid circular import
+from lollmsbot.storage.sqlite_store import SqliteStore, StorageError
 
 
 __all__ = [
     "BaseStorage",
     "SqliteStore",
     "StorageRegistry",
+    "StorageError",  # Export exception for error handling
 ]
