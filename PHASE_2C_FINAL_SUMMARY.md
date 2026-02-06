@@ -312,7 +312,7 @@ if (health.health.self_healing.should_trigger) {
 }
 
 // WebSocket for real-time updates
-const ws = new WebSocket('ws://localhost:8000/rcl2/ws');
+const ws = new WebSocket('ws://localhost:57000/rcl2/ws');
 ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.cognitive_twin?.should_heal) {

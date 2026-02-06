@@ -281,7 +281,7 @@ this.apiBase = '/rcl2';        // API base path
 ### Local Development
 
 1. Start the LollmsBot server with UI enabled
-2. Navigate to `http://localhost:8000` (or configured port)
+2. Navigate to `http://localhost:57000` (or configured port)
 3. Click cognitive button or press Ctrl+K
 4. Make changes to JS/CSS files
 5. Refresh browser to see changes

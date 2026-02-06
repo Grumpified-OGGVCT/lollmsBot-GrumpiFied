@@ -177,8 +177,8 @@ cp .env.example .env
 # Edit .env with your settings, then:
 docker-compose up -d
 
-# lollmsBot: http://localhost:8800
-# LoLLMS UI: http://localhost:9642 (if using bundled stack)
+# lollmsBot: http://localhost:57800
+# LoLLMS UI: http://localhost:57964 (if using bundled stack)
 ```
 
 ### Option 3: One-Line Test
@@ -630,7 +630,7 @@ LOLLMS_MODEL_NAME=gpt-4o-mini
 
 # Ollama (local)
 LOLLMS_BINDING_NAME=ollama
-LOLLMS_HOST_ADDRESS=http://localhost:11434
+LOLLMS_HOST_ADDRESS=http://localhost:57114
 LOLLMS_MODEL_NAME=llama3.2
 
 # Claude (cloud)
@@ -898,7 +898,7 @@ registry.register(skill)
 ### Example API Call
 
 ```bash
-curl -X POST http://localhost:8800/chat \
+curl -X POST http://localhost:57800/chat \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "developer_001",
@@ -1081,7 +1081,7 @@ $ lollmsbot status
 ### Single Container (Local)
 
 ```bash
-docker run -p 127.0.0.1:8800:8800 \
+docker run -p 127.0.0.1:57800:8800 \
   -v $(pwd)/.env:/app/.env:ro \
   -v lollmsbot-data:/app/data \
   ghcr.io/parisneo/lollmsbot:latest
@@ -1097,7 +1097,7 @@ services:
     build: .
     ports: ["8800:8800"]
     environment:
-      - LOLLMS_HOST_ADDRESS=http://lollms:9600
+      - LOLLMS_HOST_ADDRESS=http://lollms:57960
       - DISCORD_BOT_TOKEN=${DISCORD_TOKEN}
   
   lollms:

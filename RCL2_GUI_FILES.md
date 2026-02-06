@@ -124,7 +124,7 @@ WS   /rcl2/ws                   → Real-time updates
 ### 2. Testing Locally
 
 1. Start LollmsBot server with UI enabled
-2. Navigate to `http://localhost:8000`
+2. Navigate to `http://localhost:57000`
 3. Click cognitive button (🧠) or press Ctrl+K
 4. Dashboard should open with all 6 tabs
 

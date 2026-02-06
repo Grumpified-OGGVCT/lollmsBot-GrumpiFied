@@ -1001,7 +1001,7 @@ window.chatApp = app;
         app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         
         # Add CORS middleware (C01 fix - secured)
-        allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5000")
+        allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:57300,http://localhost:57500")
         allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
         
         # Security: Disable credentials if wildcard is used
@@ -1011,7 +1011,7 @@ window.chatApp = app;
         
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=allowed_origins if allowed_origins else ["http://localhost:5000"],
+            allow_origins=allowed_origins if allowed_origins else ["http://localhost:57500"],
             allow_credentials=use_credentials,
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allow_headers=["*"],

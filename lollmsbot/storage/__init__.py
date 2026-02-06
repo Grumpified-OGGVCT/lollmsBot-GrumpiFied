@@ -138,7 +138,7 @@ class StorageRegistry:
     
     Example:
         >>> StorageRegistry.register("primary", SqliteStore("primary.db"))
-        >>> StorageRegistry.register("cache", RedisStore("localhost:6379"))
+        >>> StorageRegistry.register("cache", RedisStore("localhost:57637"))
         >>> StorageRegistry.set_default("primary")
         >>> store = StorageRegistry.get_default()
     """

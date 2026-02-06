@@ -93,7 +93,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="LollmsBot Web UI")
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
-    parser.add_argument("--port", type=int, default=8080, help="Port to listen on")
+    parser.add_argument("--port", type=int, default=57080, help="Port to listen on")
     parser.add_argument("--quiet", "-q", action="store_true", help="Minimal output")
     args = parser.parse_args()
     

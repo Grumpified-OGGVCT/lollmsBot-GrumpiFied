@@ -93,7 +93,7 @@ class MultiProviderConfig:
 @dataclass
 class LollmsSettings:
     """LoLLMS connection settings."""
-    host_address: str = field(default="http://localhost:9600")
+    host_address: str = field(default="http://localhost:57960")
     api_key: Optional[str] = field(default=None)
     verify_ssl: bool = field(default=True)
     binding_name: Optional[str] = field(default=None)
@@ -105,7 +105,7 @@ class LollmsSettings:
         """Load from environment variables."""
         global console
         return cls(
-            host_address=os.getenv("LOLLMS_HOST_ADDRESS", "http://localhost:9600"),
+            host_address=os.getenv("LOLLMS_HOST_ADDRESS", "http://localhost:57960"),
             api_key=os.getenv("LOLLMS_API_KEY"),
             verify_ssl=_get_bool("LOLLMS_VERIFY_SSL", True),
             binding_name=os.getenv("LOLLMS_BINDING_NAME"),
@@ -126,7 +126,7 @@ class LollmsSettings:
             if lollms_data.get("host_address"):
                 console.print("[green]📡 Using wizard config![/]" if console else "Using wizard config")
                 return cls(
-                    host_address=lollms_data.get("host_address", "http://localhost:9600"),
+                    host_address=lollms_data.get("host_address", "http://localhost:57960"),
                     api_key=lollms_data.get("api_key"),
                     verify_ssl=_get_bool(str(lollms_data.get("verify_ssl", True))),
                     binding_name=lollms_data.get("binding_name"),

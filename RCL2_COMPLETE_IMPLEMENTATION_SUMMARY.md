@@ -348,7 +348,7 @@ Successfully implemented **Reflective Consciousness Layer v2.0 (RCL-2)**, transf
 
 ### GUI (Visual)
 ```
-http://localhost:5000/
+http://localhost:57500/
 ```
 - Click 🧠 button or press `Ctrl+K`
 - 6 dashboard tabs
@@ -357,8 +357,8 @@ http://localhost:5000/
 
 ### API (Interactive)
 ```
-http://localhost:5000/docs        # SwaggerUI
-http://localhost:5000/redoc       # ReDoc
+http://localhost:57500/docs        # SwaggerUI
+http://localhost:57500/redoc       # ReDoc
 ```
 - Try endpoints in browser
 - See request/response schemas
@@ -375,7 +375,7 @@ lollmsbot restraints show
 
 ### WebSocket (Real-Time)
 ```javascript
-ws://localhost:5000/rcl2/ws
+ws://localhost:57500/rcl2/ws
 ```
 - Live cognitive state updates
 - Deliberation notifications
