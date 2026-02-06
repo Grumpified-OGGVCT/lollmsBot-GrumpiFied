@@ -8,6 +8,7 @@ import os
 import secrets
 import hashlib
 import hmac
+import threading
 from typing import Any, Dict, List, Optional, Set
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -39,11 +40,22 @@ _http_api: Optional[Any] = None
 
 # ========== SHARED AGENT INSTANCE ==========
 _agent: Optional[Agent] = None
+_agent_lock = threading.Lock()  # Thread-safe singleton pattern
 
 def get_agent() -> Agent:
-    """Get or create the shared Agent instance with tools registered."""
+    """Get or create the shared Agent instance with tools registered (thread-safe)."""
     global _agent
-    if _agent is None:
+    
+    # Fast path: if already initialized, return immediately
+    if _agent is not None:
+        return _agent
+    
+    # Slow path: acquire lock and initialize
+    with _agent_lock:
+        # Double-check after acquiring lock (another thread might have initialized)
+        if _agent is not None:
+            return _agent
+            
         config = BotConfig.from_env()
         _agent = Agent(
             config=config,
@@ -92,6 +104,7 @@ def get_agent() -> Agent:
             pass
         
         console.print(f"[green]✅ Agent initialized: {_agent}[/]")
+    
     return _agent
 
 # ========== SHARED LOLLMS CLIENT ==========
@@ -214,13 +227,17 @@ class PermissionReq(BaseModel):
 
 # ========== CORS ==========
 
-_cors_origins = ["http://localhost", "http://127.0.0.1"]
-if HOST not in ("127.0.0.1", "localhost", "::1"):
-    _cors_origins = []
+# Get CORS origins from config or environment, default to localhost only
+_cors_env = os.getenv("LOLLMSBOT_CORS_ORIGINS", "")
+if _cors_env:
+    _cors_origins = [origin.strip() for origin in _cors_env.split(",") if origin.strip()]
+else:
+    # Default: only localhost for local-only mode
+    _cors_origins = ["http://localhost", "http://127.0.0.1"] if HOST in ("127.0.0.1", "localhost", "::1") else []
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins,
+    allow_origins=_cors_origins if _cors_origins else ["*"],  # Allow all if explicitly set to empty or external mode
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],

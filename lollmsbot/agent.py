@@ -81,6 +81,52 @@ class AgentError(Exception):
     """Exception raised when agent processing fails."""
     pass
 
+
+class ValidationError(Exception):
+    """Exception raised when input validation fails."""
+    pass
+
+
+def validate_user_id(user_id: str) -> None:
+    """Validate user_id format and length.
+    
+    Args:
+        user_id: User identifier to validate
+        
+    Raises:
+        ValidationError: If user_id is invalid
+    """
+    if not user_id or not isinstance(user_id, str):
+        raise ValidationError("user_id must be a non-empty string")
+    
+    if len(user_id) > 256:
+        raise ValidationError("user_id exceeds maximum length of 256 characters")
+    
+    # Basic sanity check - allow alphanumeric, underscore, hyphen, @, .
+    import re
+    if not re.match(r'^[\w\-@.]+$', user_id):
+        raise ValidationError("user_id contains invalid characters (allowed: alphanumeric, _, -, @, .)")
+
+
+def validate_message(message: str, max_length: int = 50000) -> None:
+    """Validate message format and length.
+    
+    Args:
+        message: Message to validate
+        max_length: Maximum allowed message length (default: 50000)
+        
+    Raises:
+        ValidationError: If message is invalid
+    """
+    if not isinstance(message, str):
+        raise ValidationError("message must be a string")
+    
+    if not message.strip():
+        raise ValidationError("message cannot be empty or whitespace only")
+    
+    if len(message) > max_length:
+        raise ValidationError(f"message exceeds maximum length of {max_length} characters")
+
 @dataclass
 class UserPermissions:
     """Permissions configuration for a specific user."""
@@ -609,7 +655,23 @@ class Agent:
             
         Returns:
             Response dict with success, response, tools_used, etc.
+            
+        Raises:
+            ValidationError: If user_id or message is invalid
         """
+        # Validate inputs
+        try:
+            validate_user_id(user_id)
+            validate_message(message)
+        except ValidationError as e:
+            self._log(f"❌ Input validation failed: {e}", "red", "⚠️")
+            return {
+                "success": False,
+                "response": f"Invalid input: {str(e)}",
+                "error": f"validation_error: {str(e)}",
+                "tools_used": [], "skills_used": [], "files_to_send": [],
+            }
+        
         # If Lane Queue is available and enabled, submit through it
         if use_lane_queue and LANE_QUEUE_AVAILABLE and get_engine:
             engine = get_engine()

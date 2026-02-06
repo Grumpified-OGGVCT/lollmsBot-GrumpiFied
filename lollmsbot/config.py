@@ -72,7 +72,9 @@ class LollmsSettings:
                     verify_ssl=_get_bool(str(lollms_data.get("verify_ssl", True))),
                     binding_name=lollms_data.get("binding_name"),
                 )
-        except:
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            # Wizard config not found or invalid, fall back to environment variables
+            logger.debug(f"Could not load wizard config: {e}")
             pass
         return cls.from_env()
 
@@ -81,10 +83,16 @@ class GatewaySettings:
     """Gateway server settings."""
     host: str = field(default="localhost")
     port: int = field(default=8800)
+    cors_origins: List[str] = field(default_factory=lambda: ["http://localhost", "http://127.0.0.1"])
 
     @classmethod
     def from_env(cls) -> "GatewaySettings":
+        # Parse CORS origins from environment variable (comma-separated)
+        cors_env = os.getenv("LOLLMSBOT_CORS_ORIGINS", "")
+        cors_origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()] if cors_env else ["http://localhost", "http://127.0.0.1"]
+        
         return cls(
             host=os.getenv("LOLLMSBOT_HOST", "localhost"),
             port=int(os.getenv("LOLLMSBOT_PORT", "8800")),
+            cors_origins=cors_origins,
         )

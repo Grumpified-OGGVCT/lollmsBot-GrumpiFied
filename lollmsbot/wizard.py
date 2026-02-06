@@ -1209,7 +1209,8 @@ class Wizard:
             elif param.type == "object":
                 try:
                     value = json.loads(value)
-                except:
+                except (json.JSONDecodeError, ValueError):
+                    # Could not parse as JSON, treat as raw string
                     value = {"raw": value}
             
             inputs[param.name] = value
