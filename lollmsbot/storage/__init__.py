@@ -24,8 +24,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol
 
-from lollmsbot.storage.sqlite_store import SqliteStore
-
 
 class BaseStorage(ABC):
     """Abstract base class for storage backends.
@@ -236,6 +234,10 @@ class StorageRegistry:
             await backend.close()
         cls._backends.clear()
         cls._default = None
+
+
+# Import SqliteStore after BaseStorage is defined to avoid circular import
+from lollmsbot.storage.sqlite_store import SqliteStore
 
 
 __all__ = [
