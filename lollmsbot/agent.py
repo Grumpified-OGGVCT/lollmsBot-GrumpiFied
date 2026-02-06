@@ -26,6 +26,22 @@ except ImportError:
     LANE_QUEUE_AVAILABLE = False
     get_engine = None
 
+# Import Adaptive Compute Manager (optional)
+try:
+    from lollmsbot.adaptive.compute_manager import get_compute_manager
+    ADAPTIVE_COMPUTE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_COMPUTE_AVAILABLE = False
+    get_compute_manager = None
+
+# Import RAG Store (optional)
+try:
+    from lollmsbot.memory.rag_store import get_rag_store
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    get_rag_store = None
+
 # Rich imports for colored logging
 from rich.console import Console
 from rich.panel import Panel
@@ -737,16 +753,63 @@ class Agent:
             if client:
                 # Build conversation context
                 history = self._get_user_history(user_id)
-                prompt = self._format_prompt_for_lollms(system_prompt, history, message)
+                
+                # Adaptive Compute: Assess complexity and adjust parameters
+                if ADAPTIVE_COMPUTE_AVAILABLE and get_compute_manager:
+                    compute_manager = get_compute_manager()
+                    context_length = sum(len(turn.user_message) + len(turn.agent_response) 
+                                       for turn in history)
+                    complexity = compute_manager.assess_complexity(
+                        message, 
+                        context_length=context_length,
+                        has_history=len(history) > 0
+                    )
+                    
+                    # Get optimized generation parameters
+                    gen_params = compute_manager.get_generation_params(complexity)
+                    temperature = gen_params.get("temperature", 0.7)
+                    max_tokens = gen_params.get("max_tokens", 1000)
+                    
+                    self._log(
+                        f"🎯 Adaptive Compute: {complexity.level.name} "
+                        f"(score={complexity.score:.2f}, tokens≈{complexity.token_estimate})",
+                        "cyan", "🧠"
+                    )
+                    if complexity.early_exit_candidate:
+                        self._log("⚡ Early-exit eligible - 70% compute savings", "green", "💡")
+                else:
+                    # Default parameters
+                    temperature = 0.7
+                    max_tokens = 1000
+                
+                # RAG: Retrieve relevant context if available
+                rag_context = ""
+                if RAG_AVAILABLE and get_rag_store:
+                    try:
+                        rag = get_rag_store()
+                        results = rag.search(message, top_k=3, threshold=0.2)
+                        if results:
+                            rag_context = "\n\n**Relevant Context from Knowledge Base:**\n"
+                            for doc, score in results:
+                                rag_context += f"- {doc.content} (relevance: {score:.2f})\n"
+                            self._log(
+                                f"📚 RAG: Injected {len(results)} relevant documents",
+                                "cyan", "🔍"
+                            )
+                    except Exception as e:
+                        self._log(f"RAG retrieval failed: {e}", "yellow", "⚠️")
+                
+                prompt = self._format_prompt_for_lollms(system_prompt, history, message, rag_context)
                 
                 self._log_llm_call(len(prompt), system_prompt)
                 
-                # Call LLM
+                # Call LLM with adaptive parameters
                 llm_response = client.generate_text(
                     prompt=prompt,
-                    temperature=0.7,
+                    temperature=temperature,
                     top_p=0.9,
                     repeat_penalty=1.1,
+                    max_tokens=max_tokens,
                 )
                 
                 has_tools = "[[TOOL:" in llm_response or "<function_calls>" in llm_response
@@ -1647,9 +1710,21 @@ class Agent:
         system_prompt: str,
         history: List[ConversationTurn],
         current_message: str,
+        rag_context: str = "",
     ) -> str:
-        """Format the complete prompt for LoLLMS generation."""
+        """Format the complete prompt for LoLLMS generation.
+        
+        Args:
+            system_prompt: System instructions
+            history: Conversation history
+            current_message: Current user message
+            rag_context: Optional RAG-retrieved context to inject
+        """
         parts = [f"### System:\n{system_prompt}\n"]
+        
+        # Add RAG context if available
+        if rag_context:
+            parts.append(f"### Knowledge Base Context:\n{rag_context}\n")
         
         # Add recent history (last 5 turns to stay within context)
         for turn in history[-5:]:
