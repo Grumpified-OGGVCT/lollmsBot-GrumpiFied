@@ -432,6 +432,157 @@ def print_status() -> None:
     console.print()
 
 
+def handle_introspection_command(args) -> None:
+    """Handle introspection subcommands."""
+    try:
+        from lollmsbot.self_awareness import get_awareness_manager, AwarenessLevel
+        from rich.table import Table
+        import asyncio
+        
+        manager = get_awareness_manager()
+        
+        if not manager.config.enabled:
+            console.print("[yellow]⚠️ Self-awareness is disabled[/yellow]")
+            console.print("[dim]Enable in .env: SELF_AWARENESS_ENABLED=true[/dim]")
+            return
+        
+        if args.awareness_command == "status":
+            # Show status
+            console.print("\n[bold cyan]🧠 Self-Awareness Status[/bold cyan]\n")
+            
+            status = manager.get_status_report()
+            
+            # Create status table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Property", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Enabled", "✅ Yes" if status["enabled"] else "❌ No")
+            table.add_row("Awareness Level", status["awareness_level"])
+            table.add_row("Decision Count", str(status["decision_count"]))
+            table.add_row("Pattern Count", str(status["pattern_count"]))
+            table.add_row("Introspection Count", str(status["introspection_count"]))
+            table.add_row("Last Reflection", status["last_reflection"])
+            table.add_row("Reflection Loop", "✅ Active" if status["reflection_loop_active"] else "⭕ Inactive")
+            
+            console.print(table)
+            
+            # Show enabled features
+            console.print("\n[bold]Enabled Features:[/bold]")
+            for feature in status["enabled_features"]:
+                console.print(f"  ✓ {feature.replace('_', ' ').title()}")
+            
+            console.print()
+        
+        elif args.awareness_command == "state":
+            # Show current state
+            console.print("\n[bold cyan]📊 Current Internal State[/bold cyan]\n")
+            
+            state = manager.get_current_state()
+            
+            if not state:
+                console.print("[yellow]No state information available[/yellow]")
+                console.print("[dim]State tracking may be disabled[/dim]")
+                return
+            
+            # Create state table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Property", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Timestamp", state.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+            table.add_row("Active Contexts", str(len(state.active_contexts)))
+            table.add_row("Current Goals", str(len(state.current_goals)))
+            table.add_row("Working Memory Size", str(state.working_memory_size))
+            table.add_row("Active Skills", str(len(state.active_skills)))
+            table.add_row("Active Tools", str(len(state.active_tools)))
+            table.add_row("Attention Focus", state.attention_focus or "None")
+            table.add_row("Processing Load", f"{state.processing_load:.1%}")
+            table.add_row("Confidence Level", f"{state.confidence_level:.1%}")
+            table.add_row("Interaction Mode", state.interaction_mode)
+            
+            console.print(table)
+            console.print()
+        
+        elif args.awareness_command == "decisions":
+            # Show decision history
+            console.print("\n[bold cyan]📝 Recent Decisions[/bold cyan]\n")
+            
+            decisions = manager.get_decision_history(
+                decision_type=args.type,
+                limit=args.limit
+            )
+            
+            if not decisions:
+                console.print("[yellow]No decisions recorded[/yellow]")
+                return
+            
+            for i, decision in enumerate(decisions, 1):
+                console.print(f"[bold cyan]{i}. {decision.decision_type}[/bold cyan]")
+                console.print(f"   Decision: {decision.decision}")
+                console.print(f"   Time: {decision.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+                console.print(f"   Confidence: {decision.confidence:.1%}")
+                if decision.reasoning:
+                    console.print(f"   Reasoning: {decision.reasoning}")
+                if decision.outcome:
+                    console.print(f"   Outcome: {decision.outcome}")
+                console.print()
+        
+        elif args.awareness_command == "patterns":
+            # Show recognized patterns
+            console.print("\n[bold cyan]🔍 Recognized Behavioral Patterns[/bold cyan]\n")
+            
+            patterns = manager.get_recognized_patterns(pattern_type=args.type)
+            
+            if not patterns:
+                console.print("[yellow]No patterns recognized yet[/yellow]")
+                return
+            
+            # Create patterns table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Type", style="cyan")
+            table.add_column("Description", style="green", max_width=50)
+            table.add_column("Frequency", style="yellow")
+            table.add_column("Confidence", style="magenta")
+            
+            for pattern in patterns[:20]:
+                table.add_row(
+                    pattern.pattern_type,
+                    pattern.description,
+                    str(pattern.frequency),
+                    f"{pattern.confidence:.1%}"
+                )
+            
+            console.print(table)
+            console.print()
+        
+        elif args.awareness_command == "query":
+            # Perform introspection query
+            console.print(f"\n[bold cyan]🤔 Introspecting: {args.question}[/bold cyan]\n")
+            
+            async def run_query():
+                result = await manager.introspect(args.question, depth=args.depth)
+                return result
+            
+            result = asyncio.run(run_query())
+            
+            console.print(f"[bold]Query:[/bold] {result.query}")
+            console.print(f"[bold]Depth:[/bold] {result.depth}")
+            console.print(f"[bold]Confidence:[/bold] {result.confidence:.1%}")
+            console.print(f"[bold]Time:[/bold] {result.took_seconds:.2f}s\n")
+            
+            console.print("[bold]Findings:[/bold]")
+            console.print(json.dumps(result.findings, indent=2))
+            console.print()
+        
+        else:
+            console.print("[yellow]Please specify an introspection command: status, state, decisions, patterns, or query[/yellow]")
+    
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print_exception(show_locals=True)
+
+
 def main(argv: List[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="lollmsbot",
@@ -516,6 +667,34 @@ def main(argv: List[str] | None = None) -> None:
     
     # skills info
     info_parser = skills_subparsers.add_parser("info", help="Show skills repository info")
+    
+    # Self-awareness command
+    awareness_parser = subparsers.add_parser(
+        "introspect",
+        help="Self-awareness and introspection",
+        description="Query lollmsBot's internal state, decisions, and patterns"
+    )
+    awareness_subparsers = awareness_parser.add_subparsers(dest="awareness_command", help="Introspection operations")
+    
+    # introspect status
+    status_aware_parser = awareness_subparsers.add_parser("status", help="Show self-awareness status")
+    
+    # introspect state
+    state_parser = awareness_subparsers.add_parser("state", help="Show current internal state")
+    
+    # introspect decisions
+    decisions_parser = awareness_subparsers.add_parser("decisions", help="Show recent decisions")
+    decisions_parser.add_argument("--type", type=str, help="Filter by decision type")
+    decisions_parser.add_argument("--limit", type=int, default=10, help="Number of decisions to show")
+    
+    # introspect patterns
+    patterns_parser = awareness_subparsers.add_parser("patterns", help="Show recognized behavioral patterns")
+    patterns_parser.add_argument("--type", type=str, help="Filter by pattern type")
+    
+    # introspect query
+    query_parser = awareness_subparsers.add_parser("query", help="Ask introspective question")
+    query_parser.add_argument("question", type=str, help="Introspective question")
+    query_parser.add_argument("--depth", type=int, default=1, help="Depth of analysis (1-3)")
 
     args = parser.parse_args(argv)
 
@@ -575,6 +754,9 @@ def main(argv: List[str] | None = None) -> None:
         
         elif args.command == "skills":
             handle_skills_command(args)
+        
+        elif args.command == "introspect":
+            handle_introspection_command(args)
             
         else:
             parser.print_help()
