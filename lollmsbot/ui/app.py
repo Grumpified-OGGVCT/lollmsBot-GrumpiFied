@@ -921,6 +921,14 @@ window.chatApp = app;
         app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
         templates = Jinja2Templates(directory=str(self.templates_dir))
         
+        # Include RCL-2 routes
+        try:
+            from lollmsbot.rcl2_routes import rcl2_router
+            app.include_router(rcl2_router)
+            logger.info("✅ RCL-2 routes enabled")
+        except ImportError as e:
+            logger.warning(f"RCL-2 routes not available: {e}")
+        
         @app.on_event("startup")
         async def startup_event():
             self._file_cleanup_task = asyncio.create_task(self._cleanup_expired_files())
