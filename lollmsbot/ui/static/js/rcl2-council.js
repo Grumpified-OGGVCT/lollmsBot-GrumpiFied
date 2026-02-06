@@ -289,7 +289,7 @@ class CouncilViewer {
                 <div class="modal" style="max-width: 900px;">
                     <div class="modal-header">
                         <h3 class="modal-title">Deliberation Results</h3>
-                        <button class="modal-close" onclick="document.getElementById('deliberation-results-modal').remove()">×</button>
+                        <button class="modal-close" id="close-deliberation-modal">×</button>
                     </div>
                     <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                         <div class="dashboard-card">
@@ -316,7 +316,7 @@ class CouncilViewer {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" onclick="document.getElementById('deliberation-results-modal').remove()">
+                        <button class="btn btn-primary" id="close-deliberation-modal-footer">
                             Close
                         </button>
                     </div>
@@ -325,6 +325,15 @@ class CouncilViewer {
         `;
         
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Attach close handlers
+        const closeModal = () => {
+            const modal = document.getElementById('deliberation-results-modal');
+            if (modal) modal.remove();
+        };
+        
+        document.getElementById('close-deliberation-modal')?.addEventListener('click', closeModal);
+        document.getElementById('close-deliberation-modal-footer')?.addEventListener('click', closeModal);
     }
     
     viewDeliberationDetails(actionId) {

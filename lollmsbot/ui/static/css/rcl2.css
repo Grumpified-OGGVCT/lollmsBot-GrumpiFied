@@ -1289,6 +1289,10 @@
     }
 }
 
+.toast.toast-exit {
+    animation: slideInRight 0.3s ease reverse;
+}
+
 .toast.success {
     border-left-color: var(--success);
 }

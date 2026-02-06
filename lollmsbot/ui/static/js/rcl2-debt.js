@@ -260,11 +260,55 @@ class CognitiveDebtManager {
             return;
         }
         
-        // Show confirmation
-        if (!confirm(`Repay all ${this.debtItems.length} outstanding debt items? This may take some time.`)) {
-            return;
-        }
+        // Show custom confirmation modal
+        this.showRepayAllModal();
+    }
+    
+    showRepayAllModal() {
+        const count = this.debtItems.length;
         
+        const modalHTML = `
+            <div class="modal-overlay open" id="repay-all-modal" style="z-index: 2000;">
+                <div class="modal" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Repay All Cognitive Debt?</h3>
+                        <button class="modal-close" id="close-repay-all-modal">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
+                            You are about to repay <strong>${count}</strong> outstanding debt item(s). 
+                            This process may take some time as the system performs deep reflection 
+                            on each deferred decision.
+                        </p>
+                        <p style="color: var(--warning); line-height: 1.6;">
+                            ⚠️ This operation cannot be undone.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="cancel-repay-all">Cancel</button>
+                        <button class="btn btn-primary" id="confirm-repay-all">Repay All</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Attach handlers
+        const closeModal = () => {
+            const modal = document.getElementById('repay-all-modal');
+            if (modal) modal.remove();
+        };
+        
+        document.getElementById('close-repay-all-modal')?.addEventListener('click', closeModal);
+        document.getElementById('cancel-repay-all')?.addEventListener('click', closeModal);
+        document.getElementById('confirm-repay-all')?.addEventListener('click', () => {
+            closeModal();
+            this.executeRepayAll();
+        });
+    }
+    
+    async executeRepayAll() {
         this.dashboard.showToast('Repaying all debt...', 'info');
         
         let successCount = 0;

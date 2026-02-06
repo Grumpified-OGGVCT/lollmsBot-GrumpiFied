@@ -592,7 +592,7 @@ class RCL2Dashboard {
         
         // Auto-remove after 5 seconds
         setTimeout(() => {
-            toast.style.animation = 'slideInRight 0.3s ease reverse';
+            toast.classList.add('toast-exit');
             setTimeout(() => toast.remove(), 300);
         }, 5000);
     }

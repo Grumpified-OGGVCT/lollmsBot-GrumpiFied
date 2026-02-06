@@ -14,6 +14,9 @@ class RestraintMatrix {
         this.pendingChanges = {};
         this.authorizationKey = '';
         
+        // Floating-point comparison tolerance
+        this.FLOAT_COMPARISON_EPSILON = 0.001;
+        
         this.dimensionDescriptions = {
             'RECURSION_DEPTH': 'Maximum depth of recursive self-reflection',
             'COGNITIVE_BUDGET_MS': 'Time budget for cognitive operations',
@@ -238,7 +241,7 @@ class RestraintMatrix {
         
         // Track change
         const originalValue = this.restraints[key];
-        if (Math.abs(value - originalValue) > 0.001) {
+        if (Math.abs(value - originalValue) > this.FLOAT_COMPARISON_EPSILON) {
             this.pendingChanges[dimension] = value;
         } else {
             delete this.pendingChanges[dimension];
