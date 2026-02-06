@@ -738,11 +738,28 @@ class Agent:
             self._log_security_check(is_safe, event)
             
             if not is_safe:
+                # Format detailed security feedback for user transparency
+                user_message = (
+                    f"⚠️ **Security Check Failed**\n\n"
+                    f"**Reason:** {event.description if event else 'Policy violation detected'}\n"
+                    f"**Threat Level:** {event.threat_level.name if event else 'MEDIUM'}\n"
+                    f"**Action:** {event.action_taken.name if event else 'BLOCKED'}\n\n"
+                    f"Your request was blocked for safety. This helps protect the system and your data.\n"
+                    f"If you believe this is a false positive, please rephrase your request."
+                )
+                
                 return {
                     "success": False,
-                    "response": "Message blocked by security screening.",
+                    "response": user_message,
                     "error": f"Security blocked: {event.description if event else 'policy violation'}",
-                    "security_blocked": True, "tools_used": [], "skills_used": [], "files_to_send": [],
+                    "security_blocked": True,
+                    "security_event": {
+                        "id": event.event_id if event and hasattr(event, 'event_id') else None,
+                        "level": event.threat_level.name if event else "MEDIUM",
+                        "description": event.description if event else "Policy violation",
+                        "action": event.action_taken.name if event else "BLOCKED"
+                    },
+                    "tools_used": [], "skills_used": [], "files_to_send": [],
                 }
             if event:
                 security_flags.append(event.event_type)
