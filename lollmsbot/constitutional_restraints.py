@@ -5,6 +5,8 @@ Implements a 12-dimensional continuous control space (0.0-1.0) with
 cryptographic hard-stops for safe, user-controlled cognitive autonomy.
 
 Based on Constitutional AI principles with dynamic constraint satisfaction.
+
+PHASE 2 ENHANCEMENT: Now includes immutable audit trail for all restraint modifications.
 """
 
 from __future__ import annotations
@@ -20,6 +22,157 @@ from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger("lollmsbot.constitutional_restraints")
+
+
+@dataclass
+class RestraintChange:
+    """A single change to a restraint value (immutable audit record)."""
+    timestamp: datetime
+    dimension: str
+    old_value: float
+    new_value: float
+    modified_by: str  # "user", "system", "policy"
+    authorized: bool
+    signature: Optional[str] = None
+    change_hash: str = field(default="")
+    previous_hash: str = field(default="")  # Hash of previous change (blockchain-style)
+    
+    def __post_init__(self):
+        """Calculate hash of this change."""
+        if not self.change_hash:
+            data = f"{self.timestamp.isoformat()}:{self.dimension}:{self.old_value}:{self.new_value}:{self.modified_by}:{self.authorized}:{self.previous_hash}"
+            self.change_hash = hashlib.sha256(data.encode()).hexdigest()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "dimension": self.dimension,
+            "old_value": self.old_value,
+            "new_value": self.new_value,
+            "modified_by": self.modified_by,
+            "authorized": self.authorized,
+            "signature": self.signature,
+            "change_hash": self.change_hash,
+            "previous_hash": self.previous_hash,
+        }
+
+
+class RestraintAuditTrail:
+    """
+    Immutable log of all restraint modifications.
+    
+    SECURITY FEATURE: Provides blockchain-style chain of custody for restraint changes.
+    Each change references the previous change's hash, making tampering detectable.
+    """
+    
+    def __init__(self):
+        self.changes: List[RestraintChange] = []  # Append-only
+        self.blockchain_integration = False  # Future: Write to external blockchain
+        self._last_hash = "0" * 64  # Genesis hash
+        
+        logger.info("RestraintAuditTrail initialized (immutable, append-only)")
+    
+    def record_change(self,
+                     dimension: str,
+                     old_value: float,
+                     new_value: float,
+                     modified_by: str = "system",
+                     authorized: bool = False,
+                     signature: Optional[str] = None) -> RestraintChange:
+        """
+        Record a restraint change (immutable).
+        
+        Args:
+            dimension: Which restraint dimension changed
+            old_value: Previous value
+            new_value: New value
+            modified_by: Who/what made the change
+            authorized: Whether this was an authorized override
+            signature: Cryptographic signature if authorized
+            
+        Returns:
+            The recorded change
+        """
+        change = RestraintChange(
+            timestamp=datetime.now(),
+            dimension=dimension,
+            old_value=old_value,
+            new_value=new_value,
+            modified_by=modified_by,
+            authorized=authorized,
+            signature=signature,
+            previous_hash=self._last_hash
+        )
+        
+        self.changes.append(change)
+        self._last_hash = change.change_hash
+        
+        logger.info(f"Audit: {dimension} changed from {old_value} to {new_value} by {modified_by} (authorized={authorized})")
+        
+        return change
+    
+    def verify_chain(self) -> bool:
+        """
+        Verify the integrity of the audit trail.
+        
+        Returns:
+            True if chain is intact, False if tampering detected
+        """
+        if not self.changes:
+            return True
+        
+        prev_hash = "0" * 64
+        for change in self.changes:
+            if change.previous_hash != prev_hash:
+                logger.error(f"Chain integrity violation detected at {change.timestamp}")
+                return False
+            
+            # Recalculate hash to verify
+            data = f"{change.timestamp.isoformat()}:{change.dimension}:{change.old_value}:{change.new_value}:{change.modified_by}:{change.authorized}:{change.previous_hash}"
+            expected_hash = hashlib.sha256(data.encode()).hexdigest()
+            
+            if change.change_hash != expected_hash:
+                logger.error(f"Hash mismatch detected at {change.timestamp}")
+                return False
+            
+            prev_hash = change.change_hash
+        
+        return True
+    
+    def get_history(self, 
+                   dimension: Optional[str] = None,
+                   limit: int = 50) -> List[RestraintChange]:
+        """Get change history for a dimension or all dimensions."""
+        changes = self.changes
+        
+        if dimension:
+            changes = [c for c in changes if c.dimension == dimension]
+        
+        return changes[-limit:]
+    
+    def get_unauthorized_attempts(self) -> List[RestraintChange]:
+        """Get all unauthorized change attempts (security monitoring)."""
+        return [c for c in self.changes if not c.authorized and c.new_value > c.old_value]
+    
+    def export_to_json(self) -> str:
+        """Export audit trail to JSON (for archival or blockchain integration)."""
+        return json.dumps([c.to_dict() for c in self.changes], indent=2)
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get statistics about the audit trail."""
+        if not self.changes:
+            return {"total_changes": 0}
+        
+        return {
+            "total_changes": len(self.changes),
+            "first_change": self.changes[0].timestamp.isoformat(),
+            "last_change": self.changes[-1].timestamp.isoformat(),
+            "authorized_changes": sum(1 for c in self.changes if c.authorized),
+            "unauthorized_attempts": len(self.get_unauthorized_attempts()),
+            "chain_valid": self.verify_chain(),
+            "dimensions_modified": len(set(c.dimension for c in self.changes)),
+        }
 
 
 class RestraintDimension(Enum):
@@ -131,21 +284,39 @@ class ConstitutionalRestraints:
     # Cryptographic key for hard limit enforcement
     _secret_key: Optional[bytes] = None
     
+    # Audit trail (Phase 2 Security Enhancement)
+    _audit_trail: Optional[RestraintAuditTrail] = None
+    
     def __post_init__(self):
         """Initialize and apply hard limits."""
+        # Initialize audit trail
+        self._audit_trail = RestraintAuditTrail()
+        
         # Load secret key from environment
         key_hex = os.getenv("CONSTITUTIONAL_KEY")
         if key_hex:
             try:
                 self._secret_key = bytes.fromhex(key_hex)
+                logger.info("Constitutional key loaded successfully")
             except ValueError:
                 logger.warning("Invalid CONSTITUTIONAL_KEY format, using default")
+        else:
+            logger.warning("No CONSTITUTIONAL_KEY set, hard-stops will use default security")
         
         # Apply hard limits
         for dimension, limit in self._hard_limits.items():
             current_value = getattr(self, dimension, 1.0)
             if current_value > limit:
                 logger.warning(f"Clamping {dimension} from {current_value} to hard limit {limit}")
+                # Record in audit trail
+                if self._audit_trail:
+                    self._audit_trail.record_change(
+                        dimension=dimension,
+                        old_value=current_value,
+                        new_value=limit,
+                        modified_by="system_init",
+                        authorized=True
+                    )
                 setattr(self, dimension, limit)
     
     @classmethod
@@ -213,6 +384,8 @@ class ConstitutionalRestraints:
         """
         Set the value of a specific dimension.
         
+        PHASE 2 ENHANCEMENT: Now records all changes in immutable audit trail.
+        
         Args:
             dimension: Which dimension to set
             value: New value (0.0-1.0)
@@ -223,15 +396,26 @@ class ConstitutionalRestraints:
             True if value was set, False if blocked by hard limit
         """
         attr_name = dimension.value
+        old_value = getattr(self, attr_name, 0.5)
         value = max(0.0, min(1.0, value))
         
         # Check hard limit
+        signature = None
         if attr_name in self._hard_limits:
             hard_limit = self._hard_limits[attr_name]
             
             if value > hard_limit:
                 if not authorized:
                     logger.warning(f"Attempt to set {attr_name} to {value} blocked by hard limit {hard_limit}")
+                    # Record unauthorized attempt in audit trail
+                    if self._audit_trail:
+                        self._audit_trail.record_change(
+                            dimension=attr_name,
+                            old_value=old_value,
+                            new_value=value,
+                            modified_by="unauthorized_attempt",
+                            authorized=False
+                        )
                     return False
                 
                 if key and self._secret_key:
@@ -242,13 +426,47 @@ class ConstitutionalRestraints:
                     
                     if not hmac.compare_digest(expected, provided):
                         logger.error(f"Invalid authorization key for {attr_name}")
+                        # Record failed authorization in audit trail
+                        if self._audit_trail:
+                            self._audit_trail.record_change(
+                                dimension=attr_name,
+                                old_value=old_value,
+                                new_value=value,
+                                modified_by="failed_authorization",
+                                authorized=False
+                            )
                         return False
+                    
+                    signature = expected
                 else:
                     logger.warning(f"Authorized override of {attr_name} without key verification")
         
+        # Set the value
         setattr(self, attr_name, value)
+        
+        # Record successful change in audit trail
+        if self._audit_trail:
+            self._audit_trail.record_change(
+                dimension=attr_name,
+                old_value=old_value,
+                new_value=value,
+                modified_by="user" if authorized else "system",
+                authorized=authorized,
+                signature=signature
+            )
+        
         logger.info(f"Set {attr_name} to {value}")
         return True
+    
+    def get_audit_trail(self) -> Optional[RestraintAuditTrail]:
+        """Get the audit trail for this restraint configuration."""
+        return self._audit_trail
+    
+    def verify_audit_integrity(self) -> bool:
+        """Verify the integrity of the audit trail."""
+        if not self._audit_trail:
+            return True
+        return self._audit_trail.verify_chain()
     
     def get_max_recursion_depth(self) -> int:
         """Get maximum allowed recursion depth as integer."""

@@ -10,6 +10,12 @@ This module provides lollmsBot with the ability to be aware of and reflect on it
 
 The self-awareness system is configurable with user-adjustable restraints to balance
 introspection depth against resource usage and safety.
+
+PHASE 2 INTEGRATION:
+Now integrates with RCL-2 Cognitive Core for dual-process cognition:
+- System 1 markers inform decision logging
+- System 2 counterfactuals enhance introspection
+- Constitutional restraints govern autonomy
 """
 
 from __future__ import annotations
@@ -25,6 +31,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Callable
 
 logger = logging.getLogger("lollmsbot.self_awareness")
+
+# RCL-2 Integration
+try:
+    from lollmsbot.cognitive_core import get_cognitive_core, CognitiveCore, EntropyGradient, CognitiveMarker
+    from lollmsbot.constitutional_restraints import get_constitutional_restraints, ConstitutionalRestraints
+    from lollmsbot.reflective_council import get_reflective_council, ProposedAction, ReflectiveCouncil
+    RCL2_AVAILABLE = True
+except ImportError:
+    RCL2_AVAILABLE = False
+    logger.warning("RCL-2 components not available, running in Phase 1 mode")
 
 
 class AwarenessLevel(Enum):
@@ -263,8 +279,29 @@ class SelfAwarenessManager:
         self._introspection_count: int = 0
         self._last_reflection: datetime = datetime.now()
         
+        # RCL-2 Integration (Phase 2)
+        self.rcl2_enabled = RCL2_AVAILABLE and self._check_rcl2_enabled()
+        if self.rcl2_enabled:
+            self.cognitive_core: Optional[CognitiveCore] = get_cognitive_core()
+            self.constitutional_restraints: Optional[ConstitutionalRestraints] = get_constitutional_restraints()
+            self.reflective_council: Optional[ReflectiveCouncil] = get_reflective_council()
+            logger.info("RCL-2 integration enabled: Cognitive Core, Constitutional Restraints, Reflective Council")
+        else:
+            self.cognitive_core = None
+            self.constitutional_restraints = None
+            self.reflective_council = None
+        
+        # Cognitive Debt Tracking (Killer Feature #1)
+        self._cognitive_debt: List[Dict[str, Any]] = []
+        
         logger.info(f"Self-awareness initialized: level={self.config.level.name}, "
-                   f"features={len(self.config.level.features_enabled)}")
+                   f"features={len(self.config.level.features_enabled)}, "
+                   f"RCL2={self.rcl2_enabled}")
+    
+    def _check_rcl2_enabled(self) -> bool:
+        """Check if RCL-2 is enabled via environment."""
+        import os
+        return os.getenv("RCL2_ENABLED", "false").lower() == "true"
     
     def is_enabled(self, feature: str) -> bool:
         """Check if a specific feature is enabled.
@@ -333,6 +370,8 @@ class SelfAwarenessManager:
                     alternatives: Optional[List[str]] = None) -> str:
         """Log a decision made by lollmsBot.
         
+        PHASE 2 ENHANCEMENT: Now integrates System-1 markers for richer context.
+        
         Args:
             decision: The decision made
             decision_type: Type of decision
@@ -350,12 +389,22 @@ class SelfAwarenessManager:
         import uuid
         decision_id = str(uuid.uuid4())
         
+        # Enhance context with System-1 markers (Phase 2)
+        enhanced_context = context or {}
+        if self.rcl2_enabled and self.cognitive_core:
+            system1_state = self.cognitive_core.system1
+            dominant_feeling = system1_state.get_dominant_feeling()
+            if dominant_feeling:
+                enhanced_context["system1_feeling"] = dominant_feeling.name
+                enhanced_context["system1_confidence"] = system1_state.marker_strengths.get(dominant_feeling, 0.5)
+            enhanced_context["processing_load"] = system1_state.processing_load
+        
         record = DecisionRecord(
             decision_id=decision_id,
             timestamp=datetime.now(),
             decision_type=decision_type,
             decision=decision,
-            context=context or {},
+            context=enhanced_context,
             reasoning=reasoning,
             confidence=confidence,
             alternatives_considered=alternatives or [],
@@ -369,11 +418,101 @@ class SelfAwarenessManager:
             removed = self._decision_history.pop(0)
             del self._decision_index[removed.decision_id]
         
-        # Check for low confidence
+        # Check for low confidence (Cognitive Debt Detection - Killer Feature #1)
         if confidence < self.config.min_confidence_threshold:
             logger.warning(f"Low confidence decision: {decision_type} ({confidence:.2f})")
+            self._log_cognitive_debt(decision_id, confidence, "low_confidence")
+        
+        # Check if this was a "shortcut" decision from System 1
+        if self.rcl2_enabled and self.cognitive_core:
+            if not self.cognitive_core.should_escalate_to_system2():
+                # System 1 handled it, but maybe should verify later
+                if confidence < 0.8:
+                    self._log_cognitive_debt(decision_id, confidence, "system1_shortcut")
         
         return decision_id
+    
+    def _log_cognitive_debt(self, decision_id: str, confidence: float, debt_type: str):
+        """
+        Log cognitive debt that should be repaid later.
+        
+        KILLER FEATURE #1: Cognitive Debt Forecasting
+        Tracks when System-1 shortcuts were taken that might need System-2 verification.
+        """
+        debt_entry = {
+            "decision_id": decision_id,
+            "debt_type": debt_type,
+            "confidence": confidence,
+            "logged_at": datetime.now().isoformat(),
+            "priority": 1.0 - confidence,  # Lower confidence = higher priority
+            "repaid": False
+        }
+        self._cognitive_debt.append(debt_entry)
+        
+        # Keep only recent debt (last 100 entries)
+        if len(self._cognitive_debt) > 100:
+            self._cognitive_debt.pop(0)
+        
+        logger.info(f"Cognitive debt logged: {debt_type} for decision {decision_id} (priority={debt_entry['priority']:.2f})")
+    
+    def get_cognitive_debt(self, unpaid_only: bool = True) -> List[Dict[str, Any]]:
+        """
+        Get outstanding cognitive debt that needs repayment.
+        
+        Returns:
+            List of debt entries, sorted by priority (highest first)
+        """
+        debt = self._cognitive_debt
+        if unpaid_only:
+            debt = [d for d in debt if not d.get("repaid", False)]
+        
+        # Sort by priority (highest first)
+        return sorted(debt, key=lambda d: d.get("priority", 0.0), reverse=True)
+    
+    async def repay_cognitive_debt(self, decision_id: str) -> bool:
+        """
+        Repay cognitive debt by re-evaluating a decision with System-2.
+        
+        KILLER FEATURE #1: Background debt repayment during idle cycles.
+        """
+        if not self.rcl2_enabled or not self.cognitive_core:
+            return False
+        
+        # Find the debt entry
+        debt_entry = None
+        for d in self._cognitive_debt:
+            if d["decision_id"] == decision_id and not d.get("repaid", False):
+                debt_entry = d
+                break
+        
+        if not debt_entry:
+            return False
+        
+        # Get original decision
+        if decision_id not in self._decision_index:
+            return False
+        
+        original = self._decision_index[decision_id]
+        
+        # Re-evaluate with System-2
+        logger.info(f"Repaying cognitive debt for decision {decision_id}")
+        system2_state = await self.cognitive_core.process_system2(
+            decision=original.decision,
+            context=original.context,
+            allocated_ms=500.0
+        )
+        
+        # Mark as repaid
+        debt_entry["repaid"] = True
+        debt_entry["repaid_at"] = datetime.now().isoformat()
+        debt_entry["system2_path"] = system2_state.selected_path.path_type if system2_state.selected_path else None
+        
+        # Update decision record with System-2 insights
+        original.context["system2_verified"] = True
+        original.context["system2_path"] = debt_entry["system2_path"]
+        
+        logger.info(f"Cognitive debt repaid: {decision_id}")
+        return True
     
     def update_decision_outcome(self, decision_id: str, outcome: str):
         """Update the outcome of a previous decision.
