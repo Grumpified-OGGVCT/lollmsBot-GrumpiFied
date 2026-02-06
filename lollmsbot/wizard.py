@@ -317,6 +317,8 @@ class Wizard:
                 "What would you like to configure?",
                 choices=[
                     Choice("🔗 AI Backend (Select Binding First)", "lollms"),
+                    Choice("🔀 Multi-Provider (OpenRouter + Ollama)", "multiprovider"),
+                    Choice("🧠 RC2 Sub-Agent (Constitutional AI)", "rc2"),
                     Choice("🤖 Discord Channel", "discord"),
                     Choice("✈️ Telegram Channel", "telegram"),
                     Choice("🧬 Soul (Personality & Identity)", "soul"),
@@ -333,6 +335,10 @@ class Wizard:
 
             if action == "lollms":
                 self.configure_backend()  # New binding-first configuration
+            elif action == "multiprovider":
+                self.configure_multi_provider()
+            elif action == "rc2":
+                self.configure_rc2()
             elif action == "discord":
                 self.configure_service("discord")
             elif action == "telegram":
@@ -674,6 +680,129 @@ class Wizard:
             else:
                 console.print("[yellow]⚠️ Saving configuration anyway (you can test later)[/]")
                 return True  # Allow saving despite test failure
+
+    def configure_multi_provider(self) -> None:
+        """Configure multi-provider API routing (OpenRouter + Ollama)."""
+        console.print("\n[bold cyan]🔀 Multi-Provider API Configuration[/bold cyan]\n")
+        
+        console.print("Multi-provider routing allows using multiple API providers:")
+        console.print("  • [green]OpenRouter[/] - Free tier with 3 keys (quota cycling)")
+        console.print("  • [green]Ollama Cloud[/] - Specialized models with 2 keys (load balanced)")
+        console.print("  • Automatic failover: OpenRouter (free) → Ollama (paid)")
+        console.print()
+        
+        # Enable/disable multi-provider
+        enabled = Confirm.ask(
+            "Enable multi-provider API routing?",
+            default=True
+        )
+        
+        self.config["multiprovider"] = self.config.get("multiprovider", {})
+        self.config["multiprovider"]["enabled"] = enabled
+        
+        if not enabled:
+            console.print("[yellow]Multi-provider disabled. Using single backend only.[/]")
+            return
+        
+        # Configure OpenRouter keys
+        console.print("\n[bold]OpenRouter Configuration[/bold]")
+        console.print("Provides free tier access with quota cycling across keys")
+        console.print("Leave blank to skip OpenRouter")
+        console.print()
+        
+        for i in [1, 2, 3]:
+            key = Prompt.ask(
+                f"  OpenRouter API Key #{i}",
+                default=self.config.get("multiprovider", {}).get(f"openrouter_key_{i}", ""),
+                password=True
+            )
+            if key:
+                self.config["multiprovider"][f"openrouter_key_{i}"] = key
+        
+        # Configure Ollama Cloud keys
+        console.print("\n[bold]Ollama Cloud Configuration[/bold]")
+        console.print("Provides access to specialized models (kimi, deepseek, cogito, etc.)")
+        console.print("Leave blank to skip Ollama Cloud")
+        console.print()
+        
+        for i in ["", "_2"]:
+            key = Prompt.ask(
+                f"  Ollama API Key{' #2' if i else ''}",
+                default=self.config.get("multiprovider", {}).get(f"ollama_key{i}", ""),
+                password=True
+            )
+            if key:
+                self.config["multiprovider"][f"ollama_key{i}"] = key
+        
+        console.print("\n[green]✓ Multi-provider configuration saved[/]")
+        console.print("💡 Set USE_MULTI_PROVIDER=true in .env to enable at runtime")
+        console.print()
+
+    def configure_rc2(self) -> None:
+        """Configure RC2 sub-agent (Reflective Constellation 2.0)."""
+        console.print("\n[bold cyan]🧠 RC2 Sub-Agent Configuration[/bold cyan]\n")
+        
+        console.print("RC2 (Reflective Constellation 2.0) provides advanced capabilities:")
+        console.print("  • [green]Constitutional Review[/] - Byzantine consensus for governance")
+        console.print("  • [green]Deep Introspection[/] - Causal analysis of decisions")
+        console.print("  • [yellow]Self-Modification[/] - Code improvement proposals (experimental)")
+        console.print("  • [yellow]Meta-Learning[/] - Learning optimization (experimental)")
+        console.print()
+        
+        console.print("[yellow]⚠️  RC2 is DISABLED by default for safety[/]")
+        console.print()
+        
+        # Enable/disable RC2
+        enabled = Confirm.ask(
+            "Enable RC2 sub-agent?",
+            default=False
+        )
+        
+        self.config["rc2"] = self.config.get("rc2", {})
+        self.config["rc2"]["enabled"] = enabled
+        
+        if not enabled:
+            console.print("[yellow]RC2 disabled for safety.[/]")
+            return
+        
+        # Configure rate limiting
+        console.print("\n[bold]Rate Limiting[/bold]")
+        rate_limit = IntPrompt.ask(
+            "  Max RC2 requests per minute (per user)",
+            default=self.config.get("rc2", {}).get("rate_limit", 5)
+        )
+        self.config["rc2"]["rate_limit"] = rate_limit
+        
+        # Configure capabilities
+        console.print("\n[bold]Capabilities[/bold]")
+        console.print("Enable individual RC2 capabilities:")
+        
+        self.config["rc2"]["constitutional"] = Confirm.ask(
+            "  • Constitutional Review (governance decisions)?",
+            default=self.config.get("rc2", {}).get("constitutional", True)
+        )
+        
+        self.config["rc2"]["introspection"] = Confirm.ask(
+            "  • Deep Introspection (decision analysis)?",
+            default=self.config.get("rc2", {}).get("introspection", True)
+        )
+        
+        console.print("\n[yellow]⚠️  Experimental capabilities (not fully implemented):[/]")
+        
+        self.config["rc2"]["self_modification"] = Confirm.ask(
+            "  • Self-Modification (EXPERIMENTAL)?",
+            default=self.config.get("rc2", {}).get("self_modification", False)
+        )
+        
+        self.config["rc2"]["meta_learning"] = Confirm.ask(
+            "  • Meta-Learning (EXPERIMENTAL)?",
+            default=self.config.get("rc2", {}).get("meta_learning", False)
+        )
+        
+        console.print("\n[green]✓ RC2 configuration saved[/]")
+        console.print("💡 Set RC2_ENABLED=true in .env to enable at runtime")
+        console.print("💡 Set RC2_RATE_LIMIT={} in .env for rate limiting".format(rate_limit))
+        console.print()
 
     # Legacy method - kept for backward compatibility but not used in main flow
     def configure_service(self, service_name: str) -> None:
