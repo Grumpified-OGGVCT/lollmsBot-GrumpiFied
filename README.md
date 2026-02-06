@@ -55,6 +55,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | **📚 Skill System** | Reusable, versioned, composable capabilities with dependency management |
 | **🎮 File Generation** | Creates HTML games, Python scripts, data exports — with download delivery |
 | **💬 Multi-Channel** | Discord, Telegram, Web UI, HTTP API — same brain, different faces |
+| **🔒 Production Hardened** | Input validation, thread-safe initialization, proper error handling, configurable CORS |
 
 ---
 
@@ -159,36 +160,36 @@ lollmsBot: 📊 Planning research workflow...
 ### Example 3: Calendar Management with Natural Language
 
 ```
-You: Schedule a team standup every Tuesday at 10am for the next month
+You: Create a calendar event for team standup on Tuesday at 10am
 
-lollmsBot: 📅 Creating recurring events...
+lollmsBot: 📅 Creating calendar event...
 
-[tool:calendar] Adding 4 events:
+[tool:calendar] Adding event:
    • 2024-01-09 10:00-10:30 "Team Standup"
-   • 2024-01-16 10:00-10:30 "Team Standup"
-   • 2024-01-23 10:00-10:30 "Team Standup"
-   • 2024-01-30 10:00-10:30 "Team Standup"
 
-✅ Events created. Export to your calendar?
+✅ Event created. Want to add to your calendar?
    [Download .ics file] [View in browser]
+   
+Note: For recurring events, you can create multiple events individually
+or use the calendar tool's batch creation feature.
 ```
 
-### Example 4: Skill Composition (Meta-Capability)
+### Example 4: Multi-Tool Workflow
 
 ```
-You: Learn how to research topics and create briefing documents
+You: Research Python async patterns and create a summary document
 
-lollmsBot: 🧠 Creating composite skill: research_and_brief
+lollmsBot: 📊 Planning multi-step workflow...
 
-[skill:learn_skill] Analyzing workflow pattern...
-   - Input: topic, audience, depth
-   - Step 1: [skill:synthesize_research] gather info
-   - Step 2: [skill:prepare_meeting] structure for audience
-   - Step 3: [tool:filesystem] generate document
+[tool:http] Fetching latest Python documentation...
+[tool:http] Querying: "Python asyncio best practices 2024"
+[tool:filesystem] Creating research_summary.md...
 
-✅ New skill 'research_and_brief' created!
-   Confidence: 87% (validated with 3 examples)
-   Use it: "Create a briefing on quantum computing for executives"
+✅ Research complete:
+   - 5 authoritative sources reviewed
+   - Key patterns identified and documented
+   - Document: research_summary.md (6.2KB)
+   [Download file]
 ```
 
 ---
@@ -308,11 +309,21 @@ Skill(
 )
 ```
 
-**Learning modes**:
-- **From description**: "Create a skill that summarizes GitHub repos"
-- **From demonstration**: Watch user steps, abstract into reusable workflow
-- **From examples**: Input/output pairs → inferred transformation
-- **By composition**: `research_and_brief = research_skill + meeting_prep_skill`
+**Built-in Skills**:
+The system includes several pre-built skills:
+- `organize_files`: Smart file organization by type, date, or custom rules
+- `synthesize_research`: Multi-source information gathering and synthesis
+- `prepare_meeting`: Meeting prep from calendar and context
+- `learn_skill`: Framework for creating new skills (skill composition)
+
+**Skill Framework**:
+- Versioned and composable workflows
+- Dependency management (requires specific tools)
+- Execution tracking and result caching
+- Complexity scoring (SIMPLE, MEDIUM, COMPLEX, ADVANCED)
+
+**Skill Composition**:
+Skills can be composed together to create more complex workflows. The `learn_skill` framework allows combining existing skills and tools into new capabilities.
 
 ### 6. 🔧 Tools — Low-Level Capabilities
 
@@ -322,6 +333,7 @@ Skill(
 | `http` | GET/POST/PUT/DELETE, JSON/text auto-parse, retries | URL scheme whitelist, timeout, max size, no local IPs |
 | `calendar` | Create events, list by range, export/import ICS | Timezone-aware, validation |
 | `shell` | Execute approved commands in Docker sandbox | **Docker isolation (new)**, explicit allowlist, denylist patterns, no shell=True, timeout |
+| `browser` | Web scraping, JS execution, interactive elements | **Optional** (requires Playwright), accessibility tree parsing, viewport control |
 
 **Shell Tool Upgrade**: Commands now execute in isolated Alpine containers by default (when Docker is available):
 ```bash
@@ -613,7 +625,27 @@ lollmsBot implements **defense in depth** with three security layers:
 ```bash
 LOLLMSBOT_HOST=127.0.0.1  # Only localhost can connect
 LOLLMSBOT_API_KEY=          # Not needed for localhost
+LOLLMSBOT_CORS_ORIGINS=     # Defaults to localhost origins
 ```
+
+### Production Security Features
+
+**Input Validation**:
+- User IDs: Max 256 chars, alphanumeric + @.-_ only
+- Messages: Max 50KB, non-empty validation
+- URLs: Scheme and netloc validation
+- All inputs validated before processing
+
+**Error Handling**:
+- Custom exceptions: `ValidationError`, `StorageError`, `AgentError`, `ToolError`
+- Specific exception catching (no bare `except:` clauses)
+- Proper error context propagation with logging
+- HTTP endpoints return appropriate status codes (400 for validation, 500 for server errors)
+
+**Thread Safety**:
+- Double-checked locking for singleton initialization
+- Thread-safe agent, skill, and tool registries
+- Concurrent request handling without race conditions
 
 ### Exposed with API Key (Advanced)
 
