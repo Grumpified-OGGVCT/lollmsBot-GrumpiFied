@@ -204,9 +204,7 @@ Is this decision allowed? Provide:
             governor_approves = "APPROVE" in governor_text
             auditor_approves = "APPROVE" in auditor_text
             
-            # Byzan
-
-tine consensus: Both must agree
+            # Byzantine consensus: Both must agree
             consensus = governor_approves and auditor_approves
             
             return SubAgentResponse(
