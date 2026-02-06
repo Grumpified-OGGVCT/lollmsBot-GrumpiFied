@@ -172,7 +172,7 @@ class AwesomeSkillsConfig:
         """Load from environment variables."""
         # Parse enabled skills from comma-separated list
         enabled_skills_env = os.getenv("AWESOME_SKILLS_ENABLED", "")
-        enabled_skills = [s.strip() for s in enabled_skills_env.split(",") if s.strip()] if enabled_skills_env else []
+        enabled_skills = [s.strip() for s in enabled_skills_env.split(",") if s.strip()]
         
         # Parse skills directory
         skills_dir_env = os.getenv("AWESOME_SKILLS_DIR")

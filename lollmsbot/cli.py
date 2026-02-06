@@ -146,6 +146,8 @@ def print_skills_info() -> None:
 
 def handle_skills_command(args) -> None:
     """Handle skills subcommands."""
+    MAX_DISPLAY_SKILLS = 20  # Maximum skills to display in listings
+    
     try:
         from lollmsbot.skills import get_awesome_skills_integration
         from rich.table import Table
@@ -181,20 +183,22 @@ def handle_skills_command(args) -> None:
             table.add_column("Description", style="dim", max_width=50)
             table.add_column("Status", style="green")
             
-            for skill in skills[:20]:  # Limit to 20 for display
+            for skill in skills[:MAX_DISPLAY_SKILLS]:
                 status = "✅ Loaded" if skill.name in integration.loaded_skills else "⭕ Available"
+                desc_limit = 47
+                truncated_desc = skill.description[:desc_limit] + "..." if len(skill.description) > desc_limit else skill.description
                 table.add_row(
                     skill.name,
                     skill.category,
                     skill.tier,
-                    skill.description[:47] + "..." if len(skill.description) > 50 else skill.description,
+                    truncated_desc,
                     status
                 )
             
             console.print(table)
             
-            if len(skills) > 20:
-                console.print(f"\n[dim]... and {len(skills) - 20} more skills[/dim]")
+            if len(skills) > MAX_DISPLAY_SKILLS:
+                console.print(f"\n[dim]... and {len(skills) - MAX_DISPLAY_SKILLS} more skills[/dim]")
             
             console.print()
         

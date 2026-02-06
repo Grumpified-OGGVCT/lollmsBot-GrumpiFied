@@ -24,13 +24,19 @@ class AwesomeSkillsConverter:
     can be executed by the agent system.
     """
     
+    # Tier to complexity mapping
+    TIER_COMPLEXITY_MAP = {
+        "tier-1-instruction-only": SkillComplexity.SIMPLE,
+        "tier-2-tool-enhanced": SkillComplexity.MODERATE,
+        "tier-3-claude-only": SkillComplexity.COMPLEX,
+        "tier-1": SkillComplexity.SIMPLE,  # Fallback for short form
+        "tier-2": SkillComplexity.MODERATE,
+        "tier-3": SkillComplexity.COMPLEX,
+    }
+    
     def __init__(self):
         """Initialize the converter."""
-        self.complexity_mapping = {
-            "tier-1-instruction-only": SkillComplexity.SIMPLE,
-            "tier-2-tool-enhanced": SkillComplexity.MODERATE,
-            "tier-3-claude-only": SkillComplexity.COMPLEX,
-        }
+        pass
     
     def convert_skill(self, skill_info: SkillInfo) -> Optional[Skill]:
         """
@@ -52,11 +58,11 @@ class AwesomeSkillsConverter:
             # Parse skill content
             skill_data = self._parse_skill_content(content)
             
-            # Determine complexity from tier
-            complexity = self.complexity_mapping.get(
-                skill_info.tier,
-                SkillComplexity.SIMPLE
-            )
+            # Determine complexity from tier with validation
+            complexity = self.TIER_COMPLEXITY_MAP.get(skill_info.tier)
+            if complexity is None:
+                logger.warning(f"Unknown tier '{skill_info.tier}' for skill {skill_info.name}, defaulting to SIMPLE")
+                complexity = SkillComplexity.SIMPLE
             
             # Extract parameters if any
             parameters = self._extract_parameters(content)

@@ -154,8 +154,23 @@ class AwesomeSkillsManager:
                 return False
             
             # Check if we're behind
+            # First detect the default branch
             result = subprocess.run(
-                ["git", "rev-list", "--count", "HEAD..origin/master"],
+                ["git", "symbolic-ref", "refs/remotes/origin/HEAD"],
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True
+            )
+            
+            default_branch = "master"  # fallback
+            if result.returncode == 0:
+                # Extract branch name from refs/remotes/origin/HEAD -> refs/remotes/origin/main
+                ref = result.stdout.strip()
+                if ref:
+                    default_branch = ref.split('/')[-1]
+            
+            result = subprocess.run(
+                ["git", "rev-list", "--count", f"HEAD..origin/{default_branch}"],
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True
@@ -168,7 +183,7 @@ class AwesomeSkillsManager:
                 
                 # Pull latest changes
                 result = subprocess.run(
-                    ["git", "pull", "origin", "master"],
+                    ["git", "pull", "origin", default_branch],
                     cwd=self.repo_path,
                     capture_output=True,
                     text=True,

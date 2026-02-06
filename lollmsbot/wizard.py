@@ -1743,6 +1743,8 @@ class Wizard:
     
     def _browse_awesome_skills(self, integration) -> None:
         """Browse available awesome-claude-skills."""
+        MAX_DISPLAY_SKILLS = 20
+        
         # Get categories
         categories = integration.get_categories()
         
@@ -1768,19 +1770,21 @@ class Wizard:
         table.add_column("Description", style="dim", max_width=50)
         table.add_column("Status", style="green")
         
-        for skill in skills[:20]:  # Limit to 20
+        desc_limit = 47
+        for skill in skills[:MAX_DISPLAY_SKILLS]:
             status = "✅" if skill.name in integration.loaded_skills else "⭕"
+            truncated_desc = skill.description[:desc_limit] + "..." if len(skill.description) > desc_limit else skill.description
             table.add_row(
                 skill.name,
                 skill.tier,
-                skill.description[:47] + "..." if len(skill.description) > 50 else skill.description,
+                truncated_desc,
                 status
             )
         
         console.print(table)
         
-        if len(skills) > 20:
-            console.print(f"\n[dim]... and {len(skills) - 20} more skills[/dim]")
+        if len(skills) > MAX_DISPLAY_SKILLS:
+            console.print(f"\n[dim]... and {len(skills) - MAX_DISPLAY_SKILLS} more skills[/dim]")
         
         questionary.press_any_key_to_continue().ask()
     
@@ -1813,6 +1817,8 @@ class Wizard:
     
     def _install_awesome_skills(self, integration) -> None:
         """Install awesome-claude-skills."""
+        MAX_SELECTABLE_SKILLS = 30
+        
         # Get available skills (not loaded)
         all_skills = integration.list_available_skills()
         available = [s for s in all_skills if s.name not in integration.loaded_skills]
@@ -1823,7 +1829,7 @@ class Wizard:
             return
         
         # Select skills to install
-        choices = [f"{s.name} ({s.category})" for s in available[:30]]  # Limit to 30
+        choices = [f"{s.name} ({s.category})" for s in available[:MAX_SELECTABLE_SKILLS]]
         
         selected = questionary.checkbox(
             "Select skills to install:",
