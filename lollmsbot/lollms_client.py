@@ -1,14 +1,23 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional, Dict, List
 from urllib.parse import urlparse
 import logging
+import os
 
 from lollms_client import LollmsClient  # from lollms-client package[web:21][web:41]
 
 from .config import LollmsSettings
 
 logger = logging.getLogger(__name__)
+
+# Try to import multi-provider system (optional)
+try:
+    from lollmsbot.providers import MultiProviderRouter
+    MULTI_PROVIDER_AVAILABLE = True
+except ImportError:
+    MULTI_PROVIDER_AVAILABLE = False
+    MultiProviderRouter = None
 
 
 def validate_url(url: str) -> bool:
@@ -31,16 +40,22 @@ def validate_url(url: str) -> bool:
         return False
 
 
-def build_lollms_client(settings: LollmsSettings | None = None) -> LollmsClient:
+def build_lollms_client(
+    settings: LollmsSettings | None = None,
+    use_multi_provider: bool = None
+) -> LollmsClient:
     """
     Build a LollmsClient either in 'LoLLMS server' mode or 'direct binding' mode
     depending on env settings.
     
+    Can optionally use multi-provider system (OpenRouter + Ollama) for cost optimization.
+    
     Args:
         settings: Optional LollmsSettings instance. If None, loads from environment.
+        use_multi_provider: If True, use multi-provider router. If None, auto-detect.
         
     Returns:
-        Configured LollmsClient instance
+        Configured LollmsClient instance (or MultiProviderAdapter)
         
     Raises:
         ValueError: If settings are invalid
@@ -48,6 +63,20 @@ def build_lollms_client(settings: LollmsSettings | None = None) -> LollmsClient:
     if settings is None:
         settings = LollmsSettings.from_env()
 
+    # Auto-detect multi-provider usage
+    if use_multi_provider is None:
+        use_multi_provider = os.environ.get('USE_MULTI_PROVIDER', 'false').lower() == 'true'
+    
+    # Try multi-provider if available and enabled
+    if use_multi_provider and MULTI_PROVIDER_AVAILABLE:
+        try:
+            logger.info("Using multi-provider system (OpenRouter + Ollama)")
+            router = MultiProviderRouter()
+            return MultiProviderLollmsAdapter(router)
+        except Exception as e:
+            logger.warning(f"Multi-provider initialization failed: {e}, falling back to standard client")
+    
+    # Standard LollmsClient (original behavior)
     # Validate host_address if provided
     if settings.host_address:
         if not validate_url(settings.host_address):
@@ -83,3 +112,85 @@ def build_lollms_client(settings: LollmsSettings | None = None) -> LollmsClient:
             "ctx_size":settings.context_size,
         },
     )
+
+
+class MultiProviderLollmsAdapter:
+    """
+    Adapter to make MultiProviderRouter compatible with LollmsClient interface.
+    
+    This allows Agent to use multi-provider system transparently.
+    """
+    
+    def __init__(self, router: Any):
+        """Initialize adapter with router."""
+        self.router = router
+        logger.info("MultiProviderLollmsAdapter initialized")
+    
+    async def generate_text(
+        self,
+        prompt: str,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        temperature: Optional[float] = None,
+        **kwargs
+    ) -> str:
+        """Generate text using multi-provider router.
+        
+        Args:
+            prompt: Text prompt
+            model: Optional specific model name
+            max_tokens: Maximum tokens to generate
+            temperature: Sampling temperature
+            **kwargs: Additional arguments
+            
+        Returns:
+            Generated text
+        """
+        messages = [{"role": "user", "content": prompt}]
+        
+        try:
+            response = await self.router.chat(
+                messages=messages,
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                **kwargs
+            )
+            return response.get("content", "")
+        except Exception as e:
+            logger.error(f"Multi-provider generation failed: {e}")
+            raise
+    
+    async def chat(
+        self,
+        messages: List[Dict[str, str]],
+        model: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """Chat using multi-provider router.
+        
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+            model: Optional specific model name
+            **kwargs: Additional arguments
+            
+        Returns:
+            Response dict with 'content' and metadata
+        """
+        try:
+            return await self.router.chat(
+                messages=messages,
+                model=model,
+                **kwargs
+            )
+        except Exception as e:
+            logger.error(f"Multi-provider chat failed: {e}")
+            raise
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get multi-provider router status.
+        
+        Returns:
+            Status dict with provider info
+        """
+        return self.router.get_status()
