@@ -257,6 +257,10 @@ class Agent:
         # Multi-provider preference
         self._use_multi_provider = use_multi_provider
         
+        # RC2 rate limiting to prevent abuse
+        self._rc2_calls: Dict[str, List[float]] = {}  # user_id -> [timestamps]
+        self._rc2_rate_limit = 5  # max calls per minute per user
+        
         self._state: AgentState = AgentState.IDLE
         self._tools: Dict[str, Tool] = {}
         self._memory: Dict[str, Any] = {
@@ -691,6 +695,36 @@ class Agent:
         
         return None
     
+    def _check_rc2_rate_limit(self, user_id: str) -> bool:
+        """Check if user has exceeded RC2 rate limit.
+        
+        Args:
+            user_id: User ID to check
+            
+        Returns:
+            True if within rate limit, False if exceeded
+        """
+        import time
+        current_time = time.time()
+        minute_ago = current_time - 60
+        
+        # Initialize or clean old calls for user
+        if user_id not in self._rc2_calls:
+            self._rc2_calls[user_id] = []
+        
+        # Remove calls older than 1 minute
+        self._rc2_calls[user_id] = [
+            ts for ts in self._rc2_calls[user_id] if ts > minute_ago
+        ]
+        
+        # Check limit
+        if len(self._rc2_calls[user_id]) >= self._rc2_rate_limit:
+            return False
+        
+        # Add current call
+        self._rc2_calls[user_id].append(current_time)
+        return True
+    
     async def _delegate_to_rc2(
         self,
         user_id: str,
@@ -709,11 +743,34 @@ class Agent:
         """
         from lollmsbot.subagents import SubAgentRequest
         
+        # Check rate limit
+        if not self._check_rc2_rate_limit(user_id):
+            self._log(f"⚠️  RC2 rate limit exceeded for {user_id}", "yellow", "⚠️")
+            return {
+                "success": False,
+                "response": (
+                    "⚠️ You've reached the RC2 request limit. "
+                    f"Please wait a moment before trying advanced features again. "
+                    f"(Limit: {self._rc2_rate_limit} requests per minute)"
+                ),
+                "error": "RC2 rate limit exceeded",
+                "tools_used": [],
+                "skills_used": [],
+                "files_to_send": [],
+            }
+        
         try:
+            # Sanitize user input before passing to RC2
+            sanitized_context = delegation["context"].copy()
+            for key, value in sanitized_context.items():
+                if isinstance(value, str):
+                    # Basic sanitization: limit length, remove control characters
+                    sanitized_context[key] = value[:10000].replace('\x00', '')
+            
             # Create request
             request = SubAgentRequest(
                 capability=delegation["capability"],
-                context=delegation["context"],
+                context=sanitized_context,
                 user_id=user_id
             )
             
@@ -780,12 +837,18 @@ class Agent:
                 }
                 
         except Exception as e:
-            self._log(f"💥 RC2 delegation exception: {e}", "red", "❌")
+            # Log full error for debugging but sanitize for user
+            self._log(f"💥 RC2 delegation exception: {type(e).__name__}: {str(e)[:100]}", "red", "❌")
+            self._logger.error(f"RC2 exception details", exc_info=True)
             
+            # Return user-friendly error (don't expose internal details)
             return {
                 "success": False,
-                "response": "An error occurred while processing your request with RC2.",
-                "error": str(e),
+                "response": (
+                    "⚠️ Advanced processing is temporarily unavailable. "
+                    "Your request will be handled using standard processing instead."
+                ),
+                "error": "RC2 processing failed",
                 "rc2_used": True,
                 "rc2_exception": True,
                 "tools_used": [],
@@ -919,7 +982,15 @@ class Agent:
             rc2_delegation = self._should_delegate_to_rc2(message)
             if rc2_delegation:
                 self._log(f"🌟 Delegating to RC2: {rc2_delegation['capability']}", "magenta", "🤖")
-                return await self._delegate_to_rc2(user_id, message, rc2_delegation)
+                rc2_response = await self._delegate_to_rc2(user_id, message, rc2_delegation)
+                
+                # If RC2 succeeded, return its response
+                if rc2_response.get("success"):
+                    return rc2_response
+                
+                # RC2 failed - log and fall through to regular processing
+                self._log(f"⚠️  RC2 failed, falling back to regular chat", "yellow", "⚠️")
+                # Continue with normal processing below
         
         # Security screening
         security_flags = []
