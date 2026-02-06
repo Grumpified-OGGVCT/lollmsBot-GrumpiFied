@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
 
-from lollmsbot.skills import Skill, SkillParameter, SkillComplexity
+from lollmsbot.skills import Skill, SkillParameter, SkillComplexity, SkillMetadata
 from lollmsbot.awesome_skills_manager import SkillInfo
 
 logger = logging.getLogger(__name__)
@@ -61,21 +61,32 @@ class AwesomeSkillsConverter:
             # Extract parameters if any
             parameters = self._extract_parameters(content)
             
-            # Create the skill
-            skill = Skill(
+            # Create metadata
+            metadata = SkillMetadata(
                 name=skill_info.name,
                 description=skill_data.get("description", skill_info.description),
-                instructions=skill_data.get("instructions", content),
+                long_description=content,
                 complexity=complexity,
-                parameters=parameters,
                 tags=self._extract_tags(skill_info),
-                examples=skill_data.get("examples", []),
-                metadata={
-                    "source": "awesome-claude-skills",
-                    "category": skill_info.category,
-                    "tier": skill_info.tier,
-                    "original_path": str(skill_info.path),
-                }
+                categories=[skill_info.category],
+                parameters=parameters,
+                when_to_use=f"Use this skill from awesome-claude-skills: {skill_data.get('description', skill_info.description)}",
+            )
+            
+            # Create implementation as LLM-based skill
+            # The content serves as instructions for the LLM
+            implementation = {
+                "instructions": content,
+                "skill_type": "awesome-claude-skill",
+                "original_path": str(skill_info.path),
+                "tier": skill_info.tier,
+            }
+            
+            # Create the skill
+            skill = Skill(
+                metadata=metadata,
+                implementation=implementation,
+                implementation_type="llm"  # Awesome skills are instruction-based
             )
             
             logger.info(f"Converted skill: {skill_info.name}")
