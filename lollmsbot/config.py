@@ -31,6 +31,65 @@ class BotConfig:
             max_history=int(os.getenv("LOLLMSBOT_MAX_HISTORY", "10")),
         )
 
+
+@dataclass
+class RC2Config:
+    """RC2 sub-agent configuration settings."""
+    enabled: bool = field(default=False)  # Default disabled for safety
+    rate_limit_per_minute: int = field(default=5)  # Max RC2 calls per user per minute
+    use_multi_provider: bool = field(default=True)  # Use multi-provider by default
+    enable_constitutional: bool = field(default=True)  # Constitutional review
+    enable_introspection: bool = field(default=True)  # Deep introspection
+    enable_self_mod: bool = field(default=False)  # Self-modification (proposals only)
+    enable_meta_learning: bool = field(default=False)  # Meta-learning
+    enable_healing: bool = field(default=False)  # Error healing
+    enable_visual: bool = field(default=False)  # Visual monitoring
+    
+    @classmethod
+    def from_env(cls) -> "RC2Config":
+        """Load from environment variables."""
+        return cls(
+            enabled=_get_bool("RC2_ENABLED", False),
+            rate_limit_per_minute=int(os.getenv("RC2_RATE_LIMIT", "5")),
+            use_multi_provider=_get_bool("RC2_USE_MULTI_PROVIDER", True),
+            enable_constitutional=_get_bool("RC2_CONSTITUTIONAL", True),
+            enable_introspection=_get_bool("RC2_INTROSPECTION", True),
+            enable_self_mod=_get_bool("RC2_SELF_MODIFICATION", False),
+            enable_meta_learning=_get_bool("RC2_META_LEARNING", False),
+            enable_healing=_get_bool("RC2_HEALING", False),
+            enable_visual=_get_bool("RC2_VISUAL", False),
+        )
+    
+    def validate(self) -> None:
+        """Validate configuration values.
+        
+        Raises:
+            ValueError: If configuration is invalid
+        """
+        if self.rate_limit_per_minute < 1:
+            raise ValueError("RC2 rate_limit_per_minute must be at least 1")
+        if self.rate_limit_per_minute > 100:
+            raise ValueError("RC2 rate_limit_per_minute should not exceed 100")
+
+
+@dataclass
+class MultiProviderConfig:
+    """Multi-provider API system configuration."""
+    enabled: bool = field(default=True)  # Enable multi-provider by default
+    prefer_free_tier: bool = field(default=True)  # Try OpenRouter free first
+    openrouter_enabled: bool = field(default=True)
+    ollama_enabled: bool = field(default=True)
+    
+    @classmethod
+    def from_env(cls) -> "MultiProviderConfig":
+        """Load from environment variables."""
+        return cls(
+            enabled=_get_bool("USE_MULTI_PROVIDER", True),
+            prefer_free_tier=_get_bool("PREFER_FREE_TIER", True),
+            openrouter_enabled=_get_bool("OPENROUTER_ENABLED", True),
+            ollama_enabled=_get_bool("OLLAMA_ENABLED", True),
+        )
+
 @dataclass
 class LollmsSettings:
     """LoLLMS connection settings."""
