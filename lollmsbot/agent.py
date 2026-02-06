@@ -18,6 +18,14 @@ from lollmsbot.config import BotConfig
 from lollmsbot.lollms_client import LollmsClient, build_lollms_client
 from lollmsbot.guardian import get_guardian, Guardian, SecurityEvent, ThreatLevel
 
+# Import Engine for Lane Queue integration (optional)
+try:
+    from lollmsbot.core.engine import get_engine
+    LANE_QUEUE_AVAILABLE = True
+except ImportError:
+    LANE_QUEUE_AVAILABLE = False
+    get_engine = None
+
 # Rich imports for colored logging
 from rich.console import Console
 from rich.panel import Panel
@@ -569,8 +577,68 @@ class Agent:
         user_id: str,
         message: str,
         context: Optional[Dict[str, Any]] = None,
+        use_lane_queue: bool = True,
     ) -> Dict[str, Any]:
-        """Process chat with detailed colored logging at every step."""
+        """Process chat with Lane Queue integration for concurrency control.
+        
+        If use_lane_queue=True and the Lane Queue is available, this submits
+        the chat processing as a high-priority user interaction task that will
+        pause background tasks like heartbeat.
+        
+        Args:
+            user_id: User identifier
+            message: User's message
+            context: Optional context dict (channel, etc.)
+            use_lane_queue: Whether to use Lane Queue (default True)
+            
+        Returns:
+            Response dict with success, response, tools_used, etc.
+        """
+        # If Lane Queue is available and enabled, submit through it
+        if use_lane_queue and LANE_QUEUE_AVAILABLE and get_engine:
+            engine = get_engine()
+            if engine._started:
+                # Process through Lane Queue at USER_INTERACTION priority
+                # This will pause any background tasks (heartbeat, etc.)
+                return await self._chat_with_lane_queue(user_id, message, context, engine)
+        
+        # Otherwise, process directly (legacy behavior)
+        return await self._chat_internal(user_id, message, context)
+    
+    async def _chat_with_lane_queue(
+        self,
+        user_id: str,
+        message: str,
+        context: Optional[Dict[str, Any]],
+        engine: Any,
+    ) -> Dict[str, Any]:
+        """Process chat through the Lane Queue as a user interaction task."""
+        # Create a future to capture the result
+        result_future: asyncio.Future = asyncio.Future()
+        
+        async def process_task():
+            try:
+                result = await self._chat_internal(user_id, message, context)
+                result_future.set_result(result)
+            except Exception as e:
+                result_future.set_exception(e)
+        
+        # Submit to Lane Queue at USER_INTERACTION priority
+        await engine.process_user_message(
+            process_task(),
+            name=f"chat_{user_id}_{message[:20]}"
+        )
+        
+        # Wait for and return the result
+        return await result_future
+    
+    async def _chat_internal(
+        self,
+        user_id: str,
+        message: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Internal chat processing with detailed colored logging at every step."""
         # Log command reception
         self._log_command_received(user_id, message, context)
         
