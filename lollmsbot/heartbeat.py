@@ -34,6 +34,14 @@ from typing import Any, Callable, Coroutine, Dict, List, Optional, Set, Tuple
 from lollmsbot.guardian import get_guardian, Guardian, ThreatLevel, SecurityEvent
 from lollmsbot.soul import get_soul, Soul
 
+# Import Engine for Lane Queue integration (optional - for interruptible heartbeat)
+try:
+    from lollmsbot.core.engine import get_engine
+    LANE_QUEUE_AVAILABLE = True
+except ImportError:
+    LANE_QUEUE_AVAILABLE = False
+    get_engine = None
+
 
 logger = logging.getLogger("lollmsbot.heartbeat")
 
@@ -769,10 +777,28 @@ class Heartbeat:
         logger.info("Heartbeat stopped")
     
     async def _heartbeat_loop(self) -> None:
-        """Main heartbeat loop."""
+        """Main heartbeat loop.
+        
+        If Lane Queue is available, submits each cycle as a background task
+        that can be paused by user interactions. Otherwise, runs directly.
+        """
         while self._running:
             try:
-                await self.run_once()
+                # Submit to Lane Queue if available (makes it interruptible)
+                if LANE_QUEUE_AVAILABLE and get_engine:
+                    engine = get_engine()
+                    if engine._started:
+                        # Run heartbeat as a background task (can be paused by user interactions)
+                        await engine.run_background_task(
+                            self.run_once(),
+                            name=f"heartbeat_cycle_{datetime.now().strftime('%H%M%S')}"
+                        )
+                    else:
+                        # Engine not started, run directly
+                        await self.run_once()
+                else:
+                    # No Lane Queue, run directly (legacy behavior)
+                    await self.run_once()
             except Exception as e:
                 logger.error(f"Heartbeat cycle failed: {e}")
             

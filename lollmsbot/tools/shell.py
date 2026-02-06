@@ -28,6 +28,17 @@ from typing import Any, List, Optional, Pattern, Set, Union
 
 from lollmsbot.agent import Tool, ToolResult
 
+# Optional sandbox integration
+try:
+    from lollmsbot.sandbox.docker_executor import get_docker_executor, is_docker_available
+    from lollmsbot.sandbox.policy import MountPolicy
+    SANDBOX_AVAILABLE = True
+except ImportError:
+    SANDBOX_AVAILABLE = False
+    get_docker_executor = None
+    is_docker_available = None
+    MountPolicy = None
+
 
 @dataclass
 class SecurityPolicy:
@@ -119,12 +130,13 @@ class ShellTool(Tool):
     
     name: str = "shell"
     description: str = (
-        "Execute safe shell commands with strict security controls. "
+        "Execute safe shell commands with strict security controls and optional Docker sandbox isolation. "
         "Commands are validated against allowlist/denylist, executed "
-        "with timeout protection, and return stdout, stderr, and return code. "
+        "with timeout protection, and can run in isolated containers for enhanced security. "
         "Use with caution - only pre-approved commands are allowed. "
         "Available commands: ping, curl, wget, nslookup, dig, traceroute, "
-        "cat, ls, ps, top, df, date, echo, and other read-only diagnostic tools."
+        "cat, ls, ps, top, df, date, echo, and other read-only diagnostic tools. "
+        "Sandboxed execution provides defense-in-depth protection."
     )
     
     parameters: dict[str, Any] = {
@@ -161,15 +173,28 @@ class ShellTool(Tool):
         self,
         security: Optional[SecurityPolicy] = None,
         default_timeout: float = 30.0,
+        use_sandbox: bool = True,
     ) -> None:
         """Initialize the ShellTool.
         
         Args:
             security: SecurityPolicy for command validation. Uses defaults if None.
             default_timeout: Default timeout for command execution in seconds.
+            use_sandbox: Whether to use Docker sandbox when available (recommended)
         """
         self.security: SecurityPolicy = security or SecurityPolicy()
         self.default_timeout: float = min(default_timeout, 300.0)  # Cap at 5 minutes
+        self.use_sandbox = use_sandbox and SANDBOX_AVAILABLE
+        
+        # Check sandbox availability
+        if self.use_sandbox and is_docker_available:
+            self.sandbox_enabled = is_docker_available()
+            if self.sandbox_enabled:
+                logger.info("Docker sandbox enabled for shell tool")
+        else:
+            self.sandbox_enabled = False
+            if use_sandbox:
+                logger.warning("Docker sandbox requested but not available - using direct execution")
         
         # Compile any additional patterns if provided as strings
         self._ensure_patterns_compiled()
@@ -269,6 +294,87 @@ class ShellTool(Tool):
         except (OSError, ValueError) as exc:
             return Path.cwd(), f"Invalid working directory '{working_dir}': {str(exc)}"
     
+    async def _execute_in_sandbox(
+        self,
+        command: str,
+        timeout: Optional[float],
+        working_dir: Optional[str],
+        env_vars: Optional[dict[str, str]],
+    ) -> ToolResult:
+        """Execute command in Docker sandbox (OpenClaw security model).
+        
+        Args:
+            command: Command to execute
+            timeout: Timeout in seconds
+            working_dir: Working directory
+            env_vars: Environment variables
+            
+        Returns:
+            ToolResult from sandbox execution
+        """
+        import time
+        start_time = time.time()
+        
+        # Get sandbox executor
+        executor = get_docker_executor()
+        if not executor:
+            return ToolResult(
+                success=False,
+                output=None,
+                error="Docker sandbox not available - cannot execute"
+            )
+        
+        # Validate and prepare working directory
+        work_dir, dir_error = self._validate_working_directory(working_dir)
+        if dir_error:
+            return ToolResult(
+                success=False,
+                output=None,
+                error=f"Directory validation failed: {dir_error}"
+            )
+        
+        # Prepare mounts (mount working directory)
+        mounts = {
+            work_dir: Path("/workspace")
+        }
+        
+        try:
+            # Execute in sandbox
+            result = await executor.execute_with_mounts(
+                command=command,
+                mounts=mounts,
+                working_dir="/workspace",
+                env_vars=env_vars,
+            )
+            
+            execution_time = time.time() - start_time
+            
+            # Convert sandbox result to ToolResult
+            result_data = {
+                "command": command,
+                "return_code": result.exit_code,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "execution_time": execution_time,
+                "working_directory": str(work_dir),
+                "sandboxed": True,
+            }
+            
+            return ToolResult(
+                success=result.success,
+                output=result_data,
+                error=result.stderr if not result.success and result.stderr else None,
+                execution_time=execution_time,
+            )
+            
+        except Exception as e:
+            return ToolResult(
+                success=False,
+                output=None,
+                error=f"Sandbox execution error: {str(e)}",
+                execution_time=time.time() - start_time,
+            )
+    
     async def execute(
         self,
         command: str,
@@ -277,6 +383,9 @@ class ShellTool(Tool):
         env_vars: Optional[dict[str, str]] = None,
     ) -> ToolResult:
         """Execute a shell command with security checks and timeout protection.
+        
+        This method will use Docker sandbox if available and enabled,
+        otherwise falls back to direct subprocess execution.
         
         SECURITY WARNING: This method executes system commands. All inputs
         are validated against the security policy before execution.
@@ -299,6 +408,34 @@ class ShellTool(Tool):
                 error=f"Security check failed: {reason}",
             )
         
+        # Use sandbox if available and enabled
+        if self.sandbox_enabled:
+            return await self._execute_in_sandbox(command, timeout, working_dir, env_vars)
+        
+        # Otherwise, use direct execution (original implementation)
+        return await self._execute_direct(command, timeout, working_dir, env_vars)
+    
+    async def _execute_direct(
+        self,
+        command: str,
+        timeout: Optional[float],
+        working_dir: Optional[str],
+        env_vars: Optional[dict[str, str]],
+    ) -> ToolResult:
+        """Direct execution without sandbox (fallback mode).
+        
+        SECURITY WARNING: This executes commands directly on the host system.
+        Commands are validated, but there is less isolation than sandbox mode.
+        
+        Args:
+            command: The command string to execute.
+            timeout: Maximum execution time in seconds. Uses default if None.
+            working_dir: Working directory for execution.
+            env_vars: Additional environment variables for the process.
+            
+        Returns:
+            ToolResult with stdout, stderr, return code, and execution metadata.
+        """
         # Validate working directory
         work_dir, dir_error = self._validate_working_directory(working_dir)
         if dir_error:
