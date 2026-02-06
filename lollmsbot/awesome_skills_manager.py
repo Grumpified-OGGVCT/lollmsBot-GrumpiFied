@@ -213,30 +213,64 @@ class AwesomeSkillsManager:
                 index_data = json.load(f)
             
             skills = {}
-            for skill_name, skill_data in index_data.get("skills", {}).items():
-                # Determine skill path
-                skill_path = self.repo_path / skill_data.get("path", skill_name)
-                
-                # Find SKILL.md file
-                skill_md = skill_path / "SKILL.md"
-                if not skill_md.exists():
-                    # Try in universal format
-                    for tier in ["tier-1-instruction-only", "tier-2-tool-enhanced", "tier-3-claude-only"]:
-                        universal_path = self.repo_path / "universal" / tier / skill_name
-                        if (universal_path / "system-prompt.md").exists():
-                            skill_path = universal_path
-                            skill_md = universal_path / "system-prompt.md"
-                            break
-                
-                skills[skill_name] = SkillInfo(
-                    name=skill_name,
-                    path=skill_path,
-                    category=skill_data.get("category", "Uncategorized"),
-                    description=skill_data.get("description", ""),
-                    tier=skill_data.get("tier", "tier-1"),
-                    skill_md_path=skill_md if skill_md.exists() else None,
-                    metadata=skill_data
-                )
+            skills_list = index_data.get("skills", [])
+            
+            # Handle both list and dict formats
+            if isinstance(skills_list, list):
+                for skill_data in skills_list:
+                    skill_name = skill_data.get("name")
+                    if not skill_name:
+                        continue
+                    
+                    # Determine skill path
+                    skill_path = self.repo_path / skill_data.get("path", skill_name)
+                    
+                    # Find SKILL.md file
+                    skill_md = skill_path / "SKILL.md"
+                    if not skill_md.exists():
+                        # Try in universal format
+                        for tier in ["tier-1-instruction-only", "tier-2-tool-enhanced", "tier-3-claude-only"]:
+                            universal_path = self.repo_path / "universal" / tier / skill_name
+                            if (universal_path / "system-prompt.md").exists():
+                                skill_path = universal_path
+                                skill_md = universal_path / "system-prompt.md"
+                                break
+                    
+                    skills[skill_name] = SkillInfo(
+                        name=skill_name,
+                        path=skill_path,
+                        category=skill_data.get("category", "Uncategorized"),
+                        description=skill_data.get("description", ""),
+                        tier=skill_data.get("tier", "tier-1"),
+                        skill_md_path=skill_md if skill_md.exists() else None,
+                        metadata=skill_data
+                    )
+            elif isinstance(skills_list, dict):
+                # Old format: dict of skill_name -> skill_data
+                for skill_name, skill_data in skills_list.items():
+                    # Determine skill path
+                    skill_path = self.repo_path / skill_data.get("path", skill_name)
+                    
+                    # Find SKILL.md file
+                    skill_md = skill_path / "SKILL.md"
+                    if not skill_md.exists():
+                        # Try in universal format
+                        for tier in ["tier-1-instruction-only", "tier-2-tool-enhanced", "tier-3-claude-only"]:
+                            universal_path = self.repo_path / "universal" / tier / skill_name
+                            if (universal_path / "system-prompt.md").exists():
+                                skill_path = universal_path
+                                skill_md = universal_path / "system-prompt.md"
+                                break
+                    
+                    skills[skill_name] = SkillInfo(
+                        name=skill_name,
+                        path=skill_path,
+                        category=skill_data.get("category", "Uncategorized"),
+                        description=skill_data.get("description", ""),
+                        tier=skill_data.get("tier", "tier-1"),
+                        skill_md_path=skill_md if skill_md.exists() else None,
+                        metadata=skill_data
+                    )
             
             self.skills_index = skills
             logger.info(f"Loaded {len(skills)} skills from index")
