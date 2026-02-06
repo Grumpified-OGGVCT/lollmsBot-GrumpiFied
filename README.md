@@ -46,6 +46,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | Feature | Why It Matters |
 |--------|---------------|
 | **🧬 7-Pillar Architecture** | Soul, Guardian, Heartbeat, Memory, Skills, Tools, Identity — a complete cognitive framework |
+| **🌟 Awesome Claude Skills** | 27+ production-ready AI workflows from the community — transform from generalist to specialist |
 | **🔌 17+ LLM Backends** | Freedom to use OpenAI, Claude, Ollama, vLLM, Groq, Gemini, or any OpenAI-compatible API |
 | **🔀 Multi-Provider Routing** | Cost optimization with OpenRouter free tier + Ollama fallback (40-70% savings) |
 | **🧠 RC2 Sub-Agent** | Constitutional review (Byzantine consensus) and deep introspection capabilities |
@@ -61,6 +62,27 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | **📚 Skill System** | Reusable, versioned, composable capabilities with dependency management |
 | **🎮 File Generation** | Creates HTML games, Python scripts, data exports — with download delivery |
 | **💬 Multi-Channel** | Discord, Telegram, Web UI, HTTP API — same brain, different faces |
+
+### 🌟 NEW: Awesome Claude Skills Integration
+
+lollmsBot now includes **27+ production-ready AI workflows** from [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills):
+
+- **📄 Document Processing**: PDF, Word, Excel, PowerPoint manipulation
+- **💻 Development Tools**: Changelog generation, MCP builders, code review
+- **💼 Business & Marketing**: Domain brainstorming, lead research, competitive analysis
+- **✍️ Communication**: Meeting analysis, content writing, internal comms
+- **🎨 Creative & Media**: Image enhancement, design, themes
+- **📊 Productivity**: File organization, invoice management, raffle tools
+
+**Quick Start:**
+```bash
+lollmsbot skills list              # Browse available skills
+lollmsbot skills search pdf         # Find specific skills
+lollmsbot skills install pdf        # Enable a skill
+lollmsbot wizard                    # Interactive management
+```
+
+**[📖 Full Documentation](AWESOME_SKILLS_GUIDE.md)** | **[🌐 Skills Repository](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)**
 
 ---
 
