@@ -206,7 +206,7 @@ ToolEventCallback = Callable[[str, str, Optional[Dict[str, Any]]], Awaitable[Non
 
 class Agent:
     """
-    Core AI agent with Skills and Guardian integration.
+    Core AI agent with Skills, Guardian, and RC2 sub-agent integration.
     Enhanced with detailed colored logging for debugging.
     """
     
@@ -218,6 +218,8 @@ class Agent:
         default_permissions: PermissionLevel = PermissionLevel.BASIC,
         enable_guardian: bool = True,
         enable_skills: bool = True,
+        enable_rc2: bool = True,
+        use_multi_provider: bool = True,
         verbose_logging: bool = True,
     ) -> None:
         self.config: BotConfig = config or BotConfig()
@@ -234,11 +236,26 @@ class Agent:
         if enable_guardian:
             self._guardian = get_guardian()
         
+        # RC2 Sub-Agent integration
+        self._rc2_enabled = enable_rc2
+        self._rc2: Any = None  # Optional[RC2SubAgent]
+        if enable_rc2:
+            try:
+                from lollmsbot.subagents import RC2SubAgent
+                self._rc2 = RC2SubAgent(enabled=True, use_multi_provider=use_multi_provider)
+                self._log("🌟 RC2 Sub-Agent initialized", "magenta", "🤖")
+            except Exception as e:
+                self._logger.warning(f"RC2 initialization failed: {e}")
+                self._rc2_enabled = False
+        
         # Skills integration - LAZY initialization
         self._skills_enabled = enable_skills
         self._skill_registry: Any = None  # Optional['SkillRegistry']
         self._skill_executor: Any = None   # Optional['SkillExecutor']
         self._skill_learner: Any = None    # Optional['SkillLearner']
+        
+        # Multi-provider preference
+        self._use_multi_provider = use_multi_provider
         
         self._state: AgentState = AgentState.IDLE
         self._tools: Dict[str, Tool] = {}
@@ -423,12 +440,21 @@ class Agent:
             self._log(f"❌ Skill '{skill_name}' execution failed", "red", "📚", "error")
     
     def _ensure_lollms_client(self) -> Optional[LollmsClient]:
-        """Lazy initialization of LoLLMS client with logging."""
+        """Lazy initialization of LoLLMS client with logging (multi-provider support)."""
         if not self._lollms_client_initialized:
             self._log("Initializing LoLLMS client...", "cyan", "🔗")
             try:
-                self._lollms_client = build_lollms_client()
-                self._log("✅ LoLLMS client connected", "green", "🔗")
+                # Build with multi-provider support if enabled
+                self._lollms_client = build_lollms_client(
+                    use_multi_provider=self._use_multi_provider
+                )
+                
+                # Log which system is being used
+                if self._use_multi_provider:
+                    self._log("✅ Multi-provider system connected (OpenRouter + Ollama)", "green", "🌐")
+                else:
+                    self._log("✅ LoLLMS client connected", "green", "🔗")
+                    
             except Exception as e:
                 self._log_error("Failed to initialize LoLLMS client", e)
                 self._lollms_client = None
@@ -609,6 +635,164 @@ class Agent:
         
         return skill_result
     
+    def _should_delegate_to_rc2(self, message: str) -> Optional[Dict[str, Any]]:
+        """Check if message should be delegated to RC2 sub-agent.
+        
+        Args:
+            message: User message
+            
+        Returns:
+            Dict with capability and context if should delegate, None otherwise
+        """
+        from lollmsbot.subagents import SubAgentCapability
+        
+        message_lower = message.lower()
+        
+        # Constitutional review patterns
+        if any(phrase in message_lower for phrase in [
+            "is this allowed", "is it okay", "should i", "can i",
+            "ethical", "policy", "rules", "permitted", "authorized"
+        ]):
+            return {
+                "capability": SubAgentCapability.CONSTITUTIONAL_REVIEW,
+                "context": {"decision": message, "context": "User seeking permission"}
+            }
+        
+        # Deep introspection patterns
+        if any(phrase in message_lower for phrase in [
+            "why did i", "why did you", "explain your reasoning",
+            "how did you decide", "what made you", "introspect",
+            "analyze your decision", "thought process"
+        ]):
+            return {
+                "capability": SubAgentCapability.DEEP_INTROSPECTION,
+                "context": {"question": message, "decision": "Previous interaction"}
+            }
+        
+        # Self-modification patterns (proposals only)
+        if any(phrase in message_lower for phrase in [
+            "improve yourself", "how can you improve", "self-modify",
+            "upgrade", "enhance your", "fix your code"
+        ]):
+            return {
+                "capability": SubAgentCapability.SELF_MODIFICATION,
+                "context": {"issue": message}
+            }
+        
+        # Meta-learning patterns
+        if any(phrase in message_lower for phrase in [
+            "learn better", "optimize learning", "meta-learn",
+            "improve learning", "learning strategy"
+        ]):
+            return {
+                "capability": SubAgentCapability.META_LEARNING,
+                "context": {"request": message}
+            }
+        
+        return None
+    
+    async def _delegate_to_rc2(
+        self,
+        user_id: str,
+        message: str,
+        delegation: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Delegate request to RC2 sub-agent.
+        
+        Args:
+            user_id: User ID
+            message: Original message
+            delegation: Delegation info with capability and context
+            
+        Returns:
+            Response dict
+        """
+        from lollmsbot.subagents import SubAgentRequest
+        
+        try:
+            # Create request
+            request = SubAgentRequest(
+                capability=delegation["capability"],
+                context=delegation["context"],
+                user_id=user_id
+            )
+            
+            # Process with RC2
+            response = await self._rc2.process(request)
+            
+            if response.success:
+                # Format response for user
+                capability_name = delegation["capability"].name.replace("_", " ").title()
+                
+                if delegation["capability"].name == "CONSTITUTIONAL_REVIEW":
+                    result = response.result
+                    if result.get("approved"):
+                        user_response = (
+                            f"✅ **Constitutional Review: APPROVED**\n\n"
+                            f"{result.get('governor_reasoning', '')}\n\n"
+                            f"*This decision passed Byzantine consensus review.*"
+                        )
+                    else:
+                        user_response = (
+                            f"❌ **Constitutional Review: NOT APPROVED**\n\n"
+                            f"**Governor:** {result.get('governor_reasoning', '')}\n\n"
+                            f"**Auditor:** {result.get('auditor_reasoning', '')}\n\n"
+                            f"*This decision did not pass Byzantine consensus review.*"
+                        )
+                elif delegation["capability"].name == "DEEP_INTROSPECTION":
+                    user_response = (
+                        f"🧠 **Deep Introspection Analysis**\n\n"
+                        f"{response.result.get('analysis', '')}\n\n"
+                        f"*Analysis confidence: {response.confidence:.0%}*"
+                    )
+                else:
+                    user_response = (
+                        f"🌟 **RC2 {capability_name}**\n\n"
+                        f"{response.reasoning or 'Processing complete.'}\n\n"
+                        f"{response.result}"
+                    )
+                
+                self._log(f"✅ RC2 processing successful", "green", "🌟")
+                
+                return {
+                    "success": True,
+                    "response": user_response,
+                    "rc2_used": True,
+                    "rc2_capability": delegation["capability"].name,
+                    "rc2_confidence": response.confidence,
+                    "tools_used": [],
+                    "skills_used": [],
+                    "files_to_send": [],
+                }
+            else:
+                # RC2 failed
+                self._log(f"❌ RC2 processing failed: {response.result.get('error')}", "red", "💥")
+                
+                return {
+                    "success": False,
+                    "response": f"RC2 processing encountered an issue: {response.result.get('error', 'Unknown error')}",
+                    "error": response.result.get("error"),
+                    "rc2_used": True,
+                    "rc2_failed": True,
+                    "tools_used": [],
+                    "skills_used": [],
+                    "files_to_send": [],
+                }
+                
+        except Exception as e:
+            self._log(f"💥 RC2 delegation exception: {e}", "red", "❌")
+            
+            return {
+                "success": False,
+                "response": "An error occurred while processing your request with RC2.",
+                "error": str(e),
+                "rc2_used": True,
+                "rc2_exception": True,
+                "tools_used": [],
+                "skills_used": [],
+                "files_to_send": [],
+            }
+    
     def _is_informational_query(self, message: str) -> bool:
         """Check if the message is asking about capabilities/tools (no tools needed)."""
         msg_lower = message.lower()
@@ -729,6 +913,13 @@ class Agent:
                 "error": "System quarantined by Guardian",
                 "tools_used": [], "skills_used": [], "files_to_send": [],
             }
+        
+        # Check if this should be delegated to RC2
+        if self._rc2_enabled and self._rc2:
+            rc2_delegation = self._should_delegate_to_rc2(message)
+            if rc2_delegation:
+                self._log(f"🌟 Delegating to RC2: {rc2_delegation['capability']}", "magenta", "🤖")
+                return await self._delegate_to_rc2(user_id, message, rc2_delegation)
         
         # Security screening
         security_flags = []
