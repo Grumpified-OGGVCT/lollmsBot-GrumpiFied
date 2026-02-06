@@ -194,37 +194,35 @@ class DebtRepaymentRequest(BaseModel):
     },
 )
 async def get_restraints() -> Dict[str, Any]:
-    """Get current constitutional restraint values and metadata."""
+    """Get current constitutional restraint values with UI-friendly semantics."""
     try:
         restraints = get_constitutional_restraints()
         audit_trail = restraints.get_audit_trail()
         
+        # Import semantic layer
+        from lollmsbot.restraint_semantics import format_restraint_for_ui
+        
+        # Format each restraint for UI
+        restraints_ui = {}
+        for dimension in [
+            "recursion_depth", "cognitive_budget_ms", "simulation_fidelity",
+            "hallucination_resistance", "uncertainty_propagation", "contradiction_sensitivity",
+            "user_model_fidelity", "transparency_level", "explanation_depth",
+            "self_modification_freedom", "goal_inference_autonomy", "memory_consolidation_rate"
+        ]:
+            backend_value = getattr(restraints, dimension)
+            restraints_ui[dimension] = format_restraint_for_ui(dimension, backend_value)
+        
         return {
             "success": True,
-            "restraints": {
-                # Cognitive Budgeting
-                "recursion_depth": restraints.recursion_depth,
-                "cognitive_budget_ms": restraints.cognitive_budget_ms,
-                "simulation_fidelity": restraints.simulation_fidelity,
-                # Epistemic Virtues
-                "hallucination_resistance": restraints.hallucination_resistance,
-                "uncertainty_propagation": restraints.uncertainty_propagation,
-                "contradiction_sensitivity": restraints.contradiction_sensitivity,
-                # Social Cognition
-                "user_model_fidelity": restraints.user_model_fidelity,
-                "transparency_level": restraints.transparency_level,
-                "explanation_depth": restraints.explanation_depth,
-                # Autonomy & Growth
-                "self_modification_freedom": restraints.self_modification_freedom,
-                "goal_inference_autonomy": restraints.goal_inference_autonomy,
-                "memory_consolidation_rate": restraints.memory_consolidation_rate,
-            },
+            "restraints": restraints_ui,
             "hard_limits": restraints._hard_limits,
             "audit_summary": {
                 "total_changes": len(audit_trail.changes),
                 "chain_valid": audit_trail.verify_chain(),
                 "unauthorized_attempts": len(audit_trail.get_unauthorized_attempts()),
             },
+            "semantic_note": "⚠️ Some dimensions (like hallucination_resistance) are inverted for intuitive UI. Use ui_value for display, backend_value for storage.",
         }
     except Exception as e:
         logger.error(f"Error getting restraints: {e}")
@@ -291,16 +289,26 @@ async def update_restraint(request: RestraintUpdateRequest) -> Dict[str, Any]:
     try:
         restraints = get_constitutional_restraints()
         
+        # Import semantic layer
+        from lollmsbot.restraint_semantics import get_backend_value
+        
         # Parse dimension
         try:
             dimension = RestraintDimension[request.dimension.upper()]
         except KeyError:
             raise HTTPException(status_code=400, detail=f"Invalid dimension: {request.dimension}")
         
+        # Convert UI value to backend value (handles inversion for hallucination_resistance)
+        backend_value = get_backend_value(request.dimension, request.value)
+        
+        # Log the conversion for transparency
+        if backend_value != request.value:
+            logger.info(f"UI value {request.value} converted to backend value {backend_value} for {request.dimension}")
+        
         # Attempt update
         success = restraints.set_dimension(
             dimension=dimension,
-            value=request.value,
+            value=backend_value,
             authorized=request.authorized,
             authorization_key=request.authorization_key,
         )
@@ -309,14 +317,16 @@ async def update_restraint(request: RestraintUpdateRequest) -> Dict[str, Any]:
             return {
                 "success": True,
                 "dimension": request.dimension,
-                "value": request.value,
+                "ui_value": request.value,
+                "backend_value": backend_value,
                 "message": "Restraint updated successfully",
             }
         else:
             return {
                 "success": False,
                 "dimension": request.dimension,
-                "value": request.value,
+                "ui_value": request.value,
+                "backend_value": backend_value,
                 "message": "Update blocked by hard-stop or invalid authorization",
                 "requires_authorization": True,
             }
