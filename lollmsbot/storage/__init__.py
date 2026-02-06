@@ -24,8 +24,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol
 
-from lollmsbot.storage.sqlite_store import SqliteStore
-
 
 class BaseStorage(ABC):
     """Abstract base class for storage backends.
@@ -238,8 +236,13 @@ class StorageRegistry:
         cls._default = None
 
 
+# Import SqliteStore and StorageError after BaseStorage is defined to avoid circular import
+from lollmsbot.storage.sqlite_store import SqliteStore, StorageError
+
+
 __all__ = [
     "BaseStorage",
     "SqliteStore",
     "StorageRegistry",
+    "StorageError",  # Export exception for error handling
 ]

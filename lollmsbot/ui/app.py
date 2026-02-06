@@ -1017,7 +1017,9 @@ window.chatApp = app;
                         "type": "error",
                         "message": f"Server error: {str(exc)}"
                     })
-                except:
+                except (RuntimeError, Exception) as send_error:
+                    # WebSocket already closed or other send error
+                    logger.debug(f"Could not send error message to client: {send_error}")
                     pass
             finally:
                 await self.manager.disconnect(websocket)

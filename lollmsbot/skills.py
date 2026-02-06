@@ -1074,8 +1074,9 @@ class SkillExecutor:
             # Try to extract JSON
             parsed = self._extract_json(output_text)
             return parsed
-        except:
-            # Return as structured text
+        except (json.JSONDecodeError, ValueError) as e:
+            # Return as structured text if JSON parsing fails
+            logger.debug(f"Could not parse JSON from LLM output: {e}")
             return {"raw_output": output_text}
     
     async def _execute_template_skill(self, skill: Skill, inputs: Dict[str, Any], record: SkillExecutionRecord) -> Any:
@@ -1136,7 +1137,8 @@ class SkillExecutor:
             for match in matches:
                 try:
                     return json.loads(match)
-                except:
+                except (json.JSONDecodeError, ValueError):
+                    # Try next pattern/match if this one fails to parse
                     continue
         
         raise ValueError("No valid JSON found in text")

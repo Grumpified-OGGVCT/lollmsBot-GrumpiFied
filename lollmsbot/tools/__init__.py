@@ -100,6 +100,107 @@ class ToolRegistry:
             True if the tool is registered, False otherwise.
         """
         return tool_name in self._tools
+
+
+class SmartWebFetcher:
+    """Intelligently choose between HTTP and Browser tools for web fetching.
+    
+    This dispatcher optimizes web content fetching by:
+    - Using lightweight HTTP tool for static content (faster, lower resource)
+    - Using Browser tool for JavaScript-heavy or interactive content
+    - Automatically falling back when Browser isn't available
+    
+    Example:
+        >>> fetcher = SmartWebFetcher(http_tool, browser_tool)
+        >>> # Fetch static page (uses HTTP)
+        >>> content = await fetcher.fetch("https://example.com")
+        >>> # Fetch dynamic page (uses Browser)
+        >>> content = await fetcher.fetch("https://app.example.com", requires_js=True)
+    """
+    
+    def __init__(self, http_tool: HttpTool, browser_tool: Tool = None):
+        """Initialize the smart web fetcher.
+        
+        Args:
+            http_tool: HTTP tool for static content
+            browser_tool: Optional browser tool for dynamic content
+        """
+        self.http_tool = http_tool
+        self.browser_tool = browser_tool
+    
+    def is_browser_available(self) -> bool:
+        """Check if browser tool is available."""
+        return self.browser_tool is not None
+    
+    async def fetch(
+        self,
+        url: str,
+        requires_js: bool = False,
+        requires_interaction: bool = False,
+        **kwargs
+    ) -> str:
+        """Fetch web content using the optimal tool.
+        
+        Args:
+            url: URL to fetch
+            requires_js: Whether JavaScript execution is needed
+            requires_interaction: Whether user interaction simulation is needed
+            **kwargs: Additional arguments passed to the tool
+            
+        Returns:
+            Fetched content as string
+            
+        Raises:
+            ToolError: If fetching fails
+        """
+        # Determine which tool to use
+        needs_browser = requires_js or requires_interaction
+        
+        if needs_browser:
+            if self.is_browser_available():
+                # Use browser for dynamic content
+                return await self._fetch_with_browser(url, **kwargs)
+            else:
+                # Browser not available, log warning and fall back to HTTP
+                import logging
+                logger = logging.getLogger("lollmsbot.tools")
+                logger.warning(
+                    f"Browser tool not available for {url}, falling back to HTTP "
+                    "(some content may be missing)"
+                )
+                return await self._fetch_with_http(url, **kwargs)
+        else:
+            # Use HTTP for static content (faster and lighter)
+            return await self._fetch_with_http(url, **kwargs)
+    
+    async def _fetch_with_http(self, url: str, **kwargs) -> str:
+        """Fetch content using HTTP tool."""
+        result = await self.http_tool.execute(
+            action="get",
+            url=url,
+            **kwargs
+        )
+        
+        if result.success:
+            return result.output
+        else:
+            raise ToolError(f"HTTP fetch failed: {result.error}")
+    
+    async def _fetch_with_browser(self, url: str, **kwargs) -> str:
+        """Fetch content using Browser tool."""
+        if not self.browser_tool:
+            raise ToolError("Browser tool not available")
+        
+        result = await self.browser_tool.execute(
+            action="fetch",
+            url=url,
+            **kwargs
+        )
+        
+        if result.success:
+            return result.output
+        else:
+            raise ToolError(f"Browser fetch failed: {result.error}")
     
     def __len__(self) -> int:
         """Get the number of registered tools."""
@@ -141,6 +242,8 @@ __all__ = [
     "ToolError",
     # Tool registry
     "ToolRegistry",
+    # Smart dispatchers
+    "SmartWebFetcher",
     # Tool classes
     "FilesystemTool",
     "HttpTool",

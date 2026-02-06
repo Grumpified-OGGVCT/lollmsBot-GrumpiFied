@@ -212,7 +212,9 @@ class BrowserAgent:
                 description = await page.locator('meta[name="description"]').get_attribute("content")
                 if description:
                     metadata["description"] = description
-            except:
+            except Exception as e:
+                # Meta tag not found or not accessible
+                logger.debug(f"Could not extract meta description: {e}")
                 pass
             
             # Parse accessibility tree for interactive elements

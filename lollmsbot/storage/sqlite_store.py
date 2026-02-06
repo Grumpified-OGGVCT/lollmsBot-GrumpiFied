@@ -7,6 +7,7 @@ Implements conversation history and agent state persistence.
 
 import json
 import sqlite3
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -14,6 +15,13 @@ from typing import Any, Dict, List, Optional
 import aiosqlite
 
 from lollmsbot.storage import BaseStorage
+
+logger = logging.getLogger(__name__)
+
+
+class StorageError(Exception):
+    """Base exception for storage-related errors."""
+    pass
 
 
 class SqliteStore(BaseStorage):
@@ -117,6 +125,9 @@ class SqliteStore(BaseStorage):
             
         Returns:
             True if save was successful, False otherwise.
+            
+        Raises:
+            StorageError: If database operation fails
         """
         try:
             conn = await self._ensure_initialized()
@@ -145,8 +156,12 @@ class SqliteStore(BaseStorage):
                 await conn.commit()
                 return True
                 
-        except Exception:
-            return False
+        except (aiosqlite.Error, sqlite3.Error) as e:
+            logger.error(f"Failed to save conversation for user {user_id}: {e}", exc_info=True)
+            raise StorageError(f"Database error saving conversation: {e}") from e
+        except Exception as e:
+            logger.error(f"Unexpected error saving conversation for user {user_id}: {e}", exc_info=True)
+            raise StorageError(f"Unexpected error saving conversation: {e}") from e
     
     async def get_conversation(self, user_id: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Retrieve conversation history for a user.
@@ -214,40 +229,12 @@ class SqliteStore(BaseStorage):
                 
                 return messages
                 
-        except Exception:
+        except (aiosqlite.Error, sqlite3.Error) as e:
+            logger.error(f"Failed to get conversation for user {user_id}: {e}", exc_info=True)
+            return []  # Return empty list on error for backwards compatibility
+        except Exception as e:
+            logger.error(f"Unexpected error getting conversation for user {user_id}: {e}", exc_info=True)
             return []
-    
-    async def save_agent_state(self, agent_id: str, state: Dict[str, Any]) -> bool:
-        """Serialize and save agent state for later resumption.
-        
-        Args:
-            agent_id: Unique identifier for the agent.
-            state: Dictionary containing all serializable agent state.
-            
-        Returns:
-            True if save was successful, False otherwise.
-        """
-        try:
-            conn = await self._ensure_initialized()
-            
-            # Serialize state to JSON
-            state_json = json.dumps(state, default=str)
-            
-            async with conn.cursor() as cursor:
-                # Use UPSERT pattern for SQLite
-                await cursor.execute("""
-                    INSERT INTO agent_states (agent_id, state_json, updated_at)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(agent_id) DO UPDATE SET
-                        state_json = excluded.state_json,
-                        updated_at = excluded.updated_at
-                """, (agent_id, state_json, datetime.now().isoformat()))
-                
-                await conn.commit()
-                return True
-                
-        except Exception:
-            return False
     
     async def load_agent_state(self, agent_id: str) -> Optional[Dict[str, Any]]:
         """Load previously saved agent state.
@@ -257,6 +244,9 @@ class SqliteStore(BaseStorage):
             
         Returns:
             State dictionary if found, None otherwise.
+            
+        Raises:
+            StorageError: If database operation fails
         """
         try:
             conn = await self._ensure_initialized()
@@ -275,8 +265,12 @@ class SqliteStore(BaseStorage):
                 state: Dict[str, Any] = json.loads(row[0])
                 return state
                 
-        except Exception:
-            return None
+        except (aiosqlite.Error, sqlite3.Error, json.JSONDecodeError) as e:
+            logger.error(f"Failed to load agent state for {agent_id}: {e}", exc_info=True)
+            raise StorageError(f"Database error loading agent state: {e}") from e
+        except Exception as e:
+            logger.error(f"Unexpected error loading agent state for {agent_id}: {e}", exc_info=True)
+            raise StorageError(f"Unexpected error loading agent state: {e}") from e
     
     async def delete_conversation(self, user_id: str) -> bool:
         """Delete all conversation history for a user.
@@ -286,6 +280,9 @@ class SqliteStore(BaseStorage):
             
         Returns:
             True if deletion was successful, False otherwise.
+            
+        Raises:
+            StorageError: If database operation fails
         """
         try:
             conn = await self._ensure_initialized()
@@ -299,8 +296,12 @@ class SqliteStore(BaseStorage):
                 await conn.commit()
                 return True
                 
-        except Exception:
-            return False
+        except (aiosqlite.Error, sqlite3.Error) as e:
+            logger.error(f"Failed to delete conversation for user {user_id}: {e}", exc_info=True)
+            raise StorageError(f"Database error deleting conversation: {e}") from e
+        except Exception as e:
+            logger.error(f"Unexpected error deleting conversation for user {user_id}: {e}", exc_info=True)
+            raise StorageError(f"Unexpected error deleting conversation: {e}") from e
     
     async def delete_agent_state(self, agent_id: str) -> bool:
         """Delete saved state for an agent.
@@ -310,6 +311,9 @@ class SqliteStore(BaseStorage):
             
         Returns:
             True if deletion was successful, False otherwise.
+            
+        Raises:
+            StorageError: If database operation fails
         """
         try:
             conn = await self._ensure_initialized()
@@ -322,8 +326,12 @@ class SqliteStore(BaseStorage):
                 await conn.commit()
                 return cursor.rowcount > 0
                 
-        except Exception:
-            return False
+        except (aiosqlite.Error, sqlite3.Error) as e:
+            logger.error(f"Failed to delete agent state for {agent_id}: {e}", exc_info=True)
+            raise StorageError(f"Database error deleting agent state: {e}") from e
+        except Exception as e:
+            logger.error(f"Unexpected error deleting agent state for {agent_id}: {e}", exc_info=True)
+            raise StorageError(f"Unexpected error deleting agent state: {e}") from e
     
     async def close(self) -> None:
         """Close storage connections and cleanup resources."""

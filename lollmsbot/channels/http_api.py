@@ -19,7 +19,7 @@ import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request, status, Query
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 
-from lollmsbot.agent import Agent, PermissionLevel
+from lollmsbot.agent import Agent, PermissionLevel, ValidationError
 
 
 logger = logging.getLogger(__name__)
@@ -227,12 +227,19 @@ class HttpApiChannel:
                     detail="message is required",
                 )
             
-            # Process via Agent
-            result = await self.agent.chat(
-                user_id=f"http:{user_id}",
-                message=message,
-                context={"channel": "http", "source": "webhook"},
-            )
+            # Process via Agent (validation happens inside agent.chat())
+            try:
+                result = await self.agent.chat(
+                    user_id=f"http:{user_id}",
+                    message=message,
+                    context={"channel": "http", "source": "webhook"},
+                )
+            except ValidationError as e:
+                # Convert validation errors to proper HTTP 400 responses
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Validation error: {str(e)}",
+                )
             
             # Build response with file download info
             response_data = {
@@ -285,11 +292,19 @@ class HttpApiChannel:
                     detail="message is required",
                 )
             
-            result = await self.agent.chat(
-                user_id=f"http:{user_id}",
-                message=message,
-                context={"channel": "http", "source": "direct_api"},
-            )
+            # Process via Agent (validation happens inside agent.chat())
+            try:
+                result = await self.agent.chat(
+                    user_id=f"http:{user_id}",
+                    message=message,
+                    context={"channel": "http", "source": "direct_api"},
+                )
+            except ValidationError as e:
+                # Convert validation errors to proper HTTP 400 responses
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Validation error: {str(e)}",
+                )
             
             # Build response with file download info
             response_data = {

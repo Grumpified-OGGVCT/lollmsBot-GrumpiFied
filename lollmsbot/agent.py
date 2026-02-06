@@ -81,6 +81,52 @@ class AgentError(Exception):
     """Exception raised when agent processing fails."""
     pass
 
+
+class ValidationError(Exception):
+    """Exception raised when input validation fails."""
+    pass
+
+
+def validate_user_id(user_id: str) -> None:
+    """Validate user_id format and length.
+    
+    Args:
+        user_id: User identifier to validate
+        
+    Raises:
+        ValidationError: If user_id is invalid
+    """
+    if not user_id or not isinstance(user_id, str):
+        raise ValidationError("user_id must be a non-empty string")
+    
+    if len(user_id) > 256:
+        raise ValidationError("user_id exceeds maximum length of 256 characters")
+    
+    # Basic sanity check - allow alphanumeric, underscore, hyphen, @, .
+    import re
+    if not re.match(r'^[\w\-@.]+$', user_id):
+        raise ValidationError("user_id contains invalid characters (allowed: alphanumeric, _, -, @, .)")
+
+
+def validate_message(message: str, max_length: int = 50000) -> None:
+    """Validate message format and length.
+    
+    Args:
+        message: Message to validate
+        max_length: Maximum allowed message length (default: 50000)
+        
+    Raises:
+        ValidationError: If message is invalid
+    """
+    if not isinstance(message, str):
+        raise ValidationError("message must be a string")
+    
+    if not message.strip():
+        raise ValidationError("message cannot be empty or whitespace only")
+    
+    if len(message) > max_length:
+        raise ValidationError(f"message exceeds maximum length of {max_length} characters")
+
 @dataclass
 class UserPermissions:
     """Permissions configuration for a specific user."""
@@ -160,7 +206,7 @@ ToolEventCallback = Callable[[str, str, Optional[Dict[str, Any]]], Awaitable[Non
 
 class Agent:
     """
-    Core AI agent with Skills and Guardian integration.
+    Core AI agent with Skills, Guardian, and RC2 sub-agent integration.
     Enhanced with detailed colored logging for debugging.
     """
     
@@ -172,6 +218,8 @@ class Agent:
         default_permissions: PermissionLevel = PermissionLevel.BASIC,
         enable_guardian: bool = True,
         enable_skills: bool = True,
+        enable_rc2: bool = True,
+        use_multi_provider: bool = True,
         verbose_logging: bool = True,
     ) -> None:
         self.config: BotConfig = config or BotConfig()
@@ -188,11 +236,30 @@ class Agent:
         if enable_guardian:
             self._guardian = get_guardian()
         
+        # RC2 Sub-Agent integration
+        self._rc2_enabled = enable_rc2
+        self._rc2: Any = None  # Optional[RC2SubAgent]
+        if enable_rc2:
+            try:
+                from lollmsbot.subagents import RC2SubAgent
+                self._rc2 = RC2SubAgent(enabled=True, use_multi_provider=use_multi_provider)
+                self._log("🌟 RC2 Sub-Agent initialized", "magenta", "🤖")
+            except Exception as e:
+                self._logger.warning(f"RC2 initialization failed: {e}")
+                self._rc2_enabled = False
+        
         # Skills integration - LAZY initialization
         self._skills_enabled = enable_skills
         self._skill_registry: Any = None  # Optional['SkillRegistry']
         self._skill_executor: Any = None   # Optional['SkillExecutor']
         self._skill_learner: Any = None    # Optional['SkillLearner']
+        
+        # Multi-provider preference
+        self._use_multi_provider = use_multi_provider
+        
+        # RC2 rate limiting to prevent abuse
+        self._rc2_calls: Dict[str, List[float]] = {}  # user_id -> [timestamps]
+        self._rc2_rate_limit = 5  # max calls per minute per user
         
         self._state: AgentState = AgentState.IDLE
         self._tools: Dict[str, Tool] = {}
@@ -377,12 +444,21 @@ class Agent:
             self._log(f"❌ Skill '{skill_name}' execution failed", "red", "📚", "error")
     
     def _ensure_lollms_client(self) -> Optional[LollmsClient]:
-        """Lazy initialization of LoLLMS client with logging."""
+        """Lazy initialization of LoLLMS client with logging (multi-provider support)."""
         if not self._lollms_client_initialized:
             self._log("Initializing LoLLMS client...", "cyan", "🔗")
             try:
-                self._lollms_client = build_lollms_client()
-                self._log("✅ LoLLMS client connected", "green", "🔗")
+                # Build with multi-provider support if enabled
+                self._lollms_client = build_lollms_client(
+                    use_multi_provider=self._use_multi_provider
+                )
+                
+                # Log which system is being used
+                if self._use_multi_provider:
+                    self._log("✅ Multi-provider system connected (OpenRouter + Ollama)", "green", "🌐")
+                else:
+                    self._log("✅ LoLLMS client connected", "green", "🔗")
+                    
             except Exception as e:
                 self._log_error("Failed to initialize LoLLMS client", e)
                 self._lollms_client = None
@@ -563,6 +639,223 @@ class Agent:
         
         return skill_result
     
+    def _should_delegate_to_rc2(self, message: str) -> Optional[Dict[str, Any]]:
+        """Check if message should be delegated to RC2 sub-agent.
+        
+        Args:
+            message: User message
+            
+        Returns:
+            Dict with capability and context if should delegate, None otherwise
+        """
+        from lollmsbot.subagents import SubAgentCapability
+        
+        message_lower = message.lower()
+        
+        # Constitutional review patterns
+        if any(phrase in message_lower for phrase in [
+            "is this allowed", "is it okay", "should i", "can i",
+            "ethical", "policy", "rules", "permitted", "authorized"
+        ]):
+            return {
+                "capability": SubAgentCapability.CONSTITUTIONAL_REVIEW,
+                "context": {"decision": message, "context": "User seeking permission"}
+            }
+        
+        # Deep introspection patterns
+        if any(phrase in message_lower for phrase in [
+            "why did i", "why did you", "explain your reasoning",
+            "how did you decide", "what made you", "introspect",
+            "analyze your decision", "thought process"
+        ]):
+            return {
+                "capability": SubAgentCapability.DEEP_INTROSPECTION,
+                "context": {"question": message, "decision": "Previous interaction"}
+            }
+        
+        # Self-modification patterns (proposals only)
+        if any(phrase in message_lower for phrase in [
+            "improve yourself", "how can you improve", "self-modify",
+            "upgrade", "enhance your", "fix your code"
+        ]):
+            return {
+                "capability": SubAgentCapability.SELF_MODIFICATION,
+                "context": {"issue": message}
+            }
+        
+        # Meta-learning patterns
+        if any(phrase in message_lower for phrase in [
+            "learn better", "optimize learning", "meta-learn",
+            "improve learning", "learning strategy"
+        ]):
+            return {
+                "capability": SubAgentCapability.META_LEARNING,
+                "context": {"request": message}
+            }
+        
+        return None
+    
+    def _check_rc2_rate_limit(self, user_id: str) -> bool:
+        """Check if user has exceeded RC2 rate limit.
+        
+        Args:
+            user_id: User ID to check
+            
+        Returns:
+            True if within rate limit, False if exceeded
+        """
+        import time
+        current_time = time.time()
+        minute_ago = current_time - 60
+        
+        # Initialize or clean old calls for user
+        if user_id not in self._rc2_calls:
+            self._rc2_calls[user_id] = []
+        
+        # Remove calls older than 1 minute
+        self._rc2_calls[user_id] = [
+            ts for ts in self._rc2_calls[user_id] if ts > minute_ago
+        ]
+        
+        # Check limit
+        if len(self._rc2_calls[user_id]) >= self._rc2_rate_limit:
+            return False
+        
+        # Add current call
+        self._rc2_calls[user_id].append(current_time)
+        return True
+    
+    async def _delegate_to_rc2(
+        self,
+        user_id: str,
+        message: str,
+        delegation: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Delegate request to RC2 sub-agent.
+        
+        Args:
+            user_id: User ID
+            message: Original message
+            delegation: Delegation info with capability and context
+            
+        Returns:
+            Response dict
+        """
+        from lollmsbot.subagents import SubAgentRequest
+        
+        # Check rate limit
+        if not self._check_rc2_rate_limit(user_id):
+            self._log(f"⚠️  RC2 rate limit exceeded for {user_id}", "yellow", "⚠️")
+            return {
+                "success": False,
+                "response": (
+                    "⚠️ You've reached the RC2 request limit. "
+                    f"Please wait a moment before trying advanced features again. "
+                    f"(Limit: {self._rc2_rate_limit} requests per minute)"
+                ),
+                "error": "RC2 rate limit exceeded",
+                "tools_used": [],
+                "skills_used": [],
+                "files_to_send": [],
+            }
+        
+        try:
+            # Sanitize user input before passing to RC2
+            sanitized_context = delegation["context"].copy()
+            for key, value in sanitized_context.items():
+                if isinstance(value, str):
+                    # Basic sanitization: limit length, remove control characters
+                    sanitized_context[key] = value[:10000].replace('\x00', '')
+            
+            # Create request
+            request = SubAgentRequest(
+                capability=delegation["capability"],
+                context=sanitized_context,
+                user_id=user_id
+            )
+            
+            # Process with RC2
+            response = await self._rc2.process(request)
+            
+            if response.success:
+                # Format response for user
+                capability_name = delegation["capability"].name.replace("_", " ").title()
+                
+                if delegation["capability"].name == "CONSTITUTIONAL_REVIEW":
+                    result = response.result
+                    if result.get("approved"):
+                        user_response = (
+                            f"✅ **Constitutional Review: APPROVED**\n\n"
+                            f"{result.get('governor_reasoning', '')}\n\n"
+                            f"*This decision passed Byzantine consensus review.*"
+                        )
+                    else:
+                        user_response = (
+                            f"❌ **Constitutional Review: NOT APPROVED**\n\n"
+                            f"**Governor:** {result.get('governor_reasoning', '')}\n\n"
+                            f"**Auditor:** {result.get('auditor_reasoning', '')}\n\n"
+                            f"*This decision did not pass Byzantine consensus review.*"
+                        )
+                elif delegation["capability"].name == "DEEP_INTROSPECTION":
+                    user_response = (
+                        f"🧠 **Deep Introspection Analysis**\n\n"
+                        f"{response.result.get('analysis', '')}\n\n"
+                        f"*Analysis confidence: {response.confidence:.0%}*"
+                    )
+                else:
+                    user_response = (
+                        f"🌟 **RC2 {capability_name}**\n\n"
+                        f"{response.reasoning or 'Processing complete.'}\n\n"
+                        f"{response.result}"
+                    )
+                
+                self._log(f"✅ RC2 processing successful", "green", "🌟")
+                
+                return {
+                    "success": True,
+                    "response": user_response,
+                    "rc2_used": True,
+                    "rc2_capability": delegation["capability"].name,
+                    "rc2_confidence": response.confidence,
+                    "tools_used": [],
+                    "skills_used": [],
+                    "files_to_send": [],
+                }
+            else:
+                # RC2 failed
+                self._log(f"❌ RC2 processing failed: {response.result.get('error')}", "red", "💥")
+                
+                return {
+                    "success": False,
+                    "response": f"RC2 processing encountered an issue: {response.result.get('error', 'Unknown error')}",
+                    "error": response.result.get("error"),
+                    "rc2_used": True,
+                    "rc2_failed": True,
+                    "tools_used": [],
+                    "skills_used": [],
+                    "files_to_send": [],
+                }
+                
+        except Exception as e:
+            # Log full error for debugging but sanitize for user
+            self._log(f"💥 RC2 delegation exception: {type(e).__name__}: {str(e)[:100]}", "red", "❌")
+            self._logger.error(f"RC2 exception details", exc_info=True)
+            
+            # Return user-friendly error (don't expose internal details)
+            return {
+                "success": False,
+                "response": (
+                    "⚠️ Advanced processing is temporarily unavailable. "
+                    "Your request will be handled using standard processing instead."
+                ),
+                "error": "RC2 processing failed",
+                "rc2_used": True,
+                "rc2_exception": True,
+                "tools_used": [],
+                "skills_used": [],
+                "files_to_send": [],
+            }
+    
     def _is_informational_query(self, message: str) -> bool:
         """Check if the message is asking about capabilities/tools (no tools needed)."""
         msg_lower = message.lower()
@@ -609,7 +902,23 @@ class Agent:
             
         Returns:
             Response dict with success, response, tools_used, etc.
+            
+        Raises:
+            ValidationError: If user_id or message is invalid
         """
+        # Validate inputs
+        try:
+            validate_user_id(user_id)
+            validate_message(message)
+        except ValidationError as e:
+            self._log(f"❌ Input validation failed: {e}", "red", "⚠️")
+            return {
+                "success": False,
+                "response": f"Invalid input: {str(e)}",
+                "error": f"validation_error: {str(e)}",
+                "tools_used": [], "skills_used": [], "files_to_send": [],
+            }
+        
         # If Lane Queue is available and enabled, submit through it
         if use_lane_queue and LANE_QUEUE_AVAILABLE and get_engine:
             engine = get_engine()
@@ -668,6 +977,21 @@ class Agent:
                 "tools_used": [], "skills_used": [], "files_to_send": [],
             }
         
+        # Check if this should be delegated to RC2
+        if self._rc2_enabled and self._rc2:
+            rc2_delegation = self._should_delegate_to_rc2(message)
+            if rc2_delegation:
+                self._log(f"🌟 Delegating to RC2: {rc2_delegation['capability']}", "magenta", "🤖")
+                rc2_response = await self._delegate_to_rc2(user_id, message, rc2_delegation)
+                
+                # If RC2 succeeded, return its response
+                if rc2_response.get("success"):
+                    return rc2_response
+                
+                # RC2 failed - log and fall through to regular processing
+                self._log(f"⚠️  RC2 failed, falling back to regular chat", "yellow", "⚠️")
+                # Continue with normal processing below
+        
         # Security screening
         security_flags = []
         if self._guardian:
@@ -676,11 +1000,28 @@ class Agent:
             self._log_security_check(is_safe, event)
             
             if not is_safe:
+                # Format detailed security feedback for user transparency
+                user_message = (
+                    f"⚠️ **Security Check Failed**\n\n"
+                    f"**Reason:** {event.description if event else 'Policy violation detected'}\n"
+                    f"**Threat Level:** {event.threat_level.name if event else 'MEDIUM'}\n"
+                    f"**Action:** {event.action_taken.name if event else 'BLOCKED'}\n\n"
+                    f"Your request was blocked for safety. This helps protect the system and your data.\n"
+                    f"If you believe this is a false positive, please rephrase your request."
+                )
+                
                 return {
                     "success": False,
-                    "response": "Message blocked by security screening.",
+                    "response": user_message,
                     "error": f"Security blocked: {event.description if event else 'policy violation'}",
-                    "security_blocked": True, "tools_used": [], "skills_used": [], "files_to_send": [],
+                    "security_blocked": True,
+                    "security_event": {
+                        "id": event.event_id if event and hasattr(event, 'event_id') else None,
+                        "level": event.threat_level.name if event else "MEDIUM",
+                        "description": event.description if event else "Policy violation",
+                        "action": event.action_taken.name if event else "BLOCKED"
+                    },
+                    "tools_used": [], "skills_used": [], "files_to_send": [],
                 }
             if event:
                 security_flags.append(event.event_type)

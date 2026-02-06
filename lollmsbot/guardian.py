@@ -63,9 +63,17 @@ class SecurityEvent:
     context_hash: str  # Hash of relevant context (for integrity)
     action_taken: GuardianAction
     user_notified: bool = False
+    event_id: str = ""  # Unique identifier for this event
+    
+    def __post_init__(self):
+        # Generate event_id if not provided
+        if not self.event_id:
+            import uuid
+            object.__setattr__(self, 'event_id', str(uuid.uuid4())[:8])
     
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "event_id": self.event_id,
             "timestamp": self.timestamp.isoformat(),
             "event_type": self.event_type,
             "threat_level": self.threat_level.name,
