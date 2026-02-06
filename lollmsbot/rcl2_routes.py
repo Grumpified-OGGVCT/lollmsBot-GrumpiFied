@@ -31,6 +31,9 @@ from lollmsbot.cognitive_twin import get_cognitive_twin
 
 logger = logging.getLogger(__name__)
 
+# WebSocket configuration
+WEBSOCKET_UPDATE_INTERVAL_SECONDS = 5.0  # Periodic update interval
+
 rcl2_router = APIRouter(
     prefix="/rcl2",
     tags=["rcl2"],
@@ -650,7 +653,10 @@ async def rcl2_websocket(websocket: WebSocket):
         while True:
             # Wait for client messages or send periodic updates
             try:
-                data = await asyncio.wait_for(websocket.receive_json(), timeout=5.0)
+                data = await asyncio.wait_for(
+                    websocket.receive_json(), 
+                    timeout=WEBSOCKET_UPDATE_INTERVAL_SECONDS
+                )
                 
                 # Handle client requests
                 if data.get("type") == "ping":
