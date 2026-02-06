@@ -119,12 +119,17 @@ class RCL2Dashboard {
         const cognitiveBtn = document.getElementById('cognitive-btn');
         if (cognitiveBtn) {
             cognitiveBtn.addEventListener('click', () => this.open());
+            // H05: Add aria-label for accessibility
+            cognitiveBtn.setAttribute('aria-label', 'Open Cognitive Dashboard');
+            cognitiveBtn.setAttribute('role', 'button');
         }
         
         // Close button
         const closeBtn = document.getElementById('close-dashboard');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.close());
+            // H06: Keyboard accessibility
+            closeBtn.setAttribute('aria-label', 'Close Dashboard');
         }
         
         // Close on overlay click
@@ -135,6 +140,11 @@ class RCL2Dashboard {
                     this.close();
                 }
             });
+            
+            // H06: Make dashboard keyboard navigable
+            dashboard.setAttribute('role', 'dialog');
+            dashboard.setAttribute('aria-modal', 'true');
+            dashboard.setAttribute('aria-labelledby', 'dashboard-title');
         }
         
         // Tab switching
@@ -143,6 +153,17 @@ class RCL2Dashboard {
             btn.addEventListener('click', () => {
                 const tab = btn.getAttribute('data-tab');
                 this.switchTab(tab);
+            });
+            
+            // H06: Keyboard navigation for tabs
+            btn.setAttribute('role', 'tab');
+            btn.setAttribute('tabindex', '0');
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const tab = btn.getAttribute('data-tab');
+                    this.switchTab(tab);
+                }
             });
         });
         
@@ -158,7 +179,32 @@ class RCL2Dashboard {
                 e.preventDefault();
                 this.toggle();
             }
+            
+            // H06: Tab navigation within modal
+            if (e.key === 'Tab' && this.isOpen) {
+                this.trapFocus(e);
+            }
         });
+    }
+    
+    // H06: Focus trap for accessibility
+    trapFocus(e) {
+        const dashboard = document.getElementById('cognitive-dashboard');
+        if (!dashboard) return;
+        
+        const focusableElements = dashboard.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        
+        if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+        }
     }
     
     open() {
@@ -167,6 +213,12 @@ class RCL2Dashboard {
         if (dashboard) {
             dashboard.classList.add('open');
             this.isOpen = true;
+            
+            // H06: Set focus to close button for accessibility
+            const closeBtn = document.getElementById('close-dashboard');
+            if (closeBtn) {
+                setTimeout(() => closeBtn.focus(), 100);
+            }
             
             // Load current tab content
             this.loadTabContent(this.currentTab);
