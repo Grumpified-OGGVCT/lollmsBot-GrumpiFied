@@ -132,6 +132,10 @@ def print_skills_info() -> None:
         
         console.print(info_table)
         
+        # Show ecosystem note if available
+        if info.get("note"):
+            console.print(f"\n[dim]{info.get('note')}[/dim]")
+        
         if info.get("loaded_skills"):
             console.print("\n[bold]Loaded Skills:[/bold]")
             for skill in info["loaded_skills"]:

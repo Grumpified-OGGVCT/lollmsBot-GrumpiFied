@@ -2,7 +2,7 @@
 
 ## Overview
 
-lollmsBot now integrates with [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills), a curated collection of **27+ production-ready AI workflows** that transform the bot from a general assistant into a domain specialist.
+lollmsBot now integrates with [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills), a curated collection of **production-ready AI workflows** that transform the bot from a general assistant into a domain specialist. The repository includes dozens of skills across multiple categories, with new ones added regularly.
 
 ### What Are Awesome Skills?
 
@@ -24,6 +24,8 @@ Awesome skills are structured instruction sets that teach AI models how to perfo
 - **Full Control**: CLI, wizard, and (future) GUI interfaces for management
 
 ### Available Skills by Category
+
+The awesome-claude-skills repository contains multiple categories of skills, with the collection growing regularly through community contributions. The base collection includes:
 
 #### Document Processing
 - `pdf` - Extract, merge, annotate PDFs
@@ -58,6 +60,8 @@ Awesome skills are structured instruction sets that teach AI models how to perfo
 - `theme-factory` - Generate consistent themes
 
 ...and many more!
+
+> **Note**: The repository also links to 25+ additional community-contributed skills hosted in external repositories, bringing the total ecosystem to **50+ specialized workflows**. Use the discovery tools to find all available skills.
 
 ## Quick Start
 
@@ -344,16 +348,17 @@ lollmsbot skills update
 
 ### Skill Selection
 
-- **Start Small**: Don't load all 27 skills at once
+- **Start Small**: Don't load all skills at once - be selective
 - **Use Categories**: Focus on skills relevant to your use case
 - **Test First**: Try skills in wizard before enabling permanently
-- **Monitor Performance**: More skills = more context, watch memory
+- **Monitor Performance**: More skills = more context, watch memory usage
 
 ### Maintenance
 
-- **Regular Updates**: Run `lollmsbot skills update` weekly
-- **Review Changes**: Check the repository changelog for new skills
+- **Regular Updates**: Run `lollmsbot skills update` periodically to get new skills
+- **Review Changes**: Check the repository changelog for newly added skills
 - **Clean Up**: Uninstall unused skills to keep things lean
+- **Explore**: New skills are added regularly - use search to discover them
 
 ### Integration
 

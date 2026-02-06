@@ -46,7 +46,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | Feature | Why It Matters |
 |--------|---------------|
 | **🧬 7-Pillar Architecture** | Soul, Guardian, Heartbeat, Memory, Skills, Tools, Identity — a complete cognitive framework |
-| **🌟 Awesome Claude Skills** | 27+ production-ready AI workflows from the community — transform from generalist to specialist |
+| **🌟 Awesome Claude Skills** | Production-ready AI workflows from the community — dozens of specialized skills and growing |
 | **🔌 17+ LLM Backends** | Freedom to use OpenAI, Claude, Ollama, vLLM, Groq, Gemini, or any OpenAI-compatible API |
 | **🔀 Multi-Provider Routing** | Cost optimization with OpenRouter free tier + Ollama fallback (40-70% savings) |
 | **🧠 RC2 Sub-Agent** | Constitutional review (Byzantine consensus) and deep introspection capabilities |
@@ -65,7 +65,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 
 ### 🌟 NEW: Awesome Claude Skills Integration
 
-lollmsBot now includes **27+ production-ready AI workflows** from [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills):
+lollmsBot now includes **production-ready AI workflows** from [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills):
 
 - **📄 Document Processing**: PDF, Word, Excel, PowerPoint manipulation
 - **💻 Development Tools**: Changelog generation, MCP builders, code review
@@ -73,6 +73,8 @@ lollmsBot now includes **27+ production-ready AI workflows** from [awesome-claud
 - **✍️ Communication**: Meeting analysis, content writing, internal comms
 - **🎨 Creative & Media**: Image enhancement, design, themes
 - **📊 Productivity**: File organization, invoice management, raffle tools
+
+The repository contains dozens of skills with new ones added regularly. The ecosystem includes **50+ total workflows** when including community-contributed external skills.
 
 **Quick Start:**
 ```bash

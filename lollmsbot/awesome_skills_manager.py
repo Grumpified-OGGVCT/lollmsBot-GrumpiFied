@@ -509,6 +509,9 @@ class AwesomeSkillsManager:
                 skills = self.load_skills_index()
                 info["skills_count"] = len(skills)
                 
+                # Add note about ecosystem
+                info["note"] = f"Repository contains {len(skills)} curated skills. The full awesome-claude-skills ecosystem includes 50+ workflows through community contributions."
+                
             except Exception as e:
                 logger.error(f"Error getting repository info: {e}")
         
