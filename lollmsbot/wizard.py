@@ -585,7 +585,11 @@ class Wizard:
         
         # Offer to test
         if questionary.confirm("Test connection now?", default=True).ask():
-            self._test_backend_connection(lollms_config)
+            test_result = self._test_backend_connection(lollms_config)
+            if not test_result:
+                # Test failed and user wants to reconfigure
+                if questionary.confirm("Restart backend configuration?", default=True).ask():
+                    return self.configure_backend()  # Recursive call to reconfigure
 
     def _show_backend_summary(self, config: Dict[str, Any], binding_info: BindingInfo) -> None:
         """Show a summary of the backend configuration."""
@@ -611,8 +615,12 @@ class Wizard:
         
         console.print(table)
 
-    def _test_backend_connection(self, config: Dict[str, Any]) -> None:
-        """Test the backend connection."""
+    def _test_backend_connection(self, config: Dict[str, Any]) -> bool:
+        """Test the backend connection with actual LLM call.
+        
+        Returns:
+            True if test successful, False otherwise
+        """
         console.print("\n[bold]🧪 Testing connection...[/]")
         
         try:
@@ -627,17 +635,45 @@ class Wizard:
             )
             
             # Try to build client
+            console.print("[dim]Step 1/2: Building client...[/]")
             client = build_lollms_client(settings)
             
-            if client:
-                console.print("[bold green]✅ Client initialized successfully![/]")
-                console.print("[dim]Connection appears valid. Full test requires running gateway.[/]")
-            else:
+            if not client:
                 console.print("[yellow]⚠️ Could not initialize client - check configuration[/]")
+                return False
+            
+            console.print("[green]✓[/] Client initialized")
+            
+            # Try to generate a test response
+            console.print("[dim]Step 2/2: Testing LLM generation...[/]")
+            test_response = client.generate_text(
+                prompt="Respond with exactly: 'Connection successful'",
+                max_tokens=10,
+                temperature=0.1
+            )
+            
+            if test_response and len(test_response.strip()) > 0:
+                console.print(f"[bold green]✅ Connection successful![/]")
+                console.print(f"[dim]Test response: {test_response[:100]}...[/]")
+                return True
+            else:
+                console.print("[red]❌ Connection returned empty response[/]")
+                console.print("[dim]The API may be working but not responding correctly.[/]")
+                return False
                 
         except Exception as e:
             console.print(f"[red]❌ Connection test failed: {e}[/]")
             console.print("[dim]Tip: Ensure the backend service is running and accessible[/]")
+            
+            # Offer to reconfigure
+            if questionary.confirm(
+                "Would you like to reconfigure the backend?",
+                default=True
+            ).ask():
+                return False  # Signal to restart configuration
+            else:
+                console.print("[yellow]⚠️ Saving configuration anyway (you can test later)[/]")
+                return True  # Allow saving despite test failure
 
     # Legacy method - kept for backward compatibility but not used in main flow
     def configure_service(self, service_name: str) -> None:
