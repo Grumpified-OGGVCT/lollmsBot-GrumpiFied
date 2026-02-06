@@ -16,7 +16,16 @@
 
 ## 🎯 What is lollmsBot?
 
-**lollmsBot** is a **sovereign, agentic AI assistant** that you fully own and control. Unlike cloud-based assistants that lock you into proprietary ecosystems, lollmsBot runs on **your hardware**, connects to **your choice of AI models**, and evolves **according to your values**.
+**lollmsBot** is a **sovereign, agentic AI assistant** with **industrial-grade reliability** (OpenClaw patterns) and **cutting-edge MIT research** integration. Unlike cloud-based assistants that lock you into proprietary ecosystems, lollmsBot runs on **your hardware**, connects to **your choice of AI models**, and evolves **according to your values**.
+
+### The "Hybrid Architecture"
+
+This unique implementation combines:
+- **Personality Framework** (lollmsBot): Soul, Guardian, Skills, Memory
+- **Reliability Infrastructure** (OpenClaw): Lane Queue, Docker Sandbox, Pearl Logs
+- **Performance Research** (MIT): Adaptive Computation, RAG Store, Recursive Summarization
+
+**Result**: A bot that's both charming AND bulletproof.
 
 ### The "Clawdbot" Philosophy
 
