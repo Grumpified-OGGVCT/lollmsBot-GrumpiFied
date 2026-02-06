@@ -5,7 +5,10 @@ lollmsBot CLI - Gateway + Wizard + UI
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import sys
+from pathlib import Path
 from typing import List
 
 try:
@@ -194,6 +197,35 @@ def print_status() -> None:
         components_table.add_row("RAG Store", "✅ Available", "Knowledge base ready")
     except Exception as e:
         components_table.add_row("RAG Store", "⚠️ Optional", "Not available (optional feature)")
+    
+    # Check Multi-Provider
+    try:
+        from lollmsbot.providers import MultiProviderRouter
+        use_multi = os.getenv("USE_MULTI_PROVIDER", "true").lower() == "true"
+        if use_multi:
+            # Count available keys
+            openrouter_keys = sum(1 for i in [1,2,3] if os.getenv(f"OPENROUTER_API_KEY_{i}"))
+            ollama_keys = sum(1 for i in ["", "_2"] if os.getenv(f"OLLAMA_API_KEY{i}"))
+            components_table.add_row(
+                "Multi-Provider", 
+                "✅ Enabled", 
+                f"OpenRouter: {openrouter_keys} keys, Ollama: {ollama_keys} keys"
+            )
+        else:
+            components_table.add_row("Multi-Provider", "⚪ Disabled", "Set USE_MULTI_PROVIDER=true to enable")
+    except Exception as e:
+        components_table.add_row("Multi-Provider", "❌ Error", str(e)[:50])
+    
+    # Check RC2 Sub-Agent
+    try:
+        from lollmsbot.subagents import RC2SubAgent
+        rc2_enabled = os.getenv("RC2_ENABLED", "false").lower() == "true"
+        if rc2_enabled:
+            components_table.add_row("RC2 Sub-Agent", "✅ Enabled", "Constitutional review & introspection")
+        else:
+            components_table.add_row("RC2 Sub-Agent", "⚪ Disabled", "Set RC2_ENABLED=true to enable")
+    except Exception as e:
+        components_table.add_row("RC2 Sub-Agent", "❌ Error", str(e)[:50])
     
     console.print(components_table)
     console.print()

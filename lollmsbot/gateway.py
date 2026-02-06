@@ -58,11 +58,23 @@ def get_agent() -> Agent:
             return _agent
             
         config = BotConfig.from_env()
+        
+        # Load multi-provider and RC2 settings from environment
+        use_multi_provider = os.getenv("USE_MULTI_PROVIDER", "true").lower() == "true"
+        enable_rc2 = os.getenv("RC2_ENABLED", "false").lower() == "true"
+        
         _agent = Agent(
             config=config,
             name="LollmsBot",
             default_permissions=PermissionLevel.BASIC,
+            use_multi_provider=use_multi_provider,
+            enable_rc2=enable_rc2,
         )
+        
+        if use_multi_provider:
+            console.print("[green]  ✓ Multi-provider API routing enabled[/]")
+        if enable_rc2:
+            console.print("[green]  ✓ RC2 sub-agent delegation enabled[/]")
         
         # Register default tools - THIS IS KEY FOR FILE GENERATION!
         async def register_tools():
