@@ -71,7 +71,54 @@ class DebtRepaymentRequest(BaseModel):
 # Constitutional Restraints Endpoints
 # ============================================================================
 
-@rcl2_router.get("/restraints")
+@rcl2_router.get(
+    "/restraints",
+    summary="Get Constitutional Restraints",
+    description="""
+    **What's in it for you:** See exactly how autonomous and transparent your AI is configured to be.
+    
+    **User Value:**
+    - Know your AI's current behavior settings (12 dimensions)
+    - See which settings have hard-stops (safety limits)
+    - Verify no unauthorized changes (audit summary)
+    
+    **Results You'll See:**
+    - All 12 restraint values (0.0-1.0 scale)
+    - Hard-stop limits for each dimension
+    - Audit trail summary (total changes, integrity status)
+    
+    **Example Use Case:**
+    "I want to see how cautious my AI is configured to be about hallucinations"
+    → Check `hallucination_resistance` value (0.8 = very cautious, 0.2 = more creative)
+    """,
+    response_description="Current restraint values, hard-limits, and audit summary",
+    responses={
+        200: {
+            "description": "Successfully retrieved restraint configuration",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": True,
+                        "restraints": {
+                            "recursion_depth": 0.5,
+                            "hallucination_resistance": 0.8,
+                            "transparency_level": 0.6,
+                        },
+                        "hard_limits": {
+                            "self_modification_freedom": 0.5,
+                            "goal_inference_autonomy": 0.7,
+                        },
+                        "audit_summary": {
+                            "total_changes": 5,
+                            "chain_valid": True,
+                            "unauthorized_attempts": 0,
+                        },
+                    }
+                }
+            },
+        }
+    },
+)
 async def get_restraints() -> Dict[str, Any]:
     """Get current constitutional restraint values and metadata."""
     try:
@@ -110,7 +157,61 @@ async def get_restraints() -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@rcl2_router.post("/restraints")
+@rcl2_router.post(
+    "/restraints",
+    summary="Update a Constitutional Restraint",
+    description="""
+    **What's in it for you:** Fine-tune your AI's behavior to match your needs and comfort level.
+    
+    **User Value:**
+    - Adjust AI autonomy (more cautious ↔ more proactive)
+    - Control transparency (show me everything ↔ just results)
+    - Set epistemic standards (admit uncertainty ↔ best guess)
+    
+    **Results You'll See:**
+    - Immediate behavior change in the AI
+    - Confirmation or rejection (if hitting hard-stop)
+    - Audit trail entry (tamper-proof record)
+    
+    **Example Use Cases:**
+    1. "Make AI more transparent" → Set `transparency_level` to 0.9
+    2. "Let AI take more initiative" → Increase `goal_inference_autonomy` to 0.5
+    3. "Be more cautious with facts" → Set `hallucination_resistance` to 0.9
+    
+    **Safety:** Changes above hard-stops require authorization key (cryptographic proof).
+    """,
+    response_description="Update confirmation with success status",
+    responses={
+        200: {
+            "description": "Update processed (may be blocked by hard-stop)",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "success": {
+                            "summary": "Successful update",
+                            "value": {
+                                "success": True,
+                                "dimension": "transparency_level",
+                                "value": 0.8,
+                                "message": "Restraint updated successfully",
+                            },
+                        },
+                        "blocked": {
+                            "summary": "Blocked by hard-stop",
+                            "value": {
+                                "success": False,
+                                "dimension": "self_modification_freedom",
+                                "value": 0.7,
+                                "message": "Update blocked by hard-stop or invalid authorization",
+                                "requires_authorization": True,
+                            },
+                        },
+                    }
+                }
+            },
+        }
+    },
+)
 async def update_restraint(request: RestraintUpdateRequest) -> Dict[str, Any]:
     """Update a constitutional restraint dimension."""
     try:
@@ -267,7 +368,68 @@ async def get_council_status() -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@rcl2_router.post("/council/deliberate")
+@rcl2_router.post(
+    "/council/deliberate",
+    summary="Trigger a Council Deliberation",
+    description="""
+    **What's in it for you:** See your AI's "internal debate" before important decisions.
+    
+    **User Value:**
+    - Understand WHY a decision was made
+    - See multiple perspectives (safety, accuracy, efficiency, UX, consistency)
+    - Catch conflicts before they cause problems
+    
+    **Results You'll See:**
+    - 5 council member perspectives with reasoning
+    - Vote breakdown (APPROVE/REJECT/ABSTAIN/ESCALATE)
+    - Unanimous agreement or conflicts highlighted
+    - Final decision with full transparency
+    
+    **Example Use Cases:**
+    1. Before executing risky command: "Should I run this shell script?"
+    2. Medical advice: "Is this medical information accurate enough?"
+    3. Financial decision: "Should I process this transaction?"
+    
+    **Transparency:** Every council member explains their vote and concerns.
+    """,
+    response_description="Deliberation result with all perspectives and final decision",
+    responses={
+        200: {
+            "description": "Deliberation completed",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": True,
+                        "decision": "proceed",
+                        "unanimous": False,
+                        "perspectives": [
+                            {
+                                "member_role": "guardian",
+                                "vote": "REJECT",
+                                "confidence": 0.9,
+                                "reasoning": "High risk operation requires human oversight",
+                                "concerns": ["Data loss potential", "Irreversible action"],
+                            },
+                            {
+                                "member_role": "strategist",
+                                "vote": "APPROVE",
+                                "confidence": 0.8,
+                                "reasoning": "Efficient solution to user's problem",
+                                "concerns": [],
+                            },
+                        ],
+                        "conflicts": [
+                            {
+                                "roles": ["guardian", "strategist"],
+                                "issue": "Safety vs efficiency trade-off",
+                            }
+                        ],
+                    }
+                }
+            },
+        }
+    },
+)
 async def trigger_deliberation(request: DeliberationRequest) -> Dict[str, Any]:
     """Trigger a council deliberation."""
     try:
@@ -343,7 +505,54 @@ async def get_deliberations(
 # Cognitive Debt Endpoints
 # ============================================================================
 
-@rcl2_router.get("/debt")
+@rcl2_router.get(
+    "/debt",
+    summary="Get Cognitive Debt Queue",
+    description="""
+    **What's in it for you:** Ensure your AI double-checks uncertain answers.
+    
+    **User Value:**
+    - See which answers need verification
+    - Know when AI took shortcuts for speed
+    - Trust that mistakes get caught and corrected
+    
+    **Results You'll See:**
+    - Outstanding "IOUs" (decisions pending verification)
+    - Priority levels (which need review first)
+    - When each debt was logged
+    
+    **Example Scenario:**
+    1. You ask: "What's the capital of Mongolia?"
+    2. AI answers quickly: "Ulaanbaatar" (confidence: 0.65)
+    3. Low confidence triggers cognitive debt logging
+    4. Later, during idle time, AI verifies with external source
+    5. You get notification if answer needs correction
+    
+    **Transparency:** Never "fire and forget" - every uncertain answer gets rechecked.
+    """,
+    response_description="Current cognitive debt queue with priorities",
+    responses={
+        200: {
+            "description": "Cognitive debt queue retrieved",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": True,
+                        "outstanding_debt": 3,
+                        "debt_items": [
+                            {
+                                "decision_id": "dec_12345",
+                                "reason": "Low confidence (0.65)",
+                                "priority": 0.8,
+                                "logged_at": 1234567890.0,
+                            }
+                        ],
+                    }
+                }
+            },
+        }
+    },
+)
 async def get_cognitive_debt() -> Dict[str, Any]:
     """Get cognitive debt queue."""
     try:

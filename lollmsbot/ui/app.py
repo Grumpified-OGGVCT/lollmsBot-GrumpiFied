@@ -914,8 +914,68 @@ window.chatApp = app;
 """
     
     def _create_app(self) -> FastAPI:
-        """Create FastAPI application with file download endpoints."""
-        app = FastAPI(title="LollmsBot Web UI")
+        """Create FastAPI application with file download endpoints and comprehensive API docs."""
+        app = FastAPI(
+            title="LollmsBot Web UI & RCL-2 API",
+            description="""
+            ## 🤖 LollmsBot Reflective Consciousness Layer v2.0
+            
+            **What's in it for you:** Complete control and transparency over your AI assistant.
+            
+            ### 🎯 User Benefits
+            
+            **Constitutional Restraints** - Fine-tune AI behavior (autonomy, transparency, caution)
+            - 12 adjustable dimensions (0.0-1.0 scale)
+            - Cryptographic safety limits
+            - Complete audit trail
+            
+            **Reflective Council** - See AI's internal "debate" on important decisions
+            - 5 perspectives (Guardian, Epistemologist, Strategist, Empath, Historian)
+            - Vote transparency (APPROVE/REJECT/ABSTAIN/ESCALATE)
+            - Conflict detection
+            
+            **Cognitive Debt** - Ensure AI double-checks uncertain answers
+            - Automatic verification queue
+            - Priority-based repayment
+            - No "fire and forget"
+            
+            **Cognitive Twin** - Predict and prevent problems
+            - Latency forecasting
+            - Memory pressure monitoring
+            - Self-healing triggers
+            
+            **Audit Trail** - Trust but verify
+            - Tamper-proof change log
+            - Hash chain verification
+            - Unauthorized attempt detection
+            
+            ### 📖 How to Use This API
+            
+            1. **Explore** endpoints below (expand each section)
+            2. **Try it out** using the interactive "Try it out" button
+            3. **See examples** in each endpoint's description
+            4. **Copy code** from the generated curl/code samples
+            
+            ### 🔗 Quick Links
+            - [Interactive Chat UI](/) - Main web interface
+            - [API Docs (SwaggerUI)](/docs) - This page
+            - [Alternative Docs (ReDoc)](/redoc) - Cleaner layout
+            - [Health Check](/health) - System status
+            """,
+            version="2.0.0",
+            docs_url="/docs",  # Swagger UI
+            redoc_url="/redoc",  # ReDoc alternative
+            openapi_tags=[
+                {
+                    "name": "rcl2",
+                    "description": "🧠 **Reflective Consciousness Layer v2.0** - AI introspection and control endpoints",
+                },
+                {
+                    "name": "ui",
+                    "description": "🎨 **Web UI** - Frontend configuration and health",
+                },
+            ],
+        )
         
         # Mount static files
         app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
