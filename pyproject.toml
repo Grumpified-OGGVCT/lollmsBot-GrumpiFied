@@ -20,6 +20,7 @@ dependencies = [
     "PyNaCl",
     "jinja2",
     "pyyaml",  # For soul.md parsing
+    "slowapi>=0.1.9",  # Rate limiting for FastAPI (SECURITY FIX)
 ]
 
 [project.optional-dependencies]

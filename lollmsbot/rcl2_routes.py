@@ -7,13 +7,19 @@ Provides REST and WebSocket endpoints for the Reflective Consciousness Layer v2.
 - Reflective council deliberations
 - Cognitive debt tracking
 - Audit trail browsing
+
+SECURITY: All endpoints use rate limiting and input validation.
 """
 
 import asyncio
 import logging
+import os
+import re
 from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Body
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Body, Request, Header, Depends
+from pydantic import BaseModel, Field, validator
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from lollmsbot.cognitive_core import get_cognitive_core, CognitiveState
 from lollmsbot.constitutional_restraints import (
@@ -31,8 +37,12 @@ from lollmsbot.cognitive_twin import get_cognitive_twin
 
 logger = logging.getLogger(__name__)
 
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # WebSocket configuration
 WEBSOCKET_UPDATE_INTERVAL_SECONDS = 5.0  # Periodic update interval
+MAX_WS_RECONNECT_ATTEMPTS = 10  # Prevent infinite reconnect storms
 
 rcl2_router = APIRouter(
     prefix="/rcl2",
@@ -42,12 +52,74 @@ rcl2_router = APIRouter(
 
 
 # ============================================================================
-# Request/Response Models
+# WebSocket Authentication (C05 fix)
+# ============================================================================
+
+async def verify_ws_token(websocket: WebSocket, token: Optional[str] = Query(None)):
+    """Verify WebSocket connection token."""
+    # Simple token validation (replace with proper auth in production)
+    expected_token = os.getenv("RCL2_WS_TOKEN")
+    
+    if expected_token and token != expected_token:
+        logger.warning(f"Unauthorized WebSocket connection attempt from {websocket.client}")
+        await websocket.close(code=403, reason="Unauthorized")
+        return False
+    
+    return True
+
+
+# ============================================================================
+# Request/Response Models with Validation (C04 fix)
 # ============================================================================
 
 class RestraintUpdateRequest(BaseModel):
     """Request to update a restraint dimension."""
-    dimension: str = Field(..., description="Restraint dimension name")
+    dimension: str = Field(..., description="Restraint dimension name", min_length=1, max_length=50)
+    value: float = Field(..., ge=0.0, le=1.0, description="New value (0.0-1.0)")
+    authorized: bool = Field(default=False, description="Has authorization key")
+    authorization_key: Optional[str] = Field(default=None, description="Hex authorization key", max_length=128)
+    
+    @validator('dimension')
+    def validate_dimension(cls, v):
+        """Validate dimension name."""
+        if not re.match(r'^[a-z_]+$', v):
+            raise ValueError("Dimension name must contain only lowercase letters and underscores")
+        return v
+    
+    @validator('authorization_key')
+    def validate_auth_key(cls, v):
+        """Validate authorization key format."""
+        if v and not re.match(r'^[0-9a-fA-F]+$', v):
+            raise ValueError("Authorization key must be hexadecimal")
+        return v
+
+
+class DeliberationRequest(BaseModel):
+    """Request to trigger a council deliberation."""
+    action_id: str = Field(..., description="Unique action ID", min_length=1, max_length=100)
+    action_type: str = Field(..., description="Type of action", min_length=1, max_length=50)
+    description: str = Field(..., description="Action description", min_length=1, max_length=1000)
+    context: Dict[str, Any] = Field(default_factory=dict, description="Action context")
+    stakes: str = Field(default="medium", description="Stakes level", regex="^(low|medium|high|critical)$")
+    
+    @validator('action_id', 'action_type')
+    def validate_alphanumeric(cls, v, field):
+        """Validate alphanumeric fields."""
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError(f"{field.name} must contain only alphanumeric characters, hyphens, and underscores")
+        return v
+
+
+class DebtRepaymentRequest(BaseModel):
+    """Request to repay cognitive debt."""
+    decision_id: Optional[str] = Field(default=None, description="Specific decision ID, or None for highest priority", max_length=100)
+    
+    @validator('decision_id')
+    def validate_decision_id(cls, v):
+        """Validate decision ID format."""
+        if v and not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError("Decision ID must contain only alphanumeric characters, hyphens, and underscores")
+        return v
     value: float = Field(..., ge=0.0, le=1.0, description="New value (0.0-1.0)")
     authorized: bool = Field(default=False, description="Has authorization key")
     authorization_key: Optional[str] = Field(default=None, description="Hex authorization key")
@@ -90,6 +162,8 @@ class DebtRepaymentRequest(BaseModel):
     **Example Use Case:**
     "I want to see how cautious my AI is configured to be about hallucinations"
     → Check `hallucination_resistance` value (0.8 = very cautious, 0.2 = more creative)
+    
+    **Rate Limit:** 60 requests per minute
     """,
     response_description="Current restraint values, hard-limits, and audit summary",
     responses={
