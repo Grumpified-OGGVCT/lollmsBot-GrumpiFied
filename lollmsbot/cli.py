@@ -663,10 +663,10 @@ def main(argv: List[str] | None = None) -> None:
     uninstall_parser.add_argument("skill_name", type=str, help="Name of skill to uninstall")
     
     # skills update
-    update_parser = skills_subparsers.add_parser("update", help="Update skills repository")
+    skills_subparsers.add_parser("update", help="Update skills repository")
     
     # skills info
-    info_parser = skills_subparsers.add_parser("info", help="Show skills repository info")
+    skills_subparsers.add_parser("info", help="Show skills repository info")
     
     # Self-awareness command
     awareness_parser = subparsers.add_parser(
@@ -677,10 +677,10 @@ def main(argv: List[str] | None = None) -> None:
     awareness_subparsers = awareness_parser.add_subparsers(dest="awareness_command", help="Introspection operations")
     
     # introspect status
-    status_aware_parser = awareness_subparsers.add_parser("status", help="Show self-awareness status")
+    awareness_subparsers.add_parser("status", help="Show self-awareness status")
     
     # introspect state
-    state_parser = awareness_subparsers.add_parser("state", help="Show current internal state")
+    awareness_subparsers.add_parser("state", help="Show current internal state")
     
     # introspect decisions
     decisions_parser = awareness_subparsers.add_parser("decisions", help="Show recent decisions")
