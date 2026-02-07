@@ -1279,7 +1279,7 @@ you may not use this file except in compliance with the License.
 
 ## 💬 Example Use Cases
 
-> 💡 **Quick Links**: [📖 Full Documentation](#-documentation) | [🌟 Skills Library](AWESOME_SKILLS_GUIDE.md) | [🔧 Setup Guide](#-quick-start) | [🛡️ Security Guide](#-security--production-hardening)
+> 💡 **Quick Links**: [📖 Full Documentation](#documentation) | [🌟 Skills Library](AWESOME_SKILLS_GUIDE.md) | [🔧 Setup Guide](#quick-start) | [🛡️ Security Guide](#security--production-hardening)
 
 ### 🔥 Top 50 Strongest Use Cases (Home + Work + Forward AI)
 
