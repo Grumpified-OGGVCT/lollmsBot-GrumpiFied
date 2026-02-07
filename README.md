@@ -27,7 +27,7 @@
   - [Reflective Council](#reflective-council)
   - [Cognitive Digital Twin](#cognitive-digital-twin)
   - [Cognitive Debt Management](#cognitive-debt-management)
-- [🚀 The Autonomous Coding Vision: Continuous Self-Improvement](#-the-autonomous-coding-vision-continuous-self-improvement)
+- [🚀 The Autonomous Coding Vision: Continuous Self-Improvement](#the-autonomous-coding-vision-continuous-self-improvement)
 - [🌟 Awesome Claude Skills](#awesome-claude-skills)
 - [🔀 Multi-Provider API Routing](#multi-provider-api-routing)
 - [🧬 The 7 Pillars](#the-7-pillars)
