@@ -390,6 +390,49 @@ lollmsbot debt history        # View verification history
 
 > 💡 **Master Architecture**: lollmsBot as a **truly autonomous, self-improving coding AI** that learns meaningfully every day
 
+### ✅ NOW IMPLEMENTED: Autonomous Hobby & Passion System
+
+**The "insatiable hobby and passion" feature is LIVE!** lollmsBot now continuously learns and improves when idle, implementing the core vision of a self-improving AI.
+
+**What's Working Now:**
+- 🎓 **8 Hobby Types**: Skill practice, knowledge exploration, pattern recognition, benchmarks, tool mastery, code analysis, research integration, creative problem solving
+- 📊 **Progress Tracking**: Measures proficiency gains, success rates, and insights across all activities
+- 🤖 **Sub-Agent Integration** ✅ **PHASE 3 ACTIVE**: Distributed hobby execution across RC2 sub-agents with load balancing
+- 📈 **Metrics Dashboard** ✅ **PHASE 3A COMPLETE**: Prometheus metrics, JSON APIs, chart-ready visualization data
+- 🔍 **Full Transparency**: Monitor what your AI learns via `/hobby/status` API
+- 💾 **Persistence**: All progress saved and restored across restarts
+- ⚡ **Automatic Activation**: Starts learning after 5 minutes idle, pauses instantly on user interaction
+
+**Phase 3 Status (40% Complete):**
+- ✅ **Metrics & Visualization**: Prometheus export, dashboard APIs, timeline analysis
+- ✅ **Sub-Agent Coordination**: RC2 integration, load balancing, auto-distribution, assignment tracking
+- 📅 **Planned**: LoRA training pipeline, knowledge graph, RLHF feedback loop, activity archival
+
+**See it in action:**
+```bash
+# Start lollmsBot
+python -m lollmsbot.gateway
+
+# Wait 5 minutes (or set HOBBY_IDLE_THRESHOLD_MINUTES=0.1 for testing)
+# Check what it's learning
+curl http://localhost:8800/hobby/status
+
+# Phase 3: View metrics dashboard
+curl http://localhost:8800/hobby/dashboard
+
+# Phase 3: Register a sub-agent for distributed learning
+curl -X POST http://localhost:8800/hobby/subagents/register \
+  -H "Content-Type: application/json" \
+  -d '{"subagent_id": "rc2-1", "capabilities": ["*"]}'
+
+# Phase 3: Auto-distribute hobbies to sub-agents
+curl -X POST http://localhost:8800/hobby/distribute?num_assignments=3
+```
+
+**📖 Documentation**:
+- **User Guide**: [AUTONOMOUS_HOBBY_GUIDE.md](AUTONOMOUS_HOBBY_GUIDE.md)
+- **Phase 3 Features**: [PHASE3_IMPLEMENTATION.md](PHASE3_IMPLEMENTATION.md)
+
 ### The Core Ambition
 
 lollmsBot isn't just another coding assistant—it's designed with an **insatiable drive to improve at software development**. The system combines RCL-2's transparent cognition with **closed-loop continuous learning** to become the world's first AI that genuinely gets better at coding every single day.
@@ -420,10 +463,13 @@ User Code → RCL-2 Analysis → Multi-Tool Execution → Benchmark Results
    - **Intelligent Fallback**: If one tool fails, automatically tries alternatives
    - **Benchmarked Performance**: Nightly HumanEval/MBPP runs track each tool's strengths
 
-3. **Continuous Model Improvement**
-   - **Nightly LoRA Updates**: Fine-tune on the day's best examples
-   - **A/B Experiments**: Test improvements on 10% traffic before rollout
-   - **RLHF Pipeline**: Human feedback loops for quality refinement
+3. **Continuous Model Improvement** (Phase 3: 40% Complete)
+   - **Metrics Dashboard** ✅: Prometheus metrics, real-time visualization, timeline analysis
+   - **Sub-Agent Integration** ✅: Distributed hobby execution, load balancing, RC2 dispatch
+   - **Nightly LoRA Updates** 📅: Fine-tune on the day's best examples (Planned - Phase 3B)
+   - **A/B Experiments** 📅: Test improvements on 10% traffic before rollout (Planned - Phase 3B)
+   - **RLHF Pipeline** 📅: Human feedback loops for quality refinement (Planned - Phase 3D)
+   - **Knowledge Graph** 📅: Connect insights across hobby types (Planned - Phase 3C)
    - **Cryptographic Signing**: All model updates are audited and verifiable
 
 4. **Constitutional Safety**

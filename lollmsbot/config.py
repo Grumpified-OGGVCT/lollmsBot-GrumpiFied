@@ -17,6 +17,18 @@ def _get_bool(name: str, default: bool = False) -> bool:
         return default
     return val.lower() in ("1", "true", "yes", "on")
 
+def _get_float(name: str, default: float, min_val: float = None, max_val: float = None) -> float:
+    """Get float from environment with validation."""
+    try:
+        val = float(os.getenv(name, str(default)))
+        if min_val is not None and val < min_val:
+            return default
+        if max_val is not None and val > max_val:
+            return default
+        return val
+    except (ValueError, TypeError):
+        return default
+
 @dataclass
 class BotConfig:
     """Bot behavior configuration settings."""
@@ -88,6 +100,31 @@ class MultiProviderConfig:
             prefer_free_tier=_get_bool("PREFER_FREE_TIER", True),
             openrouter_enabled=_get_bool("OPENROUTER_ENABLED", True),
             ollama_enabled=_get_bool("OLLAMA_ENABLED", True),
+        )
+
+
+@dataclass
+class AutonomousHobbyConfig:
+    """Autonomous hobby and continuous learning configuration."""
+    enabled: bool = field(default=True)  # Enable autonomous learning by default
+    interval_minutes: float = field(default=15.0)  # Check for hobby time every 15 minutes
+    idle_threshold_minutes: float = field(default=5.0)  # Start hobby after 5 minutes idle
+    max_hobby_duration_minutes: float = field(default=10.0)  # Max time per hobby session
+    focus_on_weaknesses: bool = field(default=True)  # Prioritize improving weak areas
+    variety_factor: float = field(default=0.3)  # How much to mix different hobbies
+    intensity_level: float = field(default=0.5)  # Learning intensity (0-1)
+    
+    @classmethod
+    def from_env(cls) -> "AutonomousHobbyConfig":
+        """Load from environment variables with validation."""
+        return cls(
+            enabled=_get_bool("AUTONOMOUS_HOBBY_ENABLED", True),
+            interval_minutes=_get_float("HOBBY_INTERVAL_MINUTES", 15.0, min_val=1.0, max_val=1440.0),
+            idle_threshold_minutes=_get_float("HOBBY_IDLE_THRESHOLD_MINUTES", 5.0, min_val=0.1, max_val=120.0),
+            max_hobby_duration_minutes=_get_float("HOBBY_MAX_DURATION_MINUTES", 10.0, min_val=1.0, max_val=60.0),
+            focus_on_weaknesses=_get_bool("HOBBY_FOCUS_WEAKNESSES", True),
+            variety_factor=_get_float("HOBBY_VARIETY_FACTOR", 0.3, min_val=0.0, max_val=1.0),
+            intensity_level=_get_float("HOBBY_INTENSITY_LEVEL", 0.5, min_val=0.0, max_val=1.0),
         )
 
 @dataclass
