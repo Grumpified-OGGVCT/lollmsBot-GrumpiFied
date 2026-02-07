@@ -42,7 +42,7 @@
 - [📚 Documentation](#documentation)
 - [🙏 Acknowledgments](#acknowledgments)
 - [📄 License](#license)
-- [💬 Example Use Cases](#-example-use-cases)
+- [💬 Example Use Cases](#example-use-cases)
 
 ---
 
