@@ -46,12 +46,17 @@ async def security_status() -> dict:
     """Get Guardian security status."""
     try:
         from lollmsbot.guardian import get_guardian
+        from lollmsbot.security_monitoring import get_security_monitor
         
         guardian = get_guardian()
+        monitor = get_security_monitor()
         
         # Get audit report for last 24 hours
         since = datetime.now() - timedelta(hours=24)
         audit = guardian.get_audit_report(since=since)
+        
+        # Get monitoring stats
+        monitoring_stats = monitor.get_monitoring_stats()
         
         return {
             "status": "active",
@@ -61,6 +66,13 @@ async def security_status() -> dict:
             "api_key_protection": True,
             "skill_scanning": True,
             "container_protection": True,
+            "monitoring": monitoring_stats,
+            "resource_usage": {
+                "event_history_size": len(guardian._event_history),
+                "max_events": guardian._max_history,
+                "api_keys_tracked": len(guardian.threat_detector._detected_keys),
+                "max_keys": guardian._max_api_key_hashes,
+            }
         }
     except Exception as e:
         return {

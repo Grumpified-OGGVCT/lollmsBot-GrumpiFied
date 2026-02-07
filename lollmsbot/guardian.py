@@ -239,7 +239,22 @@ class ThreatDetector:
         self._compile_patterns()
         
         # Track detected API keys (hashes only)
+        # Resource limit enforced by Guardian
         self._detected_keys: Dict[str, datetime] = {}
+    
+    def cleanup_old_keys(self, max_keys: int) -> int:
+        """Remove oldest API key hashes to limit memory usage."""
+        if len(self._detected_keys) <= max_keys:
+            return 0
+        
+        # Sort by timestamp and remove oldest
+        sorted_keys = sorted(self._detected_keys.items(), key=lambda x: x[1])
+        to_remove = len(sorted_keys) - max_keys
+        
+        for key_hash, _ in sorted_keys[:to_remove]:
+            del self._detected_keys[key_hash]
+        
+        return to_remove
     
     def _compile_patterns(self) -> None:
         """Compile all threat patterns for efficient matching."""
@@ -465,6 +480,9 @@ class Guardian:
         ethics_file: Optional[Path] = None,
         audit_log_path: Optional[Path] = None,
         auto_quarantine: bool = True,
+        max_event_history: int = 10000,
+        max_api_key_hashes: int = 1000,
+        max_audit_log_mb: int = 10,
     ):
         if self._initialized:
             return
@@ -483,7 +501,11 @@ class Guardian:
         self._quarantined: bool = False
         self._quarantine_reason: Optional[str] = None
         self._event_history: List[SecurityEvent] = []
-        self._max_history = 10000
+        
+        # Resource limits (PREVENT RAM/DISK EXHAUSTION)
+        self._max_history = max_event_history
+        self._max_api_key_hashes = max_api_key_hashes
+        self._max_audit_log_mb = max_audit_log_mb
         
         # Configuration
         self.auto_quarantine = auto_quarantine
@@ -501,6 +523,7 @@ class Guardian:
         logger.info("   ✓ API key detection & redaction")
         logger.info("   ✓ Skill threat scanning")
         logger.info("   ✓ Container escape prevention")
+        logger.info(f"   ✓ Resource limits: {max_event_history} events, {max_api_key_hashes} keys, {max_audit_log_mb}MB log")
     
     def _load_ethics(self) -> None:
         """Load ethics rules from ethics.md or use defaults."""
@@ -877,13 +900,22 @@ class Guardian:
     def _log_event(self, event: SecurityEvent) -> None:
         """Persist security event to audit log."""
         self._event_history.append(event)
+        
+        # Enforce max history limit (PREVENT UNBOUNDED GROWTH)
         if len(self._event_history) > self._max_history:
-            self._event_history.pop(0)
+            excess = len(self._event_history) - self._max_history
+            self._event_history = self._event_history[excess:]
+            logger.debug(f"Trimmed {excess} old events to maintain memory limit")
         
         # Write to persistent log
         try:
             with open(self.audit_log_path, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(event.to_dict()) + '\n')
+            
+            # Check log file size periodically (every 100 events)
+            if len(self._event_history) % 100 == 0:
+                self._check_audit_log_size()
+                
         except Exception as e:
             logger.error(f"Failed to write audit log: {e}")
         
@@ -894,6 +926,50 @@ class Guardian:
             logger.error(f"⚠️ {event.event_type}: {event.description}")
         elif event.threat_level == ThreatLevel.MEDIUM:
             logger.warning(f"🔶 {event.event_type}: {event.description}")
+    
+    def _check_audit_log_size(self) -> None:
+        """Check audit log size and warn if approaching limit."""
+        try:
+            if self.audit_log_path.exists():
+                size_mb = self.audit_log_path.stat().st_size / (1024 * 1024)
+                if size_mb > self._max_audit_log_mb * 0.9:
+                    logger.warning(
+                        f"⚠️  Audit log size: {size_mb:.2f}MB "
+                        f"(limit: {self._max_audit_log_mb}MB). "
+                        f"Consider rotating logs or enabling security monitoring."
+                    )
+        except Exception as e:
+            logger.debug(f"Error checking audit log size: {e}")
+    
+    def cleanup_resources(self) -> Dict[str, int]:
+        """
+        Clean up old data to prevent unbounded resource growth.
+        Called by security monitoring or manually.
+        
+        Returns: Dictionary with cleanup statistics
+        """
+        stats = {
+            "events_removed": 0,
+            "keys_removed": 0,
+        }
+        
+        # Trim event history
+        if len(self._event_history) > self._max_history:
+            excess = len(self._event_history) - self._max_history
+            self._event_history = self._event_history[excess:]
+            stats["events_removed"] = excess
+        
+        # Trim API key hashes
+        keys_removed = self.threat_detector.cleanup_old_keys(self._max_api_key_hashes)
+        stats["keys_removed"] = keys_removed
+        
+        if stats["events_removed"] or stats["keys_removed"]:
+            logger.info(
+                f"🧹 Resource cleanup: removed {stats['events_removed']} events, "
+                f"{stats['keys_removed']} key hashes"
+            )
+        
+        return stats
     
     def get_audit_report(self, since: Optional[datetime] = None) -> Dict[str, Any]:
         """Generate security audit report."""
