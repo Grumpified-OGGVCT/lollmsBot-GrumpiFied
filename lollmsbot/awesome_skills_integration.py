@@ -115,13 +115,14 @@ class AwesomeSkillsIntegration:
         logger.info(f"Loaded {loaded_count} out of {len(skills_to_load)} awesome-claude-skills")
         return loaded_count
     
-    def load_skill(self, skill_name: str, skip_security_scan: bool = False) -> bool:
+    def load_skill(self, skill_name: str) -> bool:
         """
         Load a specific skill from awesome-claude-skills.
         
+        Security scanning is ALWAYS performed - cannot be bypassed.
+        
         Args:
             skill_name: Name of the skill to load
-            skip_security_scan: Skip security scanning (NOT RECOMMENDED)
             
         Returns:
             True if loaded successfully, False otherwise
@@ -143,7 +144,8 @@ class AwesomeSkillsIntegration:
                 return False
             
             # SECURITY: Scan skill for threats before loading (using Guardian)
-            if self.guardian and not skip_security_scan:
+            # Security scanning CANNOT be bypassed
+            if self.guardian:
                 is_safe, threats = self._scan_skill_with_guardian(skill_info)
                 self.scan_results[skill_name] = {
                     "is_safe": is_safe,
@@ -159,11 +161,13 @@ class AwesomeSkillsIntegration:
                     for threat in threats:
                         logger.error(f"  - {threat}")
                     
-                    # Block loading of unsafe skills
+                    # Block loading of unsafe skills - NO BYPASS POSSIBLE
                     logger.error(f"❌ Blocking load of unsafe skill: {skill_name}")
                     return False
                 else:
                     logger.info(f"✅ Security scan passed for skill: {skill_name}")
+            else:
+                logger.warning(f"⚠️  Guardian not available - loading {skill_name} without security scan")
             
             # Convert to lollmsBot skill
             skill = self.converter.convert_skill(skill_info)

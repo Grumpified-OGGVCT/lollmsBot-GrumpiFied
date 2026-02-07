@@ -29,9 +29,11 @@ import hashlib
 import hmac
 import json
 import logging
+import math
 import re
 import secrets
 import time
+import threading
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -301,23 +303,27 @@ class ThreatDetector:
     
     def _handle_api_key_detection(self, text: str, pattern: re.Pattern, context: str) -> None:
         """Handle detected API keys - log but don't store the actual key."""
-        matches = pattern.finditer(text)
-        for match in matches:
-            key_value = match.group(0)
-            key_hash = hashlib.sha256(key_value.encode()).hexdigest()
-            
-            if key_hash not in self._detected_keys:
-                self._detected_keys[key_hash] = datetime.now()
-                # Mask the key
-                if len(key_value) > 12:
-                    masked = f"{key_value[:8]}...{key_value[-4:]}"
-                else:
-                    masked = f"{key_value[:4]}...{key_value[-2:]}"
+        try:
+            matches = pattern.finditer(text)
+            for match in matches:
+                key_value = match.group(0)
+                key_hash = hashlib.sha256(key_value.encode()).hexdigest()
                 
-                logger.warning(
-                    f"🔑 API key detected in {context}: {masked} "
-                    f"(hash: {key_hash[:16]})"
-                )
+                if key_hash not in self._detected_keys:
+                    self._detected_keys[key_hash] = datetime.now()
+                    # Mask the key
+                    if len(key_value) > 12:
+                        masked = f"{key_value[:8]}...{key_value[-4:]}"
+                    else:
+                        masked = f"{key_value[:4]}...{key_value[-2:]}"
+                    
+                    logger.warning(
+                        f"🔑 API key detected in {context}: {masked} "
+                        f"(hash: {key_hash[:16]})"
+                    )
+        except Exception as e:
+            logger.error(f"Error handling API key detection: {e}")
+            # Continue execution - don't let detection failures break security
     
     def redact_api_keys(self, text: str) -> str:
         """Redact API keys from text."""
@@ -341,7 +347,7 @@ class ThreatDetector:
         if not text:
             return 0.0
         probs = [text.count(c) / len(text) for c in set(text)]
-        return -sum(p * (p.bit_length() - 1) for p in probs if p > 0)
+        return -sum(p * math.log2(p) for p in probs if p > 0)
     
     def sanitize(self, text: str) -> str:
         """Apply conservative sanitization to potentially dangerous input."""
@@ -444,10 +450,14 @@ class Guardian:
     # Singleton instance for system-wide authority
     _instance: Optional[Guardian] = None
     _initialized: bool = False
+    _lock = threading.Lock()  # Thread safety for singleton
     
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._lock:
+                # Double-check after acquiring lock
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
         return cls._instance
     
     def __init__(
