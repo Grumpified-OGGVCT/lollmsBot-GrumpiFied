@@ -1073,6 +1073,12 @@ We welcome contributions! Areas of interest:
 
 ## 📚 Documentation
 
+### 🗺️ Project Status & Planning
+
+- **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** - ⭐ **Complete implementation audit (what's done, what's not)**
+- **[ROADMAP.md](ROADMAP.md)** - ⭐ **Development roadmap Q1-Q4 2026 (phases, priorities, timelines)**
+- **[RCL2_STATUS.md](RCL2_STATUS.md)** - RCL-2 detailed phase breakdown
+
 ### User Guides
 
 - **[RCL2_USER_VALUE_GUIDE.md](RCL2_USER_VALUE_GUIDE.md)** - "What's in it for me?" for every RCL-2 feature
@@ -1095,8 +1101,8 @@ We welcome contributions! Areas of interest:
 
 ### Quick References
 
-- **[RCL2_STATUS.md](RCL2_STATUS.md)** - Implementation status
 - **[COGNITIVE_TWIN_QUICK_REFERENCE.md](COGNITIVE_TWIN_QUICK_REFERENCE.md)** - Cognitive Twin features
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute to lollmsBot
 
 ---
 
