@@ -1201,7 +1201,7 @@ async def execute_iql_query(request: IQLQueryRequest) -> Dict[str, Any]:
         logger.error(f"Error executing IQL query: {e}")
         return {
             "status": "error",
-            "message": str(e),
+            "message": "An internal error occurred while executing the IQL query.",
             "result": None
         }
 
