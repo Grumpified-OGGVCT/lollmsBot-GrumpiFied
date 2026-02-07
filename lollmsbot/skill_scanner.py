@@ -78,7 +78,7 @@ class SkillScanResult:
         """Get the highest severity level detected."""
         if not self.threats:
             return None
-        return max(t.severity for t in self.threats, key=lambda s: s.value)
+        return max((t.severity for t in self.threats), key=lambda s: s.value)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
