@@ -18,6 +18,9 @@ class RCL2Dashboard {
         this.restraints = null;
         this.council = null;
         this.debt = null;
+        this.narrative = null;
+        this.eigenmemory = null;
+        this.iql = null;
         
         this.init();
     }
@@ -50,6 +53,9 @@ class RCL2Dashboard {
                         <button class="tab-btn" data-tab="cognitive">Cognitive State</button>
                         <button class="tab-btn" data-tab="council">Council</button>
                         <button class="tab-btn" data-tab="debt">Cognitive Debt</button>
+                        <button class="tab-btn" data-tab="narrative">Narrative</button>
+                        <button class="tab-btn" data-tab="eigenmemory">Memory</button>
+                        <button class="tab-btn" data-tab="iql">IQL Console</button>
                         <button class="tab-btn" data-tab="audit">Audit Trail</button>
                         <button class="tab-btn" data-tab="decisions">Decision Log</button>
                     </div>
@@ -101,6 +107,30 @@ class RCL2Dashboard {
                             <div class="loading-spinner">
                                 <div class="spinner"></div>
                                 <div class="loading-text">Loading decision log...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Narrative Identity Tab -->
+                        <div class="tab-panel" data-panel="narrative" id="narrative-panel">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <div class="loading-text">Loading narrative identity...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Eigenmemory Tab -->
+                        <div class="tab-panel" data-panel="eigenmemory" id="eigenmemory-panel">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <div class="loading-text">Loading eigenmemory...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- IQL Console Tab -->
+                        <div class="tab-panel" data-panel="iql" id="iql-panel">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <div class="loading-text">Loading IQL console...</div>
                             </div>
                         </div>
                     </div>
@@ -291,6 +321,30 @@ class RCL2Dashboard {
             case 'debt':
                 if (this.debt) {
                     this.debt.load();
+                }
+                break;
+            case 'narrative':
+                if (this.narrative) {
+                    this.narrative.init();
+                } else if (window.RCL2Narrative) {
+                    this.narrative = new window.RCL2Narrative(this);
+                    this.narrative.init();
+                }
+                break;
+            case 'eigenmemory':
+                if (this.eigenmemory) {
+                    this.eigenmemory.init();
+                } else if (window.RCL2Eigenmemory) {
+                    this.eigenmemory = new window.RCL2Eigenmemory(this);
+                    this.eigenmemory.init();
+                }
+                break;
+            case 'iql':
+                if (this.iql) {
+                    this.iql.init();
+                } else if (window.RCL2IQL) {
+                    this.iql = new window.RCL2IQL(this);
+                    this.iql.init();
                 }
                 break;
             case 'audit':

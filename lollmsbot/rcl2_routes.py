@@ -964,3 +964,308 @@ async def rcl2_websocket(websocket: WebSocket):
         except Exception as close_err:
             # Suppress non-critical exceptions during websocket close
             logger.debug(f"Failed to close RCL-2 WebSocket cleanly: {close_err}")
+
+
+# ============================================================================
+# Phase 2E: Narrative Identity API Routes
+# ============================================================================
+
+@rcl2_router.get(
+    "/narrative",
+    summary="Get Narrative Identity Summary",
+    description="Retrieve agent's biographical continuity and developmental stage information."
+)
+async def get_narrative_identity() -> Dict[str, Any]:
+    """Get narrative identity summary."""
+    try:
+        from lollmsbot.narrative_identity import get_narrative_engine
+        
+        engine = get_narrative_engine()
+        summary = engine.get_identity_summary()
+        
+        return {
+            "status": "success",
+            "data": summary
+        }
+    except ImportError:
+        logger.warning("Narrative Identity not available")
+        return {
+            "status": "unavailable",
+            "message": "Narrative Identity module not found",
+            "data": None
+        }
+    except Exception as e:
+        logger.error(f"Error getting narrative identity: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@rcl2_router.get(
+    "/narrative/events",
+    summary="Get Biographical Events",
+    description="Retrieve recent biographical events from the agent's life story."
+)
+async def get_narrative_events(limit: int = Query(default=50, ge=1, le=1000)) -> Dict[str, Any]:
+    """Get biographical events."""
+    try:
+        from lollmsbot.narrative_identity import get_narrative_engine
+        
+        engine = get_narrative_engine()
+        
+        # Get recent events
+        events = []
+        for event in list(engine.life_story)[-limit:]:
+            events.append({
+                "timestamp": event.timestamp.isoformat(),
+                "event_type": event.event_type,
+                "description": event.description,
+                "significance": event.significance,
+                "emotional_valence": event.emotional_valence,
+                "context": event.context
+            })
+        
+        return {
+            "status": "success",
+            "count": len(events),
+            "events": events
+        }
+    except ImportError:
+        return {"status": "unavailable", "message": "Narrative Identity not available"}
+    except Exception as e:
+        logger.error(f"Error getting narrative events: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@rcl2_router.post(
+    "/narrative/consolidation",
+    summary="Trigger Narrative Consolidation",
+    description="Manually trigger consolidation of biographical events (normally done during idle time)."
+)
+async def trigger_consolidation() -> Dict[str, Any]:
+    """Trigger narrative consolidation."""
+    try:
+        from lollmsbot.narrative_identity import get_narrative_engine
+        
+        engine = get_narrative_engine()
+        report = engine.consolidate_events()
+        
+        return {
+            "status": "success",
+            "report": {
+                "events_processed": report.events_processed,
+                "patterns_identified": report.patterns_identified,
+                "contradictions_found": report.contradictions_found,
+                "consolidation_quality": report.consolidation_quality,
+                "duration_seconds": report.duration_seconds,
+                "timestamp": report.timestamp.isoformat()
+            }
+        }
+    except ImportError:
+        return {"status": "unavailable", "message": "Narrative Identity not available"}
+    except Exception as e:
+        logger.error(f"Error triggering consolidation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Phase 2F: Eigenmemory API Routes
+# ============================================================================
+
+@rcl2_router.get(
+    "/eigenmemory",
+    summary="Get Eigenmemory Statistics",
+    description="Retrieve memory system statistics and health metrics."
+)
+async def get_eigenmemory_stats() -> Dict[str, Any]:
+    """Get eigenmemory statistics."""
+    try:
+        from lollmsbot.eigenmemory import get_eigenmemory
+        
+        memory = get_eigenmemory()
+        stats = memory.get_memory_statistics()
+        
+        return {
+            "status": "success",
+            "data": stats
+        }
+    except ImportError:
+        return {"status": "unavailable", "message": "Eigenmemory not available"}
+    except Exception as e:
+        logger.error(f"Error getting eigenmemory stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class MemoryQueryRequest(BaseModel):
+    """Request to query memory."""
+    query: str = Field(..., description="Query string", min_length=1, max_length=500)
+    query_type: str = Field(default="knowledge", description="Type: 'knowledge' or 'remember'")
+
+
+@rcl2_router.post(
+    "/eigenmemory/query",
+    summary="Query Eigenmemory",
+    description="Query the memory system using metamemory queries."
+)
+async def query_eigenmemory(request: MemoryQueryRequest) -> Dict[str, Any]:
+    """Query eigenmemory system."""
+    try:
+        from lollmsbot.eigenmemory import get_eigenmemory
+        
+        memory = get_eigenmemory()
+        
+        if request.query_type == "knowledge":
+            result = memory.query_knowledge(request.query)
+        elif request.query_type == "remember":
+            result = memory.query_remember(request.query)
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid query type: {request.query_type}")
+        
+        return {
+            "status": "success",
+            "result": result
+        }
+    except ImportError:
+        return {"status": "unavailable", "message": "Eigenmemory not available"}
+    except Exception as e:
+        logger.error(f"Error querying eigenmemory: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class ForgetRequest(BaseModel):
+    """Request to forget memories."""
+    subject: str = Field(..., description="Subject to forget", min_length=1, max_length=200)
+    require_confirmation: bool = Field(default=True, description="Require confirmation")
+
+
+@rcl2_router.post(
+    "/eigenmemory/forget",
+    summary="Intentional Amnesia",
+    description="Request the system to forget memories about a specific subject (GDPR-compliant)."
+)
+async def forget_memory(request: ForgetRequest) -> Dict[str, Any]:
+    """Trigger intentional amnesia."""
+    try:
+        from lollmsbot.eigenmemory import get_eigenmemory
+        
+        memory = get_eigenmemory()
+        forgotten_count = memory.forget_by_subject(
+            request.subject, 
+            require_confirmation=request.require_confirmation
+        )
+        
+        return {
+            "status": "success",
+            "forgotten_count": forgotten_count,
+            "subject": request.subject
+        }
+    except ImportError:
+        return {"status": "unavailable", "message": "Eigenmemory not available"}
+    except Exception as e:
+        logger.error(f"Error forgetting memory: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Phase 2G: Introspection Query Language (IQL) API Routes
+# ============================================================================
+
+class IQLQueryRequest(BaseModel):
+    """Request to execute an IQL query."""
+    query: str = Field(..., description="IQL query string", min_length=1, max_length=5000)
+
+
+@rcl2_router.post(
+    "/iql",
+    summary="Execute IQL Query",
+    description="Execute an Introspection Query Language (IQL) query for cognitive state analysis."
+)
+async def execute_iql_query(request: IQLQueryRequest) -> Dict[str, Any]:
+    """Execute IQL query."""
+    try:
+        from lollmsbot.introspection_query_language import query_cognitive_state
+        
+        result = query_cognitive_state(request.query)
+        
+        return {
+            "status": "success",
+            "result": {
+                "query": result.query,
+                "fields": result.fields,
+                "execution_time_ms": result.execution_time_ms,
+                "constraints_satisfied": result.constraints_satisfied,
+                "errors": result.errors
+            }
+        }
+    except ImportError:
+        return {"status": "unavailable", "message": "IQL not available"}
+    except Exception as e:
+        logger.error(f"Error executing IQL query: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "result": None
+        }
+
+
+@rcl2_router.get(
+    "/iql/examples",
+    summary="Get IQL Example Queries",
+    description="Retrieve example IQL queries for learning and testing."
+)
+async def get_iql_examples() -> Dict[str, Any]:
+    """Get IQL example queries."""
+    examples = [
+        {
+            "name": "Current Cognitive State",
+            "description": "Get basic cognitive state information",
+            "query": """INTROSPECT {
+    SELECT uncertainty, system_mode, attention_focus
+    FROM current_cognitive_state
+}"""
+        },
+        {
+            "name": "Restraint Values",
+            "description": "Query all constitutional restraint dimensions",
+            "query": """INTROSPECT {
+    SELECT hallucination_resistance, transparency_level, goal_autonomy
+    FROM restraints
+}"""
+        },
+        {
+            "name": "Council Status",
+            "description": "Check reflective council activity",
+            "query": """INTROSPECT {
+    SELECT enabled, member_count, recent_deliberations
+    FROM council
+}"""
+        },
+        {
+            "name": "Cognitive Twin Predictions",
+            "description": "Get cognitive twin prediction data",
+            "query": """INTROSPECT {
+    SELECT enabled, predictions, accuracy
+    FROM twin
+    DEPTH 3
+}"""
+        },
+        {
+            "name": "Narrative Identity",
+            "description": "Query narrative identity summary",
+            "query": """INTROSPECT {
+    SELECT developmental_stage, coherence_score, event_count
+    FROM narrative
+}"""
+        },
+        {
+            "name": "Memory Statistics",
+            "description": "Get eigenmemory system stats",
+            "query": """INTROSPECT {
+    SELECT total_memories, strong_memories, confabulation_rate
+    FROM memory
+}"""
+        }
+    ]
+    
+    return {
+        "status": "success",
+        "examples": examples
+    }
