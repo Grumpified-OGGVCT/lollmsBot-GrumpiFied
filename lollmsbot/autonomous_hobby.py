@@ -190,11 +190,31 @@ class HobbyManager:
         # Current activity
         self._current_activity: Optional[HobbyActivity] = None
         
-        # Storage
-        self.storage_path = self.config.storage_path or (
-            Path.home() / ".lollmsbot" / "hobby"
-        )
-        self.storage_path.mkdir(parents=True, exist_ok=True)
+        # Storage with validation
+        self._persist_enabled = True
+        base_path = Path.home() / ".lollmsbot" / "hobby"
+        
+        if self.config.storage_path:
+            # Validate storage path (prevent path traversal)
+            requested = self.config.storage_path.resolve()
+            if str(requested).startswith(str(base_path.resolve())):
+                self.storage_path = requested
+            else:
+                logger.warning(f"Invalid storage path {requested}, using default")
+                self.storage_path = base_path
+        else:
+            self.storage_path = base_path
+        
+        # Check writability
+        try:
+            self.storage_path.mkdir(parents=True, exist_ok=True)
+            # Test write permissions
+            test_file = self.storage_path / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+        except (PermissionError, OSError) as e:
+            logger.error(f"Storage path not writable: {e}. Progress will not be saved.")
+            self._persist_enabled = False
         
         # Load saved progress
         self._load_progress()
@@ -694,6 +714,9 @@ class HobbyManager:
     
     def _save_progress(self) -> None:
         """Save learning progress to disk."""
+        if not self._persist_enabled:
+            return
+        
         try:
             progress_file = self.storage_path / "progress.json"
             progress_data = {
@@ -759,16 +782,24 @@ class HobbyManager:
             logger.error(f"Failed to load hobby progress: {e}")
 
 
-# Global instance
+# Global instance with thread safety
+import threading
 _hobby_manager: Optional[HobbyManager] = None
+_hobby_lock = threading.Lock()
 
 
 def get_hobby_manager(config: Optional[HobbyConfig] = None) -> HobbyManager:
-    """Get or create the global HobbyManager instance."""
+    """Get or create the global HobbyManager instance (thread-safe)."""
     global _hobby_manager
-    if _hobby_manager is None:
-        _hobby_manager = HobbyManager(config)
-    return _hobby_manager
+    # Fast path: if already initialized
+    if _hobby_manager is not None:
+        return _hobby_manager
+    
+    # Slow path: acquire lock and double-check
+    with _hobby_lock:
+        if _hobby_manager is None:
+            _hobby_manager = HobbyManager(config)
+        return _hobby_manager
 
 
 async def start_autonomous_learning(config: Optional[HobbyConfig] = None) -> HobbyManager:

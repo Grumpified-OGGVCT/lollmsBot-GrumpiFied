@@ -17,6 +17,18 @@ def _get_bool(name: str, default: bool = False) -> bool:
         return default
     return val.lower() in ("1", "true", "yes", "on")
 
+def _get_float(name: str, default: float, min_val: float = None, max_val: float = None) -> float:
+    """Get float from environment with validation."""
+    try:
+        val = float(os.getenv(name, str(default)))
+        if min_val is not None and val < min_val:
+            return default
+        if max_val is not None and val > max_val:
+            return default
+        return val
+    except (ValueError, TypeError):
+        return default
+
 @dataclass
 class BotConfig:
     """Bot behavior configuration settings."""
@@ -104,15 +116,15 @@ class AutonomousHobbyConfig:
     
     @classmethod
     def from_env(cls) -> "AutonomousHobbyConfig":
-        """Load from environment variables."""
+        """Load from environment variables with validation."""
         return cls(
             enabled=_get_bool("AUTONOMOUS_HOBBY_ENABLED", True),
-            interval_minutes=float(os.getenv("HOBBY_INTERVAL_MINUTES", "15.0")),
-            idle_threshold_minutes=float(os.getenv("HOBBY_IDLE_THRESHOLD_MINUTES", "5.0")),
-            max_hobby_duration_minutes=float(os.getenv("HOBBY_MAX_DURATION_MINUTES", "10.0")),
+            interval_minutes=_get_float("HOBBY_INTERVAL_MINUTES", 15.0, min_val=1.0, max_val=1440.0),
+            idle_threshold_minutes=_get_float("HOBBY_IDLE_THRESHOLD_MINUTES", 5.0, min_val=0.1, max_val=120.0),
+            max_hobby_duration_minutes=_get_float("HOBBY_MAX_DURATION_MINUTES", 10.0, min_val=1.0, max_val=60.0),
             focus_on_weaknesses=_get_bool("HOBBY_FOCUS_WEAKNESSES", True),
-            variety_factor=float(os.getenv("HOBBY_VARIETY_FACTOR", "0.3")),
-            intensity_level=float(os.getenv("HOBBY_INTENSITY_LEVEL", "0.5")),
+            variety_factor=_get_float("HOBBY_VARIETY_FACTOR", 0.3, min_val=0.0, max_val=1.0),
+            intensity_level=_get_float("HOBBY_INTENSITY_LEVEL", 0.5, min_val=0.0, max_val=1.0),
         )
 
 @dataclass

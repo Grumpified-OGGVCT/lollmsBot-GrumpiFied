@@ -2,9 +2,13 @@
 Autonomous Hobby API Routes - FastAPI endpoints for hobby system monitoring and control
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+import time
+from collections import defaultdict
+import threading
 
 from lollmsbot.autonomous_hobby import (
     get_hobby_manager,
@@ -15,6 +19,58 @@ from lollmsbot.autonomous_hobby import (
 )
 
 router = APIRouter(prefix="/hobby", tags=["Autonomous Learning"])
+
+
+# Simple rate limiting (in-memory)
+_rate_limit_data = defaultdict(list)
+_rate_limit_lock = threading.Lock()
+
+
+def check_rate_limit(identifier: str, max_requests: int = 100, window_seconds: int = 60) -> bool:
+    """Check if request is within rate limit.
+    
+    Args:
+        identifier: Unique identifier (IP, user_id, etc.)
+        max_requests: Maximum requests allowed in window
+        window_seconds: Time window in seconds
+        
+    Returns:
+        True if within limit, False if exceeded
+    """
+    now = time.time()
+    cutoff = now - window_seconds
+    
+    with _rate_limit_lock:
+        # Clean old entries
+        _rate_limit_data[identifier] = [
+            ts for ts in _rate_limit_data[identifier] if ts > cutoff
+        ]
+        
+        # Check limit
+        if len(_rate_limit_data[identifier]) >= max_requests:
+            return False
+        
+        # Add current request
+        _rate_limit_data[identifier].append(now)
+        return True
+
+
+async def rate_limit_dependency(request: Any = None) -> None:
+    """FastAPI dependency for rate limiting."""
+    # Use a default identifier for now (can be enhanced with request.client.host)
+    identifier = "global"
+    if not check_rate_limit(identifier, max_requests=100, window_seconds=60):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Maximum 100 requests per minute."
+        )
+
+
+class HobbyAssignment(BaseModel):
+    """Request model for assigning hobby to sub-agent."""
+    subagent_id: str = Field(min_length=1, max_length=100, description="Sub-agent identifier")
+    hobby_type: str = Field(description="Type of hobby to assign")
+    duration_minutes: float = Field(ge=0.1, le=60.0, description="Duration in minutes (0.1-60.0)")
 
 
 @router.get(
@@ -40,6 +96,7 @@ router = APIRouter(prefix="/hobby", tags=["Autonomous Learning"])
     - See if it's improving in weak areas
     - Monitor engagement with different learning activities
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
 async def get_hobby_status() -> Dict[str, Any]:
     """Get current status of the autonomous hobby system."""
@@ -51,7 +108,7 @@ async def get_hobby_status() -> Dict[str, Any]:
             "recent_activities": manager.get_recent_activities(10),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get hobby status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get hobby status")
 
 
 @router.get(
@@ -98,13 +155,13 @@ async def get_learning_progress() -> Dict[str, Any]:
     - Engagement score (how "interested" the AI was)
     """,
 )
-async def get_recent_activities(count: int = 20) -> List[Dict[str, Any]]:
-    """Get recent hobby activities."""
+async def get_recent_activities(count: int = Field(default=20, ge=1, le=100)) -> List[Dict[str, Any]]:
+    """Get recent hobby activities (max 100)."""
     try:
         manager = get_hobby_manager()
-        return manager.get_recent_activities(count)
+        return manager.get_recent_activities(min(count, 100))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get activities: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get activities")
 
 
 @router.post(
@@ -123,6 +180,7 @@ async def get_recent_activities(count: int = 20) -> List[Dict[str, Any]]:
     "An AI that genuinely gets better at coding every single day through
     transparent, governed, measurable self-improvement."
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
 async def start_hobby_system() -> Dict[str, str]:
     """Start the autonomous hobby system."""
@@ -133,7 +191,7 @@ async def start_hobby_system() -> Dict[str, str]:
             "message": "Autonomous learning system activated",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start hobby system: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to start hobby system")
 
 
 @router.post(
@@ -149,6 +207,7 @@ async def start_hobby_system() -> Dict[str, str]:
     
     **Note:** Progress is automatically saved before stopping.
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
 async def stop_hobby_system() -> Dict[str, str]:
     """Stop the autonomous hobby system."""
@@ -159,7 +218,7 @@ async def stop_hobby_system() -> Dict[str, str]:
             "message": "Autonomous learning system deactivated, progress saved",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to stop hobby system: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to stop hobby system")
 
 
 @router.get(
@@ -208,49 +267,70 @@ async def get_hobby_config() -> Dict[str, Any]:
     
     **How It Works:**
     Assign a specific hobby (skill practice, knowledge exploration, etc.)
-    to a sub-agent for a specified duration. The sub-agent will pursue
-    that hobby independently and report back results.
+    to a sub-agent for a specified duration. The assignment is queued for
+    the sub-agent to execute when available.
     
     **This enables the vision:**
     "Hobbies can also be assigned to sub-agents" - allowing truly
     distributed continuous learning.
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
-async def assign_hobby_to_subagent(
-    subagent_id: str,
-    hobby_type: str,
-    duration_minutes: float = 5.0,
-) -> Dict[str, Any]:
+async def assign_hobby_to_subagent(assignment: HobbyAssignment) -> Dict[str, Any]:
     """Assign a hobby activity to a sub-agent."""
     try:
-        # Parse hobby type
+        # Validate hobby type
         try:
-            hobby_enum = HobbyType[hobby_type.upper()]
+            hobby_enum = HobbyType[assignment.hobby_type.upper()]
         except KeyError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid hobby type: {hobby_type}. "
+                detail=f"Invalid hobby type: {assignment.hobby_type}. "
                        f"Valid types: {[h.name for h in HobbyType]}",
             )
         
         manager = get_hobby_manager()
-        assignment = manager.assign_hobby_to_subagent(
-            subagent_id=subagent_id,
+        result = manager.assign_hobby_to_subagent(
+            subagent_id=assignment.subagent_id,
             hobby_type=hobby_enum,
-            duration_minutes=duration_minutes,
+            duration_minutes=assignment.duration_minutes,
         )
+        
+        # Try to dispatch to sub-agent if available
+        try:
+            from lollmsbot.subagents import RC2SubAgent
+            from lollmsbot.subagents.base_subagent import SubAgentRequest, SubAgentCapability
+            
+            # Create a sub-agent request for hobby execution
+            # Note: This requires META_LEARNING capability which RC2 supports
+            request = SubAgentRequest(
+                capability=SubAgentCapability.META_LEARNING,
+                context={
+                    "task": "hobby_execution",
+                    "hobby_type": hobby_enum.name,
+                    "duration_minutes": assignment.duration_minutes,
+                    "assignment_id": result["activity_id"],
+                },
+                user_id="system"
+            )
+            
+            # Note: Actual dispatch would happen here if RC2 is initialized
+            # For now, we queue the assignment for manual dispatch
+            dispatched = False
+            
+        except ImportError:
+            dispatched = False
         
         return {
             "status": "assigned",
-            "assignment": assignment,
+            "assignment": result,
+            "dispatched": dispatched,
+            "note": "Assignment created. Sub-agent will execute when available." if not dispatched else "Dispatched to sub-agent."
         }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to assign hobby: {str(e)}",
-        )
+        raise HTTPException(status_code=500, detail="Failed to assign hobby")
 
 
 @router.get(
@@ -315,11 +395,11 @@ async def list_hobby_types() -> Dict[str, List[Dict[str, str]]]:
     the continuous learning process in action.
     """,
 )
-async def get_recent_insights(count: int = 50) -> Dict[str, List[str]]:
-    """Get recent insights from hobby activities."""
+async def get_recent_insights(count: int = Field(default=50, ge=1, le=500)) -> Dict[str, List[str]]:
+    """Get recent insights from hobby activities (max 500)."""
     try:
         manager = get_hobby_manager()
-        activities = manager.get_recent_activities(count)
+        activities = manager.get_recent_activities(min(count, 500))
         
         insights = []
         for activity in activities:
@@ -332,4 +412,4 @@ async def get_recent_insights(count: int = 50) -> Dict[str, List[str]]:
         
         return {"insights": insights}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get insights: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get insights")
