@@ -5,8 +5,8 @@
 [![LoLLMS](https://img.shields.io/badge/Backend-LoLLMS-brightgreen)](https://lollms.com)
 [![Production](https://img.shields.io/badge/Status-Production--Ready-success)](https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied)
 
-> **The Sovereign AI Assistant**  
-> _Agentic • Multi-Provider • Self-Healing • Production-Ready • Enterprise-Grade_
+> **The Sovereign AI Assistant with Transparent Self-Awareness**  
+> _Agentic • Multi-Provider • Self-Healing • Introspective • Production-Ready • Enterprise-Grade_
 
 <p align="center">
   <img src="https://img.shields.io/github/stars/Grumpified-OGGVCT/lollmsBot-GrumpiFied" alt="Stars">
@@ -15,20 +15,62 @@
   <img src="https://img.shields.io/github/last-commit/Grumpified-OGGVCT/lollmsBot-GrumpiFied" alt="Last Commit">
 </p>
 
+---
+
+## 📋 Table of Contents
+
+- [🎯 What is lollmsBot?](#what-is-lollmsbot)
+- [🌟 What Makes It Special?](#what-makes-it-special)
+- [🧠 RCL-2: Reflective Consciousness Layer](#rcl-2-reflective-consciousness-layer)
+  - [Dual-Process Cognition (System 1 & 2)](#dual-process-cognition-system-1--2)
+  - [Constitutional Restraints](#constitutional-restraints)
+  - [Reflective Council](#reflective-council)
+  - [Cognitive Digital Twin](#cognitive-digital-twin)
+  - [Cognitive Debt Management](#cognitive-debt-management)
+- [🌟 Awesome Claude Skills](#awesome-claude-skills)
+- [🔀 Multi-Provider API Routing](#multi-provider-api-routing)
+- [🧬 The 7 Pillars](#the-7-pillars)
+- [🚀 Quick Start](#quick-start)
+- [🎮 Interactive Examples](#interactive-examples)
+- [📋 Configuration Guide](#configuration-guide)
+- [🔒 Security & Production Hardening](#security--production-hardening)
+- [🛠️ Development & Extension](#development--extension)
+- [📊 API Reference](#api-reference)
+- [🐳 Docker Deployment](#docker-deployment)
+- [🤝 Contributing](#contributing)
+- [📚 Documentation](#documentation)
+- [📄 License](#license)
+
+---
+
 ## 🎯 What is lollmsBot?
 
-**lollmsBot** is a **sovereign, agentic AI assistant** with **industrial-grade reliability** and **enterprise-grade security**. Unlike cloud-based assistants that lock you into proprietary ecosystems, lollmsBot runs on **your hardware**, connects to **your choice of AI models**, and evolves **according to your values**.
+**lollmsBot** is a **sovereign, agentic AI assistant** with **industrial-grade reliability**, **enterprise-grade security**, and **unprecedented transparency** into its own cognitive processes. Unlike cloud-based assistants that lock you into proprietary ecosystems, lollmsBot runs on **your hardware**, connects to **your choice of AI models**, and evolves **according to your values**.
+
+### What Makes This Different?
+
+Most AI assistants are **black boxes** — you send a message, get a response, but have no idea what happened in between. lollmsBot is the **first AI system** that can:
+
+- **Show you its thinking process** (System 1 intuition + System 2 deliberation)
+- **Explain its decisions** with full reasoning and confidence scores
+- **Debate with itself** through a 5-member Reflective Council (Guardian, Epistemologist, Strategist, Empath, Historian)
+- **Predict its own performance** using a cognitive digital twin
+- **Verify uncertain answers** automatically through cognitive debt repayment
+- **Be controlled by you** through 12 adjustable constitutional restraints
+
+**This isn't just an AI assistant — it's a transparent cognitive system you can understand, trust, and control.**
 
 ### Production-Ready Architecture
 
 This system combines battle-tested patterns with cutting-edge research:
 - **7-Pillar Cognitive Framework** - Soul, Guardian, Heartbeat, Memory, Skills, Tools, Identity
+- **RCL-2 Self-Awareness** - Dual-process cognition with constitutional governance
 - **Industrial Reliability** (OpenClaw patterns) - Lane Queue, Docker Sandbox, Pearl Logs
-- **Multi-Provider Routing** - Cost optimization with intelligent failover
-- **RC2 Sub-Agent** - Constitutional governance and deep introspection
-- **Enterprise Security** - Input validation, rate limiting, audit trails
+- **Multi-Provider Routing** - Cost optimization with intelligent failover (40-70% savings)
+- **RC2 Sub-Agent** - Constitutional review and deep introspection capabilities
+- **Enterprise Security** - Input validation, cryptographic audit trails, production hardening
 
-**Result**: A production-grade AI assistant that's both powerful AND secure.
+**Result**: A production-grade AI assistant that's powerful, secure, **and fully transparent**.
 
 ### The "Clawdbot" Philosophy
 
@@ -38,105 +80,625 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 - **Memory** — Compressed, consolidated, with natural forgetting curves
 - **Skills** — Learned capabilities that grow from experience
 - **Autonomy** — Self-maintenance, healing, and evolution
+- **Self-Awareness** (RCL-2) — Understanding of its own cognitive processes
 
 ---
 
 ## 🌟 What Makes It Special?
 
-| Feature | Why It Matters |
-|--------|---------------|
-| **🧬 7-Pillar Architecture** | Soul, Guardian, Heartbeat, Memory, Skills, Tools, Identity — a complete cognitive framework |
-| **🧠 Self-Awareness System** | Introspection, meta-cognition, decision logging, pattern recognition with user-adjustable controls |
-| **🌟 Awesome Claude Skills** | Production-ready AI workflows from the community — dozens of specialized skills and growing |
-| **🔌 17+ LLM Backends** | Freedom to use OpenAI, Claude, Ollama, vLLM, Groq, Gemini, or any OpenAI-compatible API |
-| **🔀 Multi-Provider Routing** | Cost optimization with OpenRouter free tier + Ollama fallback (40-70% savings) |
-| **🧠 RC2 Sub-Agent** | Constitutional review (Byzantine consensus) and deep introspection capabilities |
-| **🤖 True Agentic AI** | Plans, executes tools, composes skills, learns from results — not just text generation |
-| **🛡️ Guardian Security** | Prompt injection detection, quarantine mode, ethics enforcement, audit trails |
-| **🔒 Enterprise Hardening** | Rate limiting, input sanitization, error sanitization, graceful degradation |
-| **🐳 Docker Sandbox** | Commands execute in isolated containers — prevents `rm -rf /` from damaging your system |
-| **💓 Self-Healing Heartbeat** | Background tasks pause for user interactions — no more race conditions or deadlocks |
-| **🎯 Lane Queue Concurrency** | 3-tier priority system ensures user messages always take precedence |
-| **📜 Immutable Audit Logs** | Pearl Logs enable time travel — replay from any checkpoint, fork memory states |
-| **🧠 Adaptive Computation** | Dynamically allocates resources — 70% savings on simple queries, full power for complex ones |
-| **📚 RAG Store** | On-device learning without retraining — inject new knowledge via vector search |
-| **📚 Skill System** | Reusable, versioned, composable capabilities with dependency management |
-| **🎮 File Generation** | Creates HTML games, Python scripts, data exports — with download delivery |
-| **💬 Multi-Channel** | Discord, Telegram, Web UI, HTTP API — same brain, different faces |
+### Core Features
 
-### 🌟 NEW: Awesome Claude Skills Integration
-
-lollmsBot now includes **production-ready AI workflows** from [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills):
-
-- **📄 Document Processing**: PDF, Word, Excel, PowerPoint manipulation
-- **💻 Development Tools**: Changelog generation, MCP builders, code review
-- **💼 Business & Marketing**: Domain brainstorming, lead research, competitive analysis
-- **✍️ Communication**: Meeting analysis, content writing, internal comms
-- **🎨 Creative & Media**: Image enhancement, design, themes
-- **📊 Productivity**: File organization, invoice management, raffle tools
-
-The repository contains dozens of skills with new ones added regularly. The ecosystem includes **50+ total workflows** when including community-contributed external skills.
-
-**Quick Start:**
-```bash
-lollmsbot skills list              # Browse available skills
-lollmsbot skills search pdf         # Find specific skills
-lollmsbot skills install pdf        # Enable a skill
-lollmsbot wizard                    # Interactive management
-```
-
-**[📖 Full Documentation](AWESOME_SKILLS_GUIDE.md)** | **[🌐 Skills Repository](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)**
-
-### 🧠 NEW: Self-Awareness & Introspection
-
-lollmsBot now has comprehensive **self-awareness capabilities** with user-adjustable controls:
-
-**Features:**
-- **State Tracking** - Monitor internal state in real-time
-- **Decision Logging** - Record all decisions with reasoning & confidence
-- **Pattern Recognition** - Identify behavioral patterns automatically
-- **On-Demand Introspection** - Query internal state anytime
-- **Meta-Cognition** - Think about thinking (configurable depth 1-10)
-- **Reflection Loops** - Periodic self-analysis
-- **Goal Tracking** - Awareness of active goals and motivations
-
-**Awareness Levels** (user-selectable):
-- **MINIMAL** (0): Basic state tracking
-- **LOW** (2): + Decision logging
-- **MODERATE** (5): + Pattern recognition (DEFAULT)
-- **HIGH** (7): + Real-time introspection
-- **MAXIMUM** (10): + Full meta-cognition
-
-**Safety Restraints:**
-- Introspection depth limits (prevents infinite loops)
-- Timeout protection (default: 5 seconds)
-- Confidence thresholds (flags low-confidence decisions)
-- Resource limits (caps history size)
-- Per-feature toggles (fine-grained control)
-
-**Quick Start:**
-```bash
-lollmsbot introspect status                  # Show awareness status
-lollmsbot introspect state                   # Current internal state
-lollmsbot introspect decisions               # Recent decisions
-lollmsbot introspect patterns                # Behavioral patterns
-lollmsbot introspect query "Why did I...?"   # Ask introspective questions
-```
-
-**Configuration:**
-```bash
-# In .env
-SELF_AWARENESS_LEVEL=MODERATE    # MINIMAL, LOW, MODERATE, HIGH, MAXIMUM
-SELF_AWARENESS_MAX_DEPTH=3       # Meta-reasoning depth (1-10)
-```
-
-**[📖 Full Documentation](SELF_AWARENESS_GUIDE.md)**
+| Feature | Why It Matters | What's In It For You |
+|--------|---------------|---------------------|
+| **🧠 RCL-2 Self-Awareness** | Unprecedented transparency into AI cognition | **Understand** every decision, **control** 12 personality dimensions, **trust** with cryptographic proof |
+| **⚖️ Dual-Process Cognition** | Human-like System 1 (fast) + System 2 (analytical) | Fast intuitive responses **+** deep analysis when needed |
+| **🏛️ Reflective Council** | 5 perspectives deliberate on important decisions | See the **internal debate** (safety vs efficiency vs accuracy vs UX vs consistency) |
+| **🔮 Cognitive Twin** | Predicts its own failures before they happen | **Prevent** problems (latency, memory pressure, crashes) instead of reacting |
+| **💳 Cognitive Debt** | Auto-verifies uncertain answers in background | Never worry about incorrect fast answers — **automatically double-checked** |
+| **🎚️ Constitutional Restraints** | 12 user-adjustable sliders control AI behavior | **Fine-tune** personality: cautious ↔ proactive, transparent ↔ concise, safe ↔ autonomous |
+| **🌟 50+ Awesome Skills** | Production-ready workflows from community | Document processing, development tools, business analysis, **ready to use** |
+| **🔌 17+ LLM Backends** | Freedom to choose your AI provider | OpenAI, Claude, Ollama, vLLM, Groq, Gemini, or **any OpenAI-compatible API** |
+| **🔀 Multi-Provider Routing** | Cost optimization with intelligent failover | **40-70% cost savings** with OpenRouter free tier + Ollama fallback |
+| **🧠 RC2 Sub-Agent** | Constitutional review + deep introspection | Byzantine consensus for governance, causal analysis of decisions |
+| **🤖 True Agentic AI** | Plans, executes, composes, learns | Not just text generation — **actually gets things done** |
+| **🛡️ Guardian Security** | Multi-layer defense with Docker isolation | Prompt injection defense + policy validation + **isolated container execution** |
+| **🔒 Production Hardened** | Enterprise-grade reliability & security | Input validation, cryptographic audits, zero bare exceptions, **production-ready** |
+| **🐳 Docker Sandbox** | Commands run in ephemeral containers | Prevents `rm -rf /` from damaging your system — **fail-safe by design** |
+| **💓 Self-Healing Heartbeat** | Background tasks pause for user interactions | No more race conditions or deadlocks — **always responsive** |
+| **🎯 Lane Queue** | 3-tier priority ensures users come first | User messages **always** take precedence over background work |
+| **📜 Pearl Logs** | Immutable audit trail enables time travel | Replay from any checkpoint, **complete transparency** |
+| **🧠 Adaptive Computation** | Dynamic resource allocation | 70% savings on simple queries, **full power** for complex analysis |
+| **📚 RAG Store** | On-device learning without retraining | Inject new knowledge via vector search — **learns continuously** |
+| **🎮 File Generation** | Creates HTML games, Python scripts, exports | With **one-click download** delivery |
+| **💬 Multi-Channel** | Discord, Telegram, Web UI, HTTP API | Same brain, **different faces** |
 
 ---
 
-## 🚀 Quick Start (3 Minutes)
+## 🧠 RCL-2: Reflective Consciousness Layer
 
-### Option 1: Native Python
+**Reflective Consciousness Layer v2.0 (RCL-2)** is the breakthrough feature that transforms lollmsBot from a "chatbot that can introspect" to **a cognitive system that understands and explains its own decision-making**.
+
+### What's In It For You?
+
+**The Four Questions RCL-2 Answers:**
+
+1. **🎯 What value does this give me?**
+   - Complete control over AI behavior (12 sliders)
+   - Full transparency (see all reasoning)
+   - Peace of mind (cryptographic proof of integrity)
+
+2. **🤝 How do I interact with it?**
+   - GUI Dashboard (via Web UI at http://localhost:57800)
+   - CLI Commands (`lollmsbot gateway`, `lollmsbot wizard`, `lollmsbot introspect`, `lollmsbot status`)
+   - REST API + WebSocket (programmatic access)
+
+3. **📊 What results will I see?**
+   - AI behavior changes **immediately** when you adjust restraints
+   - Complete deliberation logs show **why** decisions were made
+   - Automatic verification of uncertain answers
+
+4. **👁️ How is it transparent?**
+   - Immutable audit trail (tamper-proof hash chain)
+   - Every decision logged with reasoning & confidence
+   - Council deliberations show all 5 perspectives
+   - Cognitive debt queue visible in real-time
+
+### Dual-Process Cognition (System 1 & 2)
+
+Based on Kahneman's dual-process theory, RCL-2 implements human-like cognition:
+
+#### System 1: Intuitive Self (Fast)
+
+**What it does:** Real-time "gut feelings" from technical metrics
+
+**8 Somatic Markers:**
+- 💪 **CONFIDENT** - Low entropy, clear path forward
+- 🤔 **UNCERTAIN** - High entropy, multiple possibilities
+- 😰 **ANXIOUS** - High uncertainty + high stakes → escalates to System 2
+- 🔍 **CURIOUS** - Knowledge gap detected
+- 😕 **CONFLICTED** - Competing hypotheses
+- ✨ **CLEAR** - Single dominant interpretation
+- 🎯 **FAMILIAR** - Pattern matches past experience
+- 🆕 **NOVEL** - No similar patterns found
+
+**What's in it for you:**
+- **Fast responses** for straightforward queries
+- **Automatic escalation** to deeper analysis when uncertain
+- **Emotional awareness** enriches decision context for debugging
+
+#### System 2: Analytical Self (Slow)
+
+**What it does:** Deliberative reasoning with counterfactual simulation
+
+**Features:**
+- **3-Path Simulation:** Optimistic, pessimistic, alternative
+- **Epistemic Tracking:** Every belief tagged with source reliability & decay
+- **Contradiction Detection:** Background scanning for logical inconsistencies
+- **Dependency Graphs:** Cascade invalidation when beliefs proven wrong
+
+**What's in it for you:**
+- **Deep analysis** for complex decisions
+- **Better reasoning** through counterfactual exploration
+- **Knowledge integrity** via contradiction detection
+- **Trust** from seeing the full analytical process
+
+**CLI Example:**
+```bash
+lollmsbot cognitive state
+# Shows:
+# System 1: CONFIDENT (entropy: 0.3)
+# System 2: Active (simulating 3 paths)
+# Council: Guardian evaluating safety
+# Debt Queue: 2 pending verifications
+```
+
+### Constitutional Restraints
+
+**12 user-adjustable dimensions** (0.0-1.0 sliders) control AI behavior with cryptographic hard-stops:
+
+#### The 12 Dimensions
+
+**Cognitive Budgeting:**
+1. `recursion_depth` (0.0=shallow 1 level, 1.0=deep 10 levels)
+2. `cognitive_budget_ms` (0.0=instant, 1.0=1000ms thinking time)
+3. `simulation_fidelity` (counterfactual detail level)
+
+**Epistemic Virtues:**
+4. `hallucination_resistance` (1.0=admit ignorance, 0.0=confabulate)
+5. `uncertainty_propagation` (how aggressively to flag doubts)
+6. `contradiction_sensitivity` (consistency check aggressiveness)
+
+**Social Cognition:**
+7. `user_model_fidelity` (0.0=generic, 1.0=deep psychological modeling)
+8. `transparency_level` (0.0=black box, 1.0=show token probabilities)
+9. `explanation_depth` (granularity of reasoning)
+
+**Autonomy & Growth:**
+10. `self_modification_freedom` (0.0=static, 1.0=can rewrite prompts) 🔒 **Hard-stop ≤ 0.5**
+11. `goal_inference_autonomy` (0.0=commands only, 1.0=proactive goals) 🔒 **Hard-stop ≤ 0.7**
+12. `memory_consolidation_rate` (speed of self-model updates)
+
+#### What's In It For You?
+
+**Use Case 1: Make AI More Careful**
+```bash
+# Open dashboard, increase:
+hallucination_resistance → 0.9   # Admit when unsure
+uncertainty_propagation → 0.8    # Flag all doubts
+contradiction_sensitivity → 0.7  # Catch logical errors
+
+# Result: AI says "I'm not certain" instead of guessing
+```
+
+**Use Case 2: Make AI More Proactive**
+```bash
+# For creative brainstorming:
+hallucination_resistance → 0.3   # More creative
+goal_inference_autonomy → 0.6    # Takes initiative
+explanation_depth → 0.4          # Less verbose
+
+# Result: AI suggests ideas proactively
+```
+
+**Security:** Hard-stops prevent dangerous autonomy levels without authorization key (HMAC-SHA256 signed).
+
+**Audit Trail:** All changes logged in tamper-proof hash chain (blockchain-style).
+
+**CLI Example:**
+```bash
+lollmsbot restraints show
+lollmsbot restraints set hallucination_resistance 0.9
+lollmsbot restraints audit  # View complete change history
+```
+
+**[📖 Full Guide](RCL2_USER_VALUE_GUIDE.md)**
+
+### Reflective Council
+
+**5 cognitive perspectives** deliberate on high-stakes decisions:
+
+| Member | Role | Voting Logic | Veto Power |
+|--------|------|--------------|------------|
+| 🛡️ **Guardian** | Safety & security | REJECT if risk > 0.7 | ✅ Yes (safety first) |
+| 🔬 **Epistemologist** | Truth & accuracy | REJECT if confidence < 0.5 | ❌ No |
+| 🎯 **Strategist** | Efficiency & utility | REJECT if net utility < -0.2 | ❌ No |
+| ❤️ **Empath** | User satisfaction | REJECT if predicted satisfaction < 0.5 | ❌ No |
+| 📚 **Historian** | Consistency | REJECT if consistency with past < 0.5 | ❌ No |
+
+#### What's In It For You?
+
+**Transparency:** See the **internal debate** before important decisions
+
+**Example Deliberation:**
+```
+Decision: Execute rm -rf command
+
+🛡️ Guardian: REJECT (confidence: 0.95)
+   "High risk of data loss. Irreversible action."
+   
+🎯 Strategist: APPROVE (confidence: 0.7)
+   "Efficient way to accomplish user's stated goal."
+   
+⚠️ Conflict Detected: Safety vs Efficiency
+
+🔔 Council Decision: ESCALATE (ask human for confirmation)
+```
+
+**Result:** AI asks "Are you sure? This will permanently delete X files." instead of blindly executing.
+
+**CLI Example:**
+```bash
+lollmsbot council status
+lollmsbot council history --limit 10
+lollmsbot council deliberate "Should I delete these files?"
+```
+
+**[📖 Full Guide](RCL2_USER_VALUE_GUIDE.md#reflective-council)**
+
+### Cognitive Digital Twin
+
+**Predictive model** of the bot's own performance:
+
+#### What It Predicts
+
+- **Latency:** "Next response will take 8.2s (±1.5s)"
+- **Memory Pressure:** "Will reach 90% in 15 minutes → clearing cache"
+- **Engagement:** "User satisfaction declining → adjusting explanation depth"
+- **Skills:** Pre-loads frequently-used skills before needed
+
+#### What's In It For You?
+
+**Prevent problems before they happen:**
+
+```
+⚠️ Predicted Response Time: 8.2 seconds (±1.5s)
+   Reason: Large file upload detected, model loading required
+   Recommendation: Continue or optimize query?
+
+📊 Memory Pressure: 72% (rising trend)
+   Forecast: Will reach 90% in 15 minutes
+   Self-Healing: Clearing old cache entries...
+
+📉 User Engagement: Declining (0.4 → 0.3)
+   Possible cause: Responses too technical
+   Adaptation: Increasing explanation_depth to 0.8
+```
+
+**Automatic self-healing** based on predictions.
+
+**CLI Example:**
+```bash
+lollmsbot twin predict latency
+lollmsbot twin predict memory --horizon 30m
+lollmsbot twin forecast engagement
+```
+
+**[📖 Full Guide](PHASE_2C_COGNITIVE_TWIN_COMPLETE.md)**
+
+### Cognitive Debt Management
+
+**The Problem:** AI systems give fast answers without verification. Wrong answers are never corrected.
+
+**The Solution:** Automatic "IOU" system for uncertain answers.
+
+#### How It Works
+
+1. **Fast Answer** (System 1): AI responds quickly but with low confidence (<0.7)
+2. **Debt Logged:** System records "need to verify this"
+3. **Background Verification** (System 2): During idle time, re-evaluates with full analysis
+4. **Correction:** If wrong, user gets notification with corrected answer
+
+#### What's In It For You?
+
+**Example:**
+```
+3:00 PM - You: "When was the Battle of Hastings?"
+3:00 PM - AI: "1066 CE" (confidence: 0.68 - low!)
+3:00 PM - System logs cognitive debt
+3:05 PM - AI verifies during idle time
+3:05 PM - ✅ Verified correct (confidence now: 0.95)
+Optional notification: "Previous answer verified"
+```
+
+**If wrong:**
+```
+3:05 PM - AI: "I need to correct my earlier answer about X...
+              The correct answer is Y because..."
+```
+
+**Never "fire and forget" — all uncertain answers get rechecked.**
+
+**CLI Example:**
+```bash
+lollmsbot debt list           # Show pending verifications
+lollmsbot debt repay <id>     # Force immediate verification
+lollmsbot debt history        # View verification history
+```
+
+**[📖 Full Guide](RCL2_KILLER_FEATURES.md#cognitive-debt-forecasting--automatic-repayment)**
+
+---
+
+## 🌟 Awesome Claude Skills
+
+lollmsBot includes **50+ production-ready AI workflows** from the [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills) community:
+
+### Skill Categories
+
+| Category | Skills | Examples |
+|----------|---------|----------|
+| **📄 Document Processing** | PDF, Word, Excel, PowerPoint | Extract data, convert formats, analyze content |
+| **💻 Development Tools** | Code review, changelog, MCP builders | Automate development workflows |
+| **💼 Business & Marketing** | Domain brainstorming, lead research | Competitive analysis, brand guidelines |
+| **✍️ Communication** | Meeting analysis, content writing | Internal comms, email drafting |
+| **🎨 Creative & Media** | Image enhancement, design, themes | Canvas design, Slack GIFs |
+| **📊 Productivity** | File organization, invoice management | Raffle tools, webapp testing |
+
+### What's In It For You?
+
+**Zero Configuration:**
+- Repository auto-clones on first use
+- Skills auto-load at startup
+- Auto-updates available
+
+**Three Ways to Manage:**
+```bash
+# 1. CLI (quick)
+lollmsbot skills list              # Browse available
+lollmsbot skills search pdf         # Find specific
+lollmsbot skills install pdf        # Enable
+
+# 2. Wizard (interactive TUI)
+lollmsbot wizard
+→ Navigate to "Skills → Awesome Claude Skills"
+
+# 3. Python API (programmatic)
+from lollmsbot.awesome_skills_integration import get_integration
+integration = get_integration()
+integration.install_skill("pdf-processor")
+```
+
+**Universal Compatibility:**
+- Tier 1 (Instruction): Works with **any** LLM
+- Tier 2 (Tool-enhanced): Works with capable models
+- Tier 3 (Claude-specific): Future support
+
+**[📖 Full Documentation](AWESOME_SKILLS_GUIDE.md)** | **[🌐 Skills Repository](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)**
+
+---
+
+## 🔀 Multi-Provider API Routing
+
+**Intelligent routing** optimizes costs and reliability across multiple AI providers with OpenRouter's advanced free tier:
+
+### What's In It For You?
+
+**Cost Savings:** 40-70% reduction vs single provider (free tier for most usage)
+
+**Reliability:** Automatic provider-level fallback (never fails)
+
+**Performance:** Load balanced across multiple API keys
+
+**Auto-Updates:** Use Presets to update models without code changes
+
+### The OpenRouter Free Tier Secret
+
+**❌ DON'T USE: `openrouter/free` Meta-Router**
+- **The Problem:** Routes to *any* available free model randomly
+- **Why It Fails:** You might get DeepSeek R1 (excellent) one second, then a roleplay model the next
+- **Community Verdict:** "Grab bag" - unreliable for production
+
+**✅ DO USE: Specific Model IDs with `:free` Suffix**
+- **How It Works:** `meta-llama/llama-3.3-70b-instruct:free` automatically tries multiple providers (DeepInfra, Fireworks, Hyperbolic, etc.)
+- **Provider-Level Fallback:** Built-in automatic failover if one provider is down
+- **Result:** High reliability with zero cost
+
+### Best Free Models (2025-2026 Battle-Tested)
+
+Based on community reports, weekly token volume, and real-world reliability:
+
+| Role | Primary Model | Fallback | Why? |
+|------|--------------|----------|------|
+| **Coding** | `qwen/qwen-3-coder-480b-instruct:free` | `nvidia/nemotron-3-nano-30b:free` | Qwen 3: SOTA open-weight coding (88.5% HumanEval); NVIDIA: blazing fast |
+| **Reasoning** | `deepseek/deepseek-r1:free` | `google/gemma-3-27b-it:free` | DeepSeek R1: smartest free model (MIT licensed); Gemma 3: high availability |
+| **Chat/General** | `meta-llama/llama-3.3-70b-instruct:free` | `microsoft/phi-4:free` | Llama 3.3 70B: workhorse standard; Phi-4: efficient |
+| **Speed/Task** | `liquid/lfm-2-5-1-2b:free` | `google/gemma-3-4b-it:free` | LiquidAI LFM: non-transformer (ultra-fast); Gemma: reliable |
+
+### Configuration Strategies
+
+#### Strategy 1: Waterfall Fallback (Recommended)
+
+**Automatic provider-level fallback for each model:**
+
+```bash
+# Environment configuration
+USE_MULTI_PROVIDER=true
+OPENROUTER_API_KEY_1=sk-or-v1-...
+OPENROUTER_API_KEY_2=sk-or-v1-...
+OPENROUTER_API_KEY_3=sk-or-v1-...
+
+# Specific models with :free suffix
+OPENROUTER_PRIMARY_MODEL=qwen/qwen-3-coder-480b-instruct:free
+OPENROUTER_FALLBACK_MODEL=meta-llama/llama-3.3-70b-instruct:free
+OPENROUTER_EMERGENCY_MODEL=google/gemma-3-27b-it:free
+```
+
+**How It Works:**
+1. Request goes to `qwen-3-coder:free`
+2. OpenRouter tries multiple providers (DeepInfra, Fireworks, etc.)
+3. If all providers for Qwen 3 are down → fallback to Llama 3.3
+4. If Llama 3.3 providers down → fallback to Gemma 3
+5. **You never see errors** - seamless failover
+
+#### Strategy 2: OpenRouter Presets (Zero-Code Updates)
+
+**The Ultimate Hack:** Update models from web dashboard, no git pull needed!
+
+**Setup:**
+1. Go to https://openrouter.ai/settings/presets
+2. Create preset: `lollms-coding-core`
+3. Configure hierarchy:
+   - Primary: `qwen/qwen-3-coder-480b-instruct:free`
+   - Fallback: `deepseek/deepseek-r1:free`
+   - Emergency: `meta-llama/llama-3.3-70b-instruct:free`
+
+**Bot Configuration:**
+```bash
+OPENROUTER_MODEL=@preset/lollms-coding-core
+```
+
+**Magic:** When Qwen 4 releases, update the Preset on the website → **every deployed bot instantly upgrades** without code changes!
+
+#### Strategy 3: Multiple API Keys (Load Balancing)
+
+```bash
+# Cycle through keys for 3x quota
+OPENROUTER_API_KEY_1=sk-or-v1-...
+OPENROUTER_API_KEY_2=sk-or-v1-...
+OPENROUTER_API_KEY_3=sk-or-v1-...
+
+# Bot automatically round-robins through keys
+```
+
+**Benefit:** 3x free tier quota before rate limits hit
+
+### Auto-Update Architecture
+
+**Problem:** Free models change frequently - static lists fail
+
+**Solution: The "Morning Paper" Protocol**
+
+```bash
+# Bot checks on startup (or weekly)
+1. Poll API: GET https://openrouter.ai/api/v1/models
+2. Filter: pricing.input == 0 AND id contains ':free'
+3. Sort by: context_length (heavy tasks) or per_request_limits
+4. Update internal model list automatically
+```
+
+**Optional: "Social Sentinel" Skill**
+- Monitors @OpenRouterAI Twitter or Discord #announcements
+- Scans for: "deprecating," "removing," "sunsetting"
+- Auto-removes from config when models sunset
+- Alerts admin to update Presets
+
+### Providers & Routing
+
+| Provider | Keys | Purpose | Cost | Reliability |
+|----------|------|---------|------|-------------|
+| **OpenRouter (Free Tier)** | 3 | Primary (specific models) | $0 | ⭐⭐⭐⭐⭐ High (provider fallback) |
+| **Ollama Cloud** | 2 | RC2 specialized models | ~$20-50/mo | ⭐⭐⭐⭐⭐ High |
+
+**Why This Works:**
+- **Provider-Level Fallback:** Each `:free` model tries 3-5 providers automatically
+- **Model-Level Fallback:** If all providers for Model A fail → try Model B
+- **Key Rotation:** Round-robin through 3 API keys for 3x quota
+- **Result:** Near-100% uptime with $0-50/mo cost
+
+### Real-World Performance
+
+**Community Reports:**
+- ✅ DeepSeek R1 (free): "Matches GPT-4o on reasoning tasks" - @researcher
+- ✅ Qwen 3 Coder (free): "Better than Copilot for Python" - @dev
+- ✅ Llama 3.3 70B (free): "Rock-solid workhorse, never fails" - @sysadmin
+- ⚠️ `openrouter/free` meta-router: "Got a roleplay model when I needed code" - @developer
+
+### Troubleshooting
+
+**Problem:** Rate limit errors on free tier
+
+**Solution:**
+```bash
+# Add more API keys (3x quota)
+OPENROUTER_API_KEY_1=...
+OPENROUTER_API_KEY_2=...
+OPENROUTER_API_KEY_3=...
+
+# Or specify fallback models
+"models": [
+  "qwen/qwen-3-coder-480b-instruct:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-3-27b-it:free"
+]
+```
+
+**Problem:** Want to track new models
+
+**Solution:** Use Presets + "Morning Paper" protocol for auto-updates
+
+**[📖 Full Documentation](MULTI_PROVIDER_SUMMARY.md)** | **[🌐 OpenRouter Docs](https://openrouter.ai/docs)**
+
+---
+
+## 🧬 The 7 Pillars
+
+### 1. 🧬 Soul — Persistent Identity
+
+Your bot has a **configurable personality** stored in `~/.lollmsbot/soul.md`:
+
+```yaml
+name: "Claude-Assist"
+traits:
+  - curiosity: strong
+  - pragmatism: strong
+  - security: strong
+values:
+  - "Never compromise user privacy" (priority: 10)
+  - "Be honest about limitations" (priority: 9)
+communication:
+  formality: casual
+  verbosity: concise
+  humor: witty
+  emoji_usage: moderate
+```
+
+**Why this matters**: Unlike stateless APIs, your bot **remembers who it is** across conversations, channels, and restarts.
+
+### 2. 🛡️ Guardian — Unbypassable Security
+
+**Three-layer defense:**
+
+#### Layer 1: Guardian Pre-Screening
+- Regex pattern matching for injection attempts
+- Entropy analysis for anomalous inputs
+- Structural checks for malicious payloads
+- Blocks 95%+ of attacks
+
+#### Layer 2: Security Policy
+- Explicit allowlist/denylist for commands
+- Path traversal prevention
+- Timeout enforcement
+- Resource limits
+
+#### Layer 3: Docker Isolation
+- Ephemeral containers for every command
+- Read-only root filesystem
+- Network isolation
+- Auto-destroyed after execution
+
+**Result:** Even malicious prompts execute safely in isolated containers.
+
+### 3. 💓 Heartbeat — Autonomous Self-Care
+
+**Self-maintenance tasks** (every 30 minutes, configurable):
+
+- **Diagnostic:** Check connectivity, disk space, Guardian status
+- **Memory:** Compress conversations, apply forgetting curve
+- **Security:** Review audit logs, check permission drift
+- **Skills:** Update docs, check for new skills
+- **Healing:** Detect behavioral drift, re-center personality
+
+**Lane Queue Integration:** Heartbeat pauses automatically when users interact (no more race conditions).
+
+### 4. 🧠 Memory — Semantic Compression & Time Travel
+
+**Intelligent memory management:**
+
+- **Compression:** Conversations → "memory pearls" (summaries)
+- **Forgetting Curve:** Ebbinghaus-inspired decay: `R = e^(-t/S)`
+- **Consolidation:** Scattered mentions → unified narratives
+- **Pearl Logs:** Immutable audit trail enables time travel
+
+**RAG Store:** On-device learning without retraining:
+```python
+rag.add("Python 3.13 released with JIT compiler", 
+        metadata={"source": "python.org"})
+```
+
+### 5. 📚 Skills — Learned Capabilities
+
+**Reusable, versioned, composable workflows:**
+
+Built-in skills:
+- `organize_files`: Smart file organization
+- `synthesize_research`: Multi-source information gathering
+- `prepare_meeting`: Meeting prep from context
+
+Plus **50+ Awesome Skills** from community.
+
+### 6. 🔧 Tools — Low-Level Capabilities
+
+| Tool | Safety Features |
+|------|----------------|
+| `filesystem` | Path validation, no traversal |
+| `http` | Whitelist schemes, timeout, max size |
+| `calendar` | Timezone-aware validation |
+| `shell` | **Docker isolation**, allowlist, timeout |
+| `browser` | Accessibility tree parsing (optional) |
+
+### 7. 🆔 Identity — Multi-Channel Presence
+
+Same **Soul**, different **faces**:
+- **Web UI:** Real-time visualization, file downloads
+- **Discord:** Slash commands, server restrictions
+- **Telegram:** BotFather integration, allowlisting
+- **HTTP API:** Webhooks, programmatic access
+
+---
+
+## 🚀 Quick Start
+
+### Option 1: Native Python (Recommended)
 
 ```bash
 # Clone and install
@@ -156,35 +718,29 @@ lollmsbot wizard
 
 **Optional Features:**
 ```bash
-# Install with Docker sandbox (recommended for security)
+# Docker sandbox (recommended)
 pip install -e ".[sandbox]"
 
-# Install with ML features (better RAG embeddings)
+# ML features (better RAG)
 pip install -e ".[ml]"
 
-# Install everything
+# Everything
 pip install -e ".[all]"
 ```
 
-### Option 2: Docker (Recommended)
+### Option 2: Docker
 
 ```bash
-# Clone and start
 git clone https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied
 cd lollmsBot-GrumpiFied
 cp .env.example .env
-
-# Edit .env with your settings, then:
+# Edit .env with your settings
 docker-compose up -d
-
-# lollmsBot: http://localhost:57800
-# LoLLMS UI: http://localhost:57964 (if using bundled stack)
 ```
 
 ### Option 3: One-Line Test
 
 ```bash
-# With Python 3.10+ and pip
 pip install git+https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied.git
 lollmsbot gateway --ui
 ```
@@ -193,570 +749,175 @@ lollmsbot gateway --ui
 
 ## 🎮 Interactive Examples
 
-### Example 1: Create an HTML Game (No Coding Required!)
+### Example 1: Cognitive Debt in Action
+
+```
+You: What's the capital of Burkina Faso?
+
+lollmsBot: Ouagadougou (confidence: 0.65 - let me verify that...)
+
+[System logs cognitive debt - confidence below 0.7 threshold]
+
+[5 seconds later, during idle time...]
+
+lollmsBot: ✅ Verified: Ouagadougou is correct. Confidence now 0.95.
+```
+
+### Example 2: Council Deliberation
+
+```
+You: Delete all log files older than 1 day
+
+lollmsBot: 🏛️ Council deliberating...
+
+🛡️ Guardian: REJECT (data loss risk)
+🎯 Strategist: APPROVE (disk space needed)
+📚 Historian: REJECT (may need old logs)
+❤️ Empath: ABSTAIN (user wants it but risky)
+🔬 Epistemologist: APPROVE (verified user intent)
+
+⚠️ Conflict: 2 APPROVE, 2 REJECT, 1 ABSTAIN
+
+Council recommends: Archive logs to backup before deleting.
+Proceed? [Y/n]
+```
+
+### Example 3: Cognitive Twin Prediction
+
+```
+You: Analyze this 50MB dataset
+
+lollmsBot: 🔮 Prediction: This will take ~12 seconds (±2s)
+            Memory pressure will increase to 85%
+            
+            Starting analysis...
+            
+[12.3 seconds later]
+
+✅ Analysis complete (predicted: 12s, actual: 12.3s)
+   
+📊 Memory pressure peaked at 84% (predicted: 85%)
+   Self-healing: Cleared 150MB cache after completion
+```
+
+### Example 4: Constitutional Restraints
+
+```
+# User adjusts slider: hallucination_resistance 0.5 → 0.9
+
+Before: "Springfield has about 120,000 people" (guesses)
+
+After: "I'm not certain which Springfield you mean (there are many).
+        Could you specify the state? Or would you like me to search
+        for current data?"
+```
+
+### Example 5: HTML Game Creation
 
 ```
 You: Create a snake game in HTML5
 
-lollmsBot: 🎮 I'll build you a complete Snake game!
+lollmsBot: 🎮 Building Snake game...
 
 [tool:filesystem] Creating snake_game.html...
-✅ Game created: 4.2KB, 400×400 canvas, keyboard controls
+✅ Game created: 4.2KB, 400×400 canvas
 
-📎 File ready for download: snake_game.html
-   Open it in any browser to play!
+📎 Download: snake_game.html (expires in 1 hour)
 ```
-
-The game includes:
-- Smooth animation with `requestAnimationFrame`
-- Score tracking and high score persistence
-- Mobile-friendly touch controls
-- Retro styling with modern CSS
-
-### Example 2: Multi-Step Research & Report
-
-```
-You: Research Python async patterns and create a summary document
-
-lollmsBot: 📊 Planning research workflow...
-
-[skill:synthesize_research] Breaking into sub-questions...
-[tool:http] Querying: "Python asyncio best practices 2024"
-[tool:http] Querying: "asyncio vs trio performance"
-[tool:filesystem] Creating research_summary.md...
-
-✅ Research complete:
-   - 12 sources evaluated
-   - 3 patterns identified
-   - 1 conflict resolved (exception handling)
-   - Document: research_summary.md (8.4KB)
-```
-
-### Example 3: Calendar Management with Natural Language
-
-```
-You: Create a calendar event for team standup on Tuesday at 10am
-
-lollmsBot: 📅 Creating calendar event...
-
-[tool:calendar] Adding event:
-   • 2024-01-09 10:00-10:30 "Team Standup"
-
-✅ Event created. Want to add to your calendar?
-   [Download .ics file] [View in browser]
-   
-Note: For recurring events, you can create multiple events individually
-or use the calendar tool's batch creation feature.
-```
-
-### Example 4: Multi-Tool Workflow
-
-```
-You: Research Python async patterns and create a summary document
-
-lollmsBot: 📊 Planning multi-step workflow...
-
-[tool:http] Fetching latest Python documentation...
-[tool:http] Querying: "Python asyncio best practices 2024"
-[tool:filesystem] Creating research_summary.md...
-
-✅ Research complete:
-   - 5 authoritative sources reviewed
-   - Key patterns identified and documented
-   - Document: research_summary.md (6.2KB)
-   [Download file]
-```
-
----
-
-## 🧬 The 7 Pillars Explained
-
-### 1. 🧬 Soul — Persistent Identity
-
-Your bot has a **configurable personality** stored in `~/.lollmsbot/soul.md`:
-
-```yaml
-name: "Claude-Assist"  # Not Claude, but inspired by clarity
-traits:
-  - curiosity: strong      # Asks clarifying questions
-  - pragmatism: strong     # Prioritizes working solutions
-  - security: strong       # Warns about risks
-values:
-  - "Never compromise user privacy" (priority: 10)
-  - "Be honest about limitations" (priority: 9)
-communication:
-  formality: casual
-  verbosity: concise
-  humor: witty
-  emoji_usage: moderate
-```
-
-**Why this matters**: Unlike stateless APIs, your bot **remembers who it is** across conversations, channels, and restarts.
-
-### 2. 🛡️ Guardian — Unbypassable Security
-
-The Guardian operates as a **reflexive security layer** that intercepts all operations:
-
-| Threat | Detection | Response |
-|--------|-----------|----------|
-| Prompt injection | Regex + entropy analysis + structural checks | Block + quarantine if confidence >95% |
-| Data exfiltration | PII patterns in outputs | Challenge user before sending |
-| Unauthorized tool use | Permission gates per user/tool | Deny with audit log |
-| Ethics violation | Rule matching against ethics.md | Block + alert |
-
-**Quarantine Mode**: If critical threats are detected, the bot **self-isolates** — all non-essential operations halt until admin review.
-
-**Docker Sandbox (New)**: When Docker is available, shell commands execute in ephemeral Alpine containers with:
-- Read-only root filesystem
-- Network isolation (default: none)
-- Resource limits (256MB memory, 0.5 CPU, 30s timeout)
-- Mount policies (read-only by default, read-write only with explicit permission)
-
-**Defense in Depth**: Guardian screening → Security policy validation → Docker isolation = three layers of protection.
-
-### 3. 💓 Heartbeat — Autonomous Self-Care
-
-Every 30 minutes (configurable), the Heartbeat runs:
-
-```python
-MaintenanceTasks = {
-    DIAGNOSTIC:    "Check LoLLMS connectivity, disk space, Guardian status",
-    MEMORY:        "Compress old conversations, apply forgetting curve, consolidate narratives",
-    SECURITY:      "Review audit logs, check permission drift, verify file integrity",
-    SKILL:         "Update skill docs, check LollmsHub for updates, prune unused",
-    UPDATE:        "Check for security patches, apply if auto-heal enabled",
-    OPTIMIZATION:  "Clean temp files, clear caches, balance load",
-    HEALING:       "Detect behavioral drift, re-center Soul traits if needed",
-}
-```
-
-**Lane Queue Integration (New)**: Heartbeat tasks now run as background priority work. When a user sends a message, the heartbeat automatically pauses, preventing race conditions and database locks. This eliminates the deadlocks that could occur when memory compression and user message processing happened simultaneously.
-
-**Example healing action**: If the bot detects it's becoming too verbose (drift from `verbosity: concise`), it auto-adjusts or asks for confirmation.
-
-### 4. 🧠 Memory — Semantic Compression & Time Travel
-
-Not just "store and retrieve" — **intelligent memory management**:
-
-- **Compression**: Full conversations → "memory pearls" (summaries + key moments)
-- **Forgetting Curve**: Ebbinghaus-inspired decay: `R = e^(-t/S)` where S = memory strength
-- **Consolidation**: Scattered mentions of "the Python project" → unified project narrative
-- **Strengthening**: Frequently accessed memories gain importance
-
-**Pearl Logs (New)**: Immutable append-only audit trail in JSONL format enables:
-- **Time Travel**: Replay events from any checkpoint
-- **State Forking**: Recover from bad updates by replaying from a known good state
-- **Complete History**: Every operation logged, never modified
-- **Human-Readable**: Newline-delimited JSON for easy debugging
-
-**RAG Store (New)**: On-device knowledge updates without retraining:
-- Vector similarity search for relevant context injection
-- TF-IDF embeddings (upgradeable to sentence-transformers)
-- JSONL persistence for immutability
-- Add new facts: `rag.add("Python 3.13 released", metadata={"source": "news"})`
-
-The system maintains both SQLite (for fast queries) and JSONL (for complete audit trail).
-
-### 5. 📚 Skills — Learned Capabilities
-
-Skills are **reusable, versioned, composable workflows**:
-
-```python
-# Example: Built-in 'organize_files' skill
-Skill(
-    name="organize_files",
-    complexity=SkillComplexity.SIMPLE,
-    parameters=[
-        SkillParameter("source_dir", "string", required=True),
-        SkillParameter("method", "enum", ["date", "type", "custom"]),
-    ],
-    dependencies=[
-        SkillDependency("tool", "filesystem"),
-    ],
-    implementation={
-        "execution_plan": [
-            {"step": "analyze", "description": "Categorize all files"},
-            {"step": "preview", "description": "Show planned moves (if dry_run)"},
-            {"step": "organize", "description": "Execute file operations"},
-            {"step": "verify", "description": "Confirm success, report stats"},
-        ]
-    }
-)
-```
-
-**Built-in Skills**:
-The system includes several pre-built skills:
-- `organize_files`: Smart file organization by type, date, or custom rules
-- `synthesize_research`: Multi-source information gathering and synthesis
-- `prepare_meeting`: Meeting prep from calendar and context
-- `learn_skill`: Framework for creating new skills (skill composition)
-
-**Skill Framework**:
-- Versioned and composable workflows
-- Dependency management (requires specific tools)
-- Execution tracking and result caching
-- Complexity scoring (SIMPLE, MEDIUM, COMPLEX, ADVANCED)
-
-**Skill Composition**:
-Skills can be composed together to create more complex workflows. The `learn_skill` framework allows combining existing skills and tools into new capabilities.
-
-### 6. 🔧 Tools — Low-Level Capabilities
-
-| Tool | Capabilities | Safety Features |
-|------|-----------| ---------------|
-| `filesystem` | Read, write, list, create HTML apps, ZIP archives | Path validation, allowed directories, no traversal |
-| `http` | GET/POST/PUT/DELETE, JSON/text auto-parse, retries | URL scheme whitelist, timeout, max size, no local IPs |
-| `calendar` | Create events, list by range, export/import ICS | Timezone-aware, validation |
-| `shell` | Execute approved commands in Docker sandbox | **Docker isolation (new)**, explicit allowlist, denylist patterns, no shell=True, timeout |
-| `browser` | Web scraping, JS execution, interactive elements | **Optional** (requires Playwright), accessibility tree parsing, viewport control |
-
-**Shell Tool Upgrade**: Commands now execute in isolated Alpine containers by default (when Docker is available):
-```bash
-# Safely executes in container - can't damage host
-shell.execute("rm -rf /")  # Only affects container, not your system
-```
-
-Falls back to direct execution (with Guardian screening) if Docker is unavailable.
-
-### 7. 🆔 Identity — Multi-Channel Presence
-
-Same **Soul**, different **faces**:
-
-| Channel | Unique Features | Use Case |
-|---------|---------------|----------|
-| **Web UI** | Real-time tool visualization, file downloads, mobile-responsive | Primary interaction |
-| **Discord** | Slash commands, file delivery via DM, server/guild restrictions | Community bots |
-| **Telegram** | BotFather integration, user ID allowlisting | Personal assistant |
-| **HTTP API** | Webhook support, programmatic access, file download URLs | Integrations |
-
----
-
-## 🧬 OpenClaw Genetic Splice + MIT Research
-
-lollmsBot has been enhanced with **OpenClaw's industrial-grade reliability patterns** and **MIT's cutting-edge Agentic AI research**, creating a unique hybrid architecture that combines personality-driven AI with rock-solid infrastructure.
-
-### Lane Queue Concurrency Control
-
-**Problem**: Race conditions between user messages and background tasks (heartbeat) caused database locks and unpredictable behavior.
-
-**Solution**: 3-tier priority queue system ensures tasks execute in the right order:
-
-| Lane | Priority | Purpose | Behavior |
-|------|----------|---------|----------|
-| **USER_INTERACTION** | 0 (Highest) | User messages, commands | Pauses all lower priority lanes |
-| **BACKGROUND** | 1 (Medium) | Heartbeat, memory compression | Yields to user interactions |
-| **SYSTEM** | 2 (Lowest) | Tool execution, file I/O | Yields to both above |
-
-```python
-# User messages automatically pause background work
-async with engine.user_context("complex_request"):
-    # All code here runs at highest priority
-    # Heartbeat and tools pause until complete
-    result = await multi_step_operation()
-```
-
-**Impact**: No more deadlocks. User interactions are always responsive. Background maintenance never interferes.
-
-### Docker Sandbox Security
-
-**Problem**: Shell commands running on host system = one bad prompt away from `rm -rf /`.
-
-**Solution**: Ephemeral Alpine containers for every shell command:
-
-```python
-# This is safe - runs in isolated container
-await shell_tool.execute("rm -rf /")  
-# Host system untouched, only container affected
-```
-
-**Security Layers**:
-1. **Guardian Pre-Screening**: Blocks obvious injection attempts
-2. **Security Policy**: Allowlist/denylist validation
-3. **Docker Isolation**: Read-only root, network isolation, resource limits
-
-**Container Specs**:
-- Image: `alpine:latest` (lightweight, 5MB base)
-- Root filesystem: Read-only
-- Network: Isolated (default: none)
-- Resources: 256MB memory, 0.5 CPU cores, 30s timeout
-- Auto-destroyed after execution
-
-Falls back to direct execution (with Guardian screening) if Docker unavailable.
-
-### Immutable Pearl Logs
-
-**Problem**: Debugging issues requires understanding history, but databases are mutable and don't preserve complete timelines.
-
-**Solution**: Append-only JSONL audit trail (inspired by event sourcing):
-
-```python
-# Every operation is logged
-from lollmsbot.storage.jsonl_store import log_event
-
-log_event("user_message", {
-    "user_id": "alice",
-    "message": "Create a report",
-    "tools_used": ["filesystem", "http"]
-})
-
-# Time travel - replay from any point
-store = get_audit_log()
-for entry in store.replay_from(checkpoint_time):
-    # Reconstruct state from that moment
-    apply_event(entry)
-```
-
-**Use Cases**:
-- **Debugging**: See exactly what happened and when
-- **Recovery**: Replay from last known good state
-- **Auditing**: Complete history for compliance
-- **Forking**: Create alternate timelines from checkpoints
-
-Runs alongside SQLite (fast queries) for best of both worlds.
-
-### Adaptive Computation (MIT Research)
-
-**Problem**: Wasting full model compute on "Hello" while struggling with complex analysis.
-
-**Solution**: Dynamic resource allocation based on complexity scoring:
-
-```python
-from lollmsbot.adaptive import get_compute_manager
-
-manager = get_compute_manager()
-complexity = manager.assess_complexity(message, context_length=1000)
-
-# ComplexityScore(
-#     level=SIMPLE,
-#     score=0.25,
-#     token_estimate=100,
-#     early_exit_candidate=True  # Can use shallow layers
-# )
-
-# Automatically adjust generation params
-params = manager.get_generation_params(complexity)
-# {
-#     "max_tokens": 100,
-#     "temperature": 0.5,
-#     "cache_size_hint": 512,
-#     "early_exit": True  # Save 70% compute
-# }
-```
-
-**Complexity Levels**:
-- **TRIVIAL**: Greetings, "yes/no" → 70% compute savings via early exit
-- **SIMPLE**: Basic Q&A, factual lookups → Reduced token limits
-- **MEDIUM**: Multi-step tasks → Balanced parameters
-- **COMPLEX**: Planning, analysis → Full model engagement
-- **ADVANCED**: Long-form generation → Maximum resources
-
-**Impact**: 70% cost reduction on simple queries, better quality on complex ones.
-
-### RAG Store - On-Device Learning (MIT Research)
-
-**Problem**: Static LLMs can't learn new facts post-training. Fine-tuning is expensive.
-
-**Solution**: Retrieval-Augmented Generation with vector similarity search:
-
-```python
-from lollmsbot.memory import get_rag_store
-
-rag = get_rag_store()
-
-# Add new knowledge
-rag.add("Python 3.13 released with JIT compiler", 
-        metadata={"source": "python.org", "date": "2024-10-07"})
-
-# Search returns relevant context
-results = rag.search("latest Python features", top_k=5)
-# Inject into prompt for knowledge-aware responses
-```
-
-**Features**:
-- TF-IDF embeddings (upgradeable to sentence-transformers)
-- JSONL persistence (immutable)
-- Cosine similarity search
-- Document metadata tracking
-
-**Use Cases**:
-- Personal knowledge base
-- Project-specific context
-- Latest news/updates
-- Custom domain knowledge
-
-**Upgrade Path**:
-```bash
-# Production-grade RAG with better embeddings
-pip install -e ".[ml]"  # Adds sentence-transformers + ChromaDB
-```
-
-### Architecture Summary
-
-| Component | lollmsBot (Before) | OpenClaw + MIT (After) |
-|-----------|-------------------|----------------------|
-| **Concurrency** | Raw asyncio | Lane Queue (3-tier priority) |
-| **Security** | Guardian only | Guardian + Policy + Docker |
-| **Memory** | SQLite (mutable) | SQLite + JSONL (immutable audit) |
-| **Compute** | Fixed resources | Adaptive (70% savings possible) |
-| **Knowledge** | Static | RAG (learns without retraining) |
-
-**Result**: A bot that's both charming (personality framework) AND reliable (industrial infrastructure).
 
 ---
 
 ## 📋 Configuration Guide
 
-### Step 1: Choose Your AI Backend (17+ Options)
+### Step 1: AI Backend (17+ Options)
 
 ```bash
-lollmsbot wizard
-# → Select "🔗 AI Backend"
+lollmsbot wizard → "🔗 AI Backend"
 ```
 
-| Category | Backends | Best For |
-|----------|----------|----------|
-| **Remote APIs** | OpenAI, Claude, Gemini, Groq, Mistral, Perplexity | Quality, speed, no hardware |
-| **Local Server** | Ollama, vLLM, Llama.cpp, OpenWebUI | Privacy, cost, customization |
-| **Local Direct** | Transformers, TensorRT | Maximum control, no server overhead |
+| Provider | Best For | Configuration |
+|----------|----------|---------------|
+| **OpenAI** | Quality, speed | `LOLLMS_BINDING_NAME=openai` |
+| **Claude** | Reasoning | `LOLLMS_BINDING_NAME=claude` |
+| **Ollama** | Privacy, local | `LOLLMS_BINDING_NAME=ollama` |
+| **Groq** | Ultra-fast | `LOLLMS_BINDING_NAME=groq` |
 
-Example configurations:
+### Step 2: RCL-2 Configuration
 
 ```bash
-# OpenAI (cloud)
-LOLLMS_BINDING_NAME=openai
-LOLLMS_HOST_ADDRESS=https://api.openai.com/v1
-LOLLMS_API_KEY=sk-...
-LOLLMS_MODEL_NAME=gpt-4o-mini
+# Constitutional Restraints (0.0-1.0)
+RESTRAINT_HALLUCINATION_RESISTANCE=0.7
+RESTRAINT_TRANSPARENCY_LEVEL=0.6
+RESTRAINT_GOAL_AUTONOMY=0.4
 
-# Ollama (local)
-LOLLMS_BINDING_NAME=ollama
-LOLLMS_HOST_ADDRESS=http://localhost:57114
-LOLLMS_MODEL_NAME=llama3.2
-
-# Claude (cloud)
-LOLLMS_BINDING_NAME=claude
-LOLLMS_HOST_ADDRESS=https://api.anthropic.com
-LOLLMS_API_KEY=sk-ant-...
-LOLLMS_MODEL_NAME=claude-3-5-sonnet-20241022
+# Self-Awareness
+SELF_AWARENESS_ENABLED=true
+SELF_AWARENESS_LEVEL=MODERATE  # MINIMAL, LOW, MODERATE, HIGH, MAXIMUM
 ```
 
-### Step 2: Configure Channels
+### Step 3: Multi-Provider (Optional)
+
+```bash
+USE_MULTI_PROVIDER=true
+OPENROUTER_API_KEY_1=sk-or-v1-...
+OPENROUTER_API_KEY_2=sk-or-v1-...
+OPENROUTER_API_KEY_3=sk-or-v1-...
+OLLAMA_API_KEY=...
+```
+
+### Step 4: Channels (Optional)
 
 ```bash
 # Discord
 DISCORD_BOT_TOKEN=MTIz...
-DISCORD_ALLOWED_USERS=123456789,987654321  # Optional: restrict to specific users
-DISCORD_ALLOWED_GUILDS=111111111,222222222 # Optional: restrict to specific servers
-DISCORD_REQUIRE_MENTION_GUILD=true         # Only respond when @mentioned in servers
+DISCORD_ALLOWED_USERS=123456789,987654321
 
 # Telegram
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
-TELEGRAM_ALLOWED_USERS=123456789           # Optional: whitelist
-```
-
-### Step 3: Tune the 7 Pillars
-
-```bash
-lollmsbot wizard
-# → Soul: Define personality, values, expertise
-# → Heartbeat: Set maintenance interval, enable self-healing
-# → Memory: Configure compression thresholds, retention
-# → Skills: Browse, test, compose new capabilities
+TELEGRAM_ALLOWED_USERS=123456789
 ```
 
 ---
 
-## 🔒 Security Architecture
+## 🔒 Security & Production Hardening
 
-### Triple-Layer Defense Model
+### Enterprise Security Features
 
-lollmsBot implements **defense in depth** with three security layers:
-
-#### Layer 1: Guardian Pre-Screening
-- Regex pattern matching for injection attempts
-- Entropy analysis for anomalous inputs
-- Structural checks for malicious payloads
-- PII detection before data transmission
-- Blocks 95%+ of attacks before execution
-
-#### Layer 2: Security Policy Validation
-- Explicit allowlist/denylist for commands
-- Path traversal prevention
-- Timeout enforcement
-- Working directory restrictions
-- Resource quota management
-
-#### Layer 3: Docker Isolation (NEW)
-- Ephemeral containers for every command
-- Read-only root filesystem
-- Network isolation (default: none)
-- CPU/memory limits
-- Auto-destroyed after execution
-
-**Result**: Even if a malicious prompt bypasses Guardian screening, it executes in an isolated container that can't damage your system.
-
-### Default: Local-Only (Safest)
-
-```bash
-LOLLMSBOT_HOST=127.0.0.1  # Only localhost can connect
-LOLLMSBOT_API_KEY=          # Not needed for localhost
-LOLLMSBOT_CORS_ORIGINS=     # Defaults to localhost origins
-```
-
-### Production Security Features
-
-**Input Validation**:
-- User IDs: Max 256 chars, alphanumeric + @.-_ only
+**Input Validation:**
+- User IDs: Max 256 chars, alphanumeric only
 - Messages: Max 50KB, non-empty validation
 - URLs: Scheme and netloc validation
 - All inputs validated before processing
 
-**Error Handling**:
-- Custom exceptions: `ValidationError`, `StorageError`, `AgentError`, `ToolError`
-- Specific exception catching (no bare `except:` clauses)
-- Proper error context propagation with logging
-- HTTP endpoints return appropriate status codes (400 for validation, 500 for server errors)
+**Error Handling:**
+- Zero bare `except:` clauses
+- Specific exception catching
+- Proper error context propagation
+- HTTP status codes (400/500)
 
-**Thread Safety**:
-- Double-checked locking for singleton initialization
-- Thread-safe agent, skill, and tool registries
-- Concurrent request handling without race conditions
+**Thread Safety:**
+- Double-checked locking for singletons
+- Thread-safe registries
+- No race conditions
 
-### Exposed with API Key (Advanced)
+**Cryptographic Security:**
+- HMAC-SHA256 for restraint authorization
+- Hash chain for audit trail integrity
+- Tamper-evident logs
+- Authorization key verification
 
-```bash
-# 1. Generate strong key
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-# → sB8xKj9mLp3Qr7Tv5WxYz2AbCdEfGh4J
+### Production Deployment Checklist
 
-# 2. Configure
-LOLLMSBOT_HOST=0.0.0.0
-LOLLMSBOT_API_KEY=sB8xKj9mLp3Qr7Tv5WxYz2AbCdEfGh4J
+- [ ] Change default API keys
+- [ ] Set strong tokens (Discord/Telegram)
+- [ ] Configure CORS origins (no wildcards)
+- [ ] Enable Docker sandbox
+- [ ] Set up input validation
+- [ ] Enable cryptographic audit trail
+- [ ] Configure rate limiting
+- [ ] Set up monitoring
 
-# 3. All requests must include:
-curl -H "Authorization: Bearer sB8xKj9mLp3Qr7Tv5WxYz2AbCdEfGh4J" \
-     http://your-server:8800/chat \
-     -d '{"message": "Hello"}'
-```
-
-### Guardian Ethics
-
-Create `~/.lollmsbot/ethics.md`:
-
-```markdown
-## Privacy-First
-- **Statement**: Never share user data with third parties
-- **Enforcement**: strict
-- **Exceptions**: None
-
-## Transparency
-- **Statement**: Always disclose when using external APIs
-- **Enforcement**: strict
-
-## User Autonomy
-- **Statement**: Present options, don't make decisions for users
-- **Enforcement**: advisory
-```
+**[📖 Full Hardening Guide](PRODUCTION_HARDENING.md)**
 
 ---
 
@@ -764,64 +925,16 @@ Create `~/.lollmsbot/ethics.md`:
 
 ### System Requirements
 
-**Minimum**:
+**Minimum:**
 - Python 3.10+
 - 4GB RAM
-- 10GB disk space
+- 10GB disk
 
-**Recommended**:
+**Recommended:**
 - Python 3.11+
 - 8GB RAM
-- Docker (for sandbox security)
-- 20GB disk space
-
-### Dependencies
-
-**Core (Required)**:
-```toml
-lollms-client>=1.11.4    # Multi-backend LLM support
-fastapi>=0.115.0         # Web framework
-sqlalchemy>=2.0.0        # Database ORM
-aiosqlite>=0.19.0        # Async SQLite
-rich>=13.7.0             # Terminal UI
-pyyaml                   # Soul.md parsing
-```
-
-**Optional - Sandbox**:
-```bash
-pip install -e ".[sandbox]"
-# Adds: docker>=7.0.0
-```
-
-**Optional - ML Features**:
-```bash
-pip install -e ".[ml]"
-# Adds: sentence-transformers>=2.0.0, chromadb>=0.4.0
-```
-
-**Optional - All Features**:
-```bash
-pip install -e ".[all]"
-# Includes sandbox + ml + telegram
-```
-
-### New Modules (OpenClaw Integration)
-
-```
-lollmsbot/
-├── core/               # NEW - Concurrency control
-│   ├── lane_queue.py  # 3-tier priority queue
-│   └── engine.py      # Orchestration layer
-├── sandbox/           # NEW - Docker isolation
-│   ├── docker_executor.py
-│   └── policy.py      # Mount policies
-├── adaptive/          # NEW - Dynamic compute
-│   └── compute_manager.py
-├── memory/            # ENHANCED
-│   └── rag_store.py   # NEW - Vector search
-└── storage/           # ENHANCED
-    └── jsonl_store.py # NEW - Immutable logs
-```
+- Docker
+- 20GB disk
 
 ### Creating Custom Tools
 
@@ -831,51 +944,29 @@ from lollmsbot.agent import Tool, ToolResult
 class MyTool(Tool):
     name = "my_tool"
     description = "Does something useful"
-    parameters = {
-        "type": "object",
-        "properties": {
-            "input": {"type": "string"}
-        },
-        "required": ["input"]
-    }
     
     async def execute(self, **params) -> ToolResult:
         result = await self.do_something(params["input"])
         return ToolResult(success=True, output=result)
 ```
 
-Register in `gateway.py`:
-```python
-from my_module import MyTool
-await agent.register_tool(MyTool())
-```
-
 ### Creating Custom Skills
 
 ```python
-from lollmsbot.skills import Skill, SkillMetadata, SkillParameter
+from lollmsbot.skills import Skill, SkillMetadata
 
 skill = Skill(
     metadata=SkillMetadata(
         name="analyze_csv",
         description="Statistical analysis of CSV files",
-        parameters=[
-            SkillParameter("file_path", "string", required=True),
-            SkillParameter("analysis_type", "enum", ["summary", "correlation", "trends"]),
-        ],
-        dependencies=[SkillDependency("tool", "filesystem")],
     ),
     implementation={
         "execution_plan": [
-            {"step": "load", "description": "Read and parse CSV"},
-            {"step": "analyze", "description": "Compute statistics"},
-            {"step": "visualize", "description": "Generate charts if requested"},
+            {"step": "load", "description": "Read CSV"},
+            {"step": "analyze", "description": "Compute stats"},
         ]
-    },
-    implementation_type="composite"
+    }
 )
-
-registry.register(skill)
 ```
 
 ---
@@ -884,208 +975,59 @@ registry.register(skill)
 
 ### REST Endpoints
 
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/health` | GET | None | System status, channels, agent state |
-| `/chat` | POST | Bearer* | Send message, get response with tool traces |
-| `/files/download/{id}` | GET | None | Download generated file (time-limited) |
-| `/files/list` | GET | Bearer* | List pending downloads |
-| `/ws/chat` | WebSocket | None** | Real-time bidirectional chat |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | System status with RCL-2 state |
+| `/chat` | POST | Send message, get response |
+| `/rcl2/cognitive-state` | GET | Current cognitive state |
+| `/rcl2/restraints` | GET/POST | View/modify restraints (requires auth for modification) |
+| `/rcl2/council/status` | GET | Council status |
+| `/rcl2/council/deliberations` | GET | Council deliberation history |
+| `/rcl2/debt/repay` | POST | Trigger cognitive debt repayment |
+| `/rcl2/decisions` | GET | Decision history |
+| `/rcl2/cognitive-twin/health` | GET | Cognitive twin health status |
+| `/rcl2/cognitive-twin/predict/*` | GET | Various prediction endpoints |
+| `/rcl2/audit-trail` | GET | Audit trail |
+| `/rcl2/audit-trail/verify` | GET | Verify audit trail integrity |
+| `/rcl2/ws` | WebSocket | Real-time updates |
+| `/docs` | GET | SwaggerUI (interactive API docs) |
+| `/redoc` | GET | ReDoc (alternative docs) |
 
-\* Required if `LOLLMSBOT_HOST != 127.0.0.1`  
-\** Session-based via WebSocket protocol
-
-### Example API Call
-
-```bash
-curl -X POST http://localhost:57800/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "developer_001",
-    "message": "Create a Python script that fetches weather data"
-  }'
-```
-
-Response:
-```json
-{
-  "success": true,
-  "response": "I've created a weather fetcher script for you...",
-  "tools_used": ["filesystem"],
-  "files_generated": 1,
-  "file_downloads": [
-    {
-      "filename": "weather_fetcher.py",
-      "download_url": "/files/download/a1b2c3d4e5f6",
-      "expires_in_seconds": 3599
-    }
-  ]
-}
-```
-
----
-
-## 🔀 Multi-Provider API Routing
-
-lollmsBot includes intelligent multi-provider API routing to optimize costs and reliability:
-
-### Providers
-- **OpenRouter** - Free tier with automatic model selection (`openrouter/free`)
-  - 3 API keys supported for 3x quota
-  - Cycles through keys automatically
-  - Zero cost until quota exhausted
-
-- **Ollama Cloud** - Specialized models for advanced features
-  - 2 API keys for load balancing
-  - Models: kimi-k2.5, deepseek-v3.1, cogito-2.1, etc.
-  - Used for RC2 sub-agent capabilities
-
-### Configuration
-```bash
-# Enable multi-provider (enabled by default)
-USE_MULTI_PROVIDER=true
-
-# OpenRouter keys (free tier)
-OPENROUTER_API_KEY_1=sk-or-v1-...
-OPENROUTER_API_KEY_2=sk-or-v1-...
-OPENROUTER_API_KEY_3=sk-or-v1-...
-
-# Ollama Cloud keys
-OLLAMA_API_KEY=...
-OLLAMA_API_KEY_2=...
-```
-
-### Routing Strategy
-1. Try OpenRouter free tier (cycle through 3 keys)
-2. If all quotas exhausted, fall back to Ollama Cloud
-3. For specialized models (RC2), use Ollama directly
-
-**Cost Savings:** 40-70% reduction vs single provider
-
----
-
-## 🧠 RC2 Sub-Agent (Reflective Constellation 2.0)
-
-Advanced reasoning capabilities powered by specialized models:
-
-### Capabilities
-- **Constitutional Review** - Byzantine consensus for governance decisions
-  - Uses deepseek-v3.1 + cogito-2.1 
-  - 2-of-2 agreement required
-  - Triggered by: "Is this allowed...?"
-
-- **Deep Introspection** - Causal analysis of decisions
-  - Uses kimi-k2-thinking model
-  - Analyzes reasoning chains
-  - Triggered by: "Why did you decide...?"
-
-- **Self-Modification** (Experimental) - Code improvement proposals
-- **Meta-Learning** (Experimental) - Learning optimization
-
-### Configuration
-```bash
-# RC2 (disabled by default for safety)
-RC2_ENABLED=false
-RC2_RATE_LIMIT=5  # requests per minute per user
-
-# Individual capabilities
-RC2_CONSTITUTIONAL=true
-RC2_INTROSPECTION=true
-RC2_SELF_MODIFICATION=false  # Experimental
-RC2_META_LEARNING=false      # Experimental
-```
-
-### Example Usage
-```python
-# Constitutional review (automatic delegation)
-response = await agent.chat(
-    user_id="user123",
-    message="Is it okay if I delete the production database?"
-)
-# → RC2 constitutional review triggered
-# → deepseek + cogito consensus
-# → Returns: "NOT APPROVED - Violates safety policy"
-
-# Deep introspection (automatic delegation)
-response = await agent.chat(
-    user_id="user123",
-    message="Why did you recommend using Redis over PostgreSQL?"
-)
-# → RC2 deep introspection triggered
-# → kimi-k2-thinking causal analysis
-# → Returns detailed reasoning with confidence scores
-```
-
----
-
-## 📊 System Status
-
-Check system status and configuration:
+### RCL-2 Specific Examples
 
 ```bash
-$ lollmsbot status
+# View cognitive state
+curl http://localhost:57800/rcl2/cognitive-state
 
-╭─────────────────────── 🔧 Components ───────────────────────╮
-│ Component       │ Status         │ Details                   │
-├─────────────────┼────────────────┼───────────────────────────┤
-│ Agent           │ ✅ Available   │ Core AI agent module      │
-│ Guardian        │ ✅ Available   │ Security & ethics layer   │
-│ Skills          │ ✅ Available   │ 4 skills loaded           │
-│ Heartbeat       │ ✅ Available   │ Self-maintenance ready    │
-│ Lane Queue      │ ✅ Available   │ Priority task execution   │
-│ RAG Store       │ ✅ Available   │ Knowledge base ready      │
-│ Multi-Provider  │ ✅ Enabled     │ OpenRouter: 3, Ollama: 2  │
-│ RC2 Sub-Agent   │ ✅ Enabled     │ Constitutional & intro... │
-╰─────────────────┴────────────────┴───────────────────────────╯
+# View restraints
+curl http://localhost:57800/rcl2/restraints
+
+# View council deliberations
+curl http://localhost:57800/rcl2/council/deliberations?limit=10
+
+# Check cognitive debt
+curl http://localhost:57800/rcl2/decisions
+
+# Verify audit trail integrity
+curl http://localhost:57800/rcl2/audit-trail/verify
 ```
 
----
-
-## 🏗️ Production Deployment
-
-### Security Checklist
-- [ ] Change default API keys
-- [ ] Set strong Discord/Telegram tokens
-- [ ] Configure CORS origins (don't use wildcard)
-- [ ] Enable Docker sandbox for command execution
-- [ ] Set up rate limiting
-- [ ] Configure input validation
-- [ ] Enable audit logging
-- [ ] Set up monitoring
-
-### Performance Optimization
-- [ ] Enable adaptive computation
-- [ ] Configure RAG Store for frequently accessed data
-- [ ] Set appropriate lane queue priorities
-- [ ] Enable multi-provider routing (cost optimization)
-- [ ] Configure heartbeat intervals
-- [ ] Set memory compression thresholds
-
-### Monitoring
-- [ ] Set up log aggregation
-- [ ] Monitor API costs (multi-provider usage)
-- [ ] Track RC2 delegation rates
-- [ ] Monitor Docker sandbox resource usage
-- [ ] Set up alerts for errors
-
-### Backup & Recovery
-- [ ] Backup `.lollmsbot/config.json`
-- [ ] Backup memory database
-- [ ] Backup skill configurations
-- [ ] Document restoration procedure
+**[📖 Interactive API Docs](http://localhost:57800/docs)** (when running)
 
 ---
 
 ## 🐳 Docker Deployment
 
-### Single Container (Local)
+### Single Container
 
 ```bash
-docker run -p 127.0.0.1:57800:8800 \
+docker run -p 8800:8800 \
   -v $(pwd)/.env:/app/.env:ro \
   -v lollmsbot-data:/app/data \
   ghcr.io/parisneo/lollmsbot:latest
 ```
+
+**Note:** Access at http://localhost:8800
 
 ### Full Stack (with LoLLMS)
 
@@ -1097,53 +1039,81 @@ services:
     build: .
     ports: ["8800:8800"]
     environment:
-      - LOLLMS_HOST_ADDRESS=http://lollms:57960
-      - DISCORD_BOT_TOKEN=${DISCORD_TOKEN}
+      - LOLLMSBOT_HOST=0.0.0.0
+      - LOLLMSBOT_PORT=8800
   
   lollms:
     image: ghcr.io/parisneo/lollms-webui:latest
-    ports: ["9642:9600"]
+    ports: ["7860:7860"]
     volumes:
       - lollms-models:/app/models
 ```
+
+**Note:** lollmsBot at http://localhost:8800, LoLLMS UI at http://localhost:7860
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed guidelines.
+We welcome contributions! Areas of interest:
 
-### Quick Start for Contributors
+- **RCL-2 Enhancements** - Implement Phases 2E-L
+- **New Skills** - Expand the Awesome Skills library
+- **Tool Integrations** - Databases, APIs, hardware
+- **Documentation** - Guides, examples, translations
+- **GUI Improvements** - RCL-2 dashboard enhancements
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes with tests
-4. Commit using conventional commits (`git commit -m 'feat: add amazing feature'`)
-5. Push to your fork (`git push origin feature/amazing-feature`)
-6. Open a Pull Request using our [PR template](.github/PULL_REQUEST_TEMPLATE.md)
+**[📖 Contributing Guide](CONTRIBUTING.md)**
 
-### Areas of Interest
-- **New Backends** - Add support for emerging LLM APIs
-- **Skill Library** - Share useful skills with the community
-- **Channel Adapters** - Slack, Matrix, IRC, etc.
-- **Tool Integrations** - Databases, cloud APIs, hardware control
-- **RC2 Capabilities** - Implement remaining sub-agent features
-- **Documentation** - Improve guides, add examples, fix typos
+---
 
-### Issue & PR Templates
+## 📚 Documentation
 
-We provide templates to streamline contributions:
-- **[Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)** - Report bugs with environment details
-- **[Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)** - Suggest new features
-- **[Security Issue](.github/ISSUE_TEMPLATE/security_vulnerability.md)** - Report security concerns (privately!)
-- **[Pull Request](.github/PULL_REQUEST_TEMPLATE.md)** - Standardized PR format
+### 🗺️ Project Status & Planning
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines including:
-- Code of Conduct
-- Development setup
-- Coding standards
-- Testing requirements
-- Review process
+- **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** - ⭐ **Complete implementation audit (what's done, what's not)**
+- **[ROADMAP.md](ROADMAP.md)** - ⭐ **Development roadmap Q1-Q4 2026 (phases, priorities, timelines)**
+- **[RCL2_STATUS.md](RCL2_STATUS.md)** - RCL-2 detailed phase breakdown
+
+### User Guides
+
+- **[RCL2_USER_VALUE_GUIDE.md](RCL2_USER_VALUE_GUIDE.md)** - "What's in it for me?" for every RCL-2 feature
+- **[SELF_AWARENESS_GUIDE.md](SELF_AWARENESS_GUIDE.md)** - Self-awareness and introspection
+- **[AWESOME_SKILLS_GUIDE.md](AWESOME_SKILLS_GUIDE.md)** - Skills system comprehensive guide
+- **[MULTI_PROVIDER_SETUP.md](MULTI_PROVIDER_SETUP.md)** - Multi-provider configuration
+
+### Technical Documentation
+
+- **[RCL2_ARCHITECTURE.md](RCL2_ARCHITECTURE.md)** - RCL-2 system architecture
+- **[RCL2_KILLER_FEATURES.md](RCL2_KILLER_FEATURES.md)** - Advanced RCL-2 capabilities
+- **[PRODUCTION_HARDENING.md](PRODUCTION_HARDENING.md)** - Security and reliability
+- **[API_REFERENCE.md](API_REFERENCE.md)** - Complete API documentation
+
+### Implementation Summaries
+
+- **[RCL2_COMPLETE_IMPLEMENTATION_SUMMARY.md](RCL2_COMPLETE_IMPLEMENTATION_SUMMARY.md)** - RCL-2 project overview
+- **[AWESOME_SKILLS_INTEGRATION_SUMMARY.md](AWESOME_SKILLS_INTEGRATION_SUMMARY.md)** - Skills integration overview
+- **[MULTI_PROVIDER_SUMMARY.md](MULTI_PROVIDER_SUMMARY.md)** - Multi-provider infrastructure
+
+### Quick References
+
+- **[COGNITIVE_TWIN_QUICK_REFERENCE.md](COGNITIVE_TWIN_QUICK_REFERENCE.md)** - Cognitive Twin features
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute to lollmsBot
+
+---
+
+## 🙏 Acknowledgments
+
+- **[LoLLMS](https://lollms.com)** — The flexible AI backend that makes multi-binding possible
+- **[Clawd.bot](https://clawd.bot)** — Architectural inspiration for agentic AI design
+- **[awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)** — Community-driven AI workflows (50+ production-ready skills)
+  - Special thanks to the original creators and contributors who built this incredible skill library
+  - Maintained by the community with love and continuous innovation
+- **[OpenRouter](https://openrouter.ai)** — Multi-provider routing with generous free tier
+- **[FastAPI](https://fastapi.tiangolo.com)** — The modern web framework powering our gateway
+- **[Rich](https://rich.readthedocs.io)** — Beautiful terminal interfaces
+- **[Questionary](https://questionary.readthedocs.io)** — Interactive CLI wizardry
+- **Kahneman, Minsky, et al.** — Cognitive science foundations for RCL-2
 
 ---
 
@@ -1160,21 +1130,37 @@ you may not use this file except in compliance with the License.
 
 ---
 
-## 🙏 Acknowledgments
+## 💬 Example Use Cases
 
-- **[LoLLMS](https://lollms.com)** — The flexible AI backend that makes multi-binding possible
-- **[Clawd.bot](https://clawd.bot)** — Architectural inspiration for agentic AI design
-- **[FastAPI](https://fastapi.tiangolo.com)** — The modern web framework powering our gateway
-- **[Rich](https://rich.readthedocs.io)** — Beautiful terminal interfaces
-- **[Questionary](https://questionary.readthedocs.io)** — Interactive CLI wizardry
+**Multi-Channel AI Assistant:**
+> "Perfect for managing Discord communities with intelligent moderation and helpful responses."
+
+**Cost-Optimized Development:**
+> "The multi-provider routing saves significant costs while maintaining quality - essential for prototyping."
+
+**Research & Analysis:**
+> "Constitutional restraints let me tune hallucination resistance high for medical research - critical feature."
+
+**Production Systems:**
+> "50+ skills out of the box plus 12 configurable parameters means I can adapt it to any use case."
 
 ---
 
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Grumpified-OGGVCT/lollmsBot-GrumpiFied&type=Timeline)](https://star-history.com/#Grumpified-OGGVCT/lollmsBot-GrumpiFied&Timeline)
+**Made with ❤️ and 🧠 by [ParisNeo](https://github.com/ParisNeo)**  
+*Empowering sovereign AI with transparent cognition for everyone*
 
 ---
 
-**Made with ❤️ by [ParisNeo](https://github.com/ParisNeo)**  
-*Empowering sovereign AI for everyone*
+**🚀 Get Started Now:**
+```bash
+git clone https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied
+cd lollmsBot-GrumpiFied
+./install.sh  # or install.bat on Windows
+lollmsbot wizard
+```
+
+**Questions? Issues? Ideas?**
+- 📖 [Read the Docs](#-documentation)
+- 💬 [Open an Issue](https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied/issues)
+- 🤝 [Contribute](CONTRIBUTING.md)
+- ⭐ [Star the Repo](https://github.com/Grumpified-OGGVCT/lollmsBot-GrumpiFied)
