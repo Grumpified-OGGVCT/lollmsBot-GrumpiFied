@@ -23,18 +23,43 @@ class PermissionMode(Enum):
 def _default_denied_paths():
     """Factory function for default denied paths."""
     return {
+        # System directories - CRITICAL
         Path("/etc"),
         Path("/sys"),
         Path("/proc"),
         Path("/dev"),
         Path("/boot"),
         Path("/root"),
+        # Container escape vectors
+        Path("/var/run/docker.sock"),  # Docker socket - container escape
+        Path("/var/run"),  # Runtime sockets
+        Path("/run"),  # Runtime directory
+        # System binaries that could be abused
+        Path("/bin"),
+        Path("/sbin"),
+        Path("/usr/bin"),
+        Path("/usr/sbin"),
+        # Kernel and system files
+        Path("/vmlinuz"),
+        Path("/initrd"),
+        # Potentially sensitive system locations
+        Path("/lib/modules"),  # Kernel modules
+        Path("/lib/systemd"),  # System services
     }
 
 
 @dataclass
 class MountPolicy:
     """Policy for mounting directories in sandbox.
+    
+    This implements defense against container escape attacks by:
+    - Blocking Docker socket access (/var/run/docker.sock)
+    - Preventing cgroup manipulation
+    - Restricting namespace access
+    - Denying system binary directories
+    - Enforcing least-privilege file system access
+    
+    Addresses OpenClaw-style container escape vulnerabilities.
     
     Attributes:
         allowed_paths: Paths that can be mounted
@@ -58,10 +83,34 @@ class MountPolicy:
         """
         path = path.resolve()
         
-        # Check denied paths
+        # Check denied paths (SECURITY: Critical system paths)
         for denied in self.denied_paths:
             try:
                 path.relative_to(denied)
+                # Path is under denied directory - BLOCK
+                return False
+            except ValueError:
+                continue
+        
+        # SECURITY: Additional checks for container escape vectors
+        # Block Docker socket access (major container escape vector)
+        docker_socket = Path("/var/run/docker.sock")
+        if path == docker_socket:
+            return False
+        
+        # Block cgroup access (container control)
+        cgroup_root = Path("/sys/fs/cgroup")
+        try:
+            path.relative_to(cgroup_root)
+            return False
+        except ValueError:
+            pass
+        
+        # Block namespace manipulation paths
+        namespace_roots = [Path("/proc/self/ns"), Path("/proc/1/ns")]
+        for ns_root in namespace_roots:
+            try:
+                path.relative_to(ns_root)
                 return False
             except ValueError:
                 continue

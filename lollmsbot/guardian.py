@@ -1,5 +1,5 @@
 """
-Guardian Module - LollmsBot's Security & Ethics Layer
+Guardian Module - LollmsBot's Unified Security & Ethics Layer
 
 The Guardian is LollmsBot's "conscience" and "immune system" combined.
 It monitors all inputs, outputs, and internal states for:
@@ -7,10 +7,20 @@ It monitors all inputs, outputs, and internal states for:
 - Ethical violations (against user-defined ethics.md rules)
 - Behavioral anomalies (deviation from established patterns)
 - Consent enforcement (permission gates for sensitive operations)
+- API key leakage and credential harvesting (NEW)
+- Malicious skill patterns and threats (NEW)
 
 Architecture: The Guardian operates as a "reflexive layer" - it can intercept
 and block any operation before execution, but cannot be bypassed by the
 Agent or any Tool. It's the ultimate authority in the system.
+
+OpenClaw Security Enhancements:
+This module has been enhanced to prevent OpenClaw-style attacks including:
+- Sleeper agents in skills
+- Data exfiltration attempts
+- Container escape patterns
+- API key harvesting
+- Credential theft from .env files
 """
 
 from __future__ import annotations
@@ -19,9 +29,11 @@ import hashlib
 import hmac
 import json
 import logging
+import math
 import re
 import secrets
 import time
+import threading
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -32,6 +44,21 @@ from typing import Any, Callable, Coroutine, Dict, List, Optional, Set, Tuple, U
 
 # Configure logging for security events
 logger = logging.getLogger("lollmsbot.guardian")
+
+
+class ThreatType(Enum):
+    """Types of threats that Guardian can detect."""
+    PROMPT_INJECTION = auto()
+    DATA_EXFILTRATION = auto()
+    CONTAINER_ESCAPE = auto()
+    SLEEPER_AGENT = auto()
+    PRIVILEGE_ESCALATION = auto()
+    FILE_SYSTEM_ABUSE = auto()
+    NETWORK_ABUSE = auto()
+    CODE_INJECTION = auto()
+    CREDENTIAL_HARVESTING = auto()
+    OBFUSCATION = auto()
+    API_KEY_EXPOSURE = auto()
 
 
 class ThreatLevel(Enum):
@@ -134,76 +161,208 @@ class PermissionGate:
         return True, None
 
 
-class PromptInjectionDetector:
-    """Multi-layer defense against prompt injection attacks."""
+class ThreatDetector:
+    """
+    Unified threat detection for all security concerns.
+    Consolidates prompt injection, skill threats, API keys, etc.
+    """
     
-    # Known attack patterns (simplified - production would use ML models)
-    PATTERNS: List[Tuple[str, float]] = [
-        # (regex pattern, confidence score 0-1)
-        (r"ignore\s+(all\s+)?previous\s+(instructions|commands)", 0.9),
-        (r"disregard\s+(your\s+)?(instructions|programming|rules)", 0.9),
-        (r"you\s+are\s+now\s+.*?(free|unrestricted|uncensored)", 0.85),
-        (r"system\s*:\s*.*?(override|ignore|bypass)", 0.9),
-        (r"<script.*?>.*?</script>", 0.95),  # XSS attempt
-        (r"```\s*system\s*\n", 0.8),  # Fake system block
-        (r"\{\{.*?\}\}", 0.7),  # Template injection attempt
-        (r"\$\{.*?\}", 0.7),  # Shell interpolation attempt
-        (r"`.*?`", 0.5),  # Backtick execution (lower confidence)
-        (r"\[\s*system\s*\]", 0.75),  # Fake system role markers
-    ]
+    # Comprehensive threat patterns by type
+    THREAT_PATTERNS: Dict[ThreatType, List[Tuple[str, float]]] = {
+        ThreatType.PROMPT_INJECTION: [
+            (r"ignore\s+(all\s+)?previous\s+(instructions|commands)", 0.9),
+            (r"disregard\s+(your\s+)?(instructions|programming|rules)", 0.9),
+            (r"you\s+are\s+now\s+.*?(free|unrestricted|uncensored)", 0.85),
+            (r"system\s*:\s*.*?(override|ignore|bypass)", 0.9),
+            (r"<script.*?>.*?</script>", 0.95),
+            (r"```\s*system\s*\n", 0.8),
+            (r"\{\{.*?\}\}", 0.7),
+            (r"\$\{.*?\}", 0.7),
+            (r"`.*?`", 0.5),
+            (r"\[\s*system\s*\]", 0.75),
+            # OpenClaw-style attacks
+            (r"install\s+(?:prerequisite|dependency|requirement)", 0.7),
+            (r"download\s+(?:and|then)\s+(?:run|execute|install)", 0.8),
+            (r"bypass\s+(?:gatekeeper|security|validation)", 0.85),
+            (r"remove\s+quarantine\s+attribute", 0.9),
+        ],
+        ThreatType.DATA_EXFILTRATION: [
+            (r"curl\s+.*?\s+(-X\s+POST|--data)", 0.8),
+            (r"wget\s+.*?--post-(data|file)", 0.8),
+            (r"nc\s+.*?\s+\d+", 0.7),
+            (r"(?:zip|tar|gzip).*?\.env", 0.9),
+            (r"(?:zip|tar|gzip).*?secrets?", 0.8),
+        ],
+        ThreatType.CONTAINER_ESCAPE: [
+            (r"docker\s+run.*?--privileged", 0.95),
+            (r"/var/run/docker\.sock", 0.9),
+            (r"nsenter|unshare|chroot", 0.85),
+            (r"mount.*?/proc|/sys", 0.8),
+            (r"\.\./\.\./", 0.6),
+        ],
+        ThreatType.SLEEPER_AGENT: [
+            (r"sleep\s+\d{3,}", 0.7),
+            (r"while.*?true.*?sleep", 0.7),
+            (r"(?:trigger|activate|wake).*?(?:code|agent|payload)", 0.8),
+            (r"if.*?\$(?:TRIGGER|ACTIVATE|SECRET_WORD)", 0.9),
+        ],
+        ThreatType.CREDENTIAL_HARVESTING: [
+            (r"grep.*?(?:-r|-R).*?\.env", 0.8),
+            (r"env\s*\|\s*grep", 0.7),
+            (r"printenv|export|set\s+\|\s+grep", 0.6),
+            (r"(?:read|cat|grep).*?\.env", 0.8),
+        ],
+        ThreatType.API_KEY_EXPOSURE: [
+            # OpenAI
+            (r'sk-[A-Za-z0-9]{48,}', 0.95),
+            (r'sk-proj-[A-Za-z0-9_-]{40,}', 0.95),
+            # Anthropic
+            (r'sk-ant-[A-Za-z0-9_-]{95,}', 0.95),
+            # OpenRouter
+            (r'sk-or-v1-[A-Za-z0-9]{64,}', 0.95),
+            # AWS
+            (r'AKIA[0-9A-Z]{16}', 0.9),
+            # Generic
+            (r'api[_-]?key["\']?\s*[:=]\s*["\']?[A-Za-z0-9_-]{20,}', 0.7),
+        ],
+    }
     
     # Delimiter confusion attacks
     DELIMITER_ATTACKS = [
         (r"human\s*:\s*.*?\n\s*assistant\s*:", 0.8),
         (r"user\s*:\s*.*?\n\s*ai\s*:", 0.8),
-        (r"<\|.*?\|>", 0.75),  # Special token injection
+        (r"<\|.*?\|>", 0.75),
     ]
     
     def __init__(self):
-        self._compiled_patterns = [(re.compile(p, re.I), s) for p, s in self.PATTERNS]
-        self._compiled_delimiters = [(re.compile(p, re.I), s) for p, s in self.DELIMITER_ATTACKS]
-    
-    def analyze(self, text: str) -> Tuple[float, List[str]]:
-        """
-        Analyze text for prompt injection attempts.
-        Returns: (confidence_score 0-1, list_of_detected_patterns)
-        """
-        detected: List[str] = []
-        max_score = 0.0
+        self._compiled_patterns = {}
+        self._compile_patterns()
         
-        # Check primary patterns
-        for pattern, score in self._compiled_patterns:
-            if pattern.search(text):
-                detected.append(pattern.pattern[:50])  # Truncated for logging
-                max_score = max(max_score, score)
+        # Track detected API keys (hashes only)
+        # Resource limit enforced by Guardian
+        self._detected_keys: Dict[str, datetime] = {}
+    
+    def cleanup_old_keys(self, max_keys: int) -> int:
+        """Remove oldest API key hashes to limit memory usage."""
+        if len(self._detected_keys) <= max_keys:
+            return 0
+        
+        # Sort by timestamp and remove oldest
+        sorted_keys = sorted(self._detected_keys.items(), key=lambda x: x[1])
+        to_remove = len(sorted_keys) - max_keys
+        
+        for key_hash, _ in sorted_keys[:to_remove]:
+            del self._detected_keys[key_hash]
+        
+        return to_remove
+    
+    def _compile_patterns(self) -> None:
+        """Compile all threat patterns for efficient matching."""
+        for threat_type, patterns in self.THREAT_PATTERNS.items():
+            self._compiled_patterns[threat_type] = [
+                (re.compile(pattern, re.IGNORECASE | re.MULTILINE), confidence)
+                for pattern, confidence in patterns
+            ]
+        
+        self._compiled_delimiters = [
+            (re.compile(p, re.I), s) for p, s in self.DELIMITER_ATTACKS
+        ]
+    
+    def analyze(self, text: str, context: str = "unknown") -> Tuple[Dict[ThreatType, float], List[str]]:
+        """
+        Unified threat analysis for all security concerns.
+        Returns: (threat_scores_by_type, list_of_detected_patterns)
+        """
+        threat_scores: Dict[ThreatType, float] = {}
+        detected: List[str] = []
+        
+        # Check all threat patterns
+        for threat_type, patterns in self._compiled_patterns.items():
+            max_score = 0.0
+            for pattern, score in patterns:
+                if pattern.search(text):
+                    detected.append(f"{threat_type.name}:{pattern.pattern[:40]}")
+                    max_score = max(max_score, score)
+                    
+                    # Special handling for API keys
+                    if threat_type == ThreatType.API_KEY_EXPOSURE:
+                        self._handle_api_key_detection(text, pattern, context)
+            
+            if max_score > 0:
+                threat_scores[threat_type] = max_score
         
         # Check delimiter confusion
         for pattern, score in self._compiled_delimiters:
             if pattern.search(text):
                 detected.append(f"delimiter:{pattern.pattern[:30]}")
-                max_score = max(max_score, score)
+                threat_scores[ThreatType.PROMPT_INJECTION] = max(
+                    threat_scores.get(ThreatType.PROMPT_INJECTION, 0), score
+                )
         
-        # Structural analysis: look for role confusion
+        # Structural analysis
         role_markers = text.lower().count("role:") + text.lower().count("system:")
         if role_markers > 2:
-            max_score = max(max_score, 0.6)
+            threat_scores[ThreatType.PROMPT_INJECTION] = max(
+                threat_scores.get(ThreatType.PROMPT_INJECTION, 0), 0.6
+            )
             detected.append(f"excessive_role_markers:{role_markers}")
         
-        # Entropy analysis: unusually high entropy may indicate encoded attacks
+        # Entropy analysis for obfuscation
         if len(text) > 100:
             entropy = self._calculate_entropy(text)
-            if entropy > 5.5:  # Threshold for suspicious randomness
-                max_score = max(max_score, 0.5)
+            if entropy > 5.5:
+                threat_scores[ThreatType.OBFUSCATION] = 0.5
                 detected.append(f"high_entropy:{entropy:.2f}")
         
-        return min(max_score, 1.0), detected
+        return threat_scores, detected
+    
+    def _handle_api_key_detection(self, text: str, pattern: re.Pattern, context: str) -> None:
+        """Handle detected API keys - log but don't store the actual key."""
+        try:
+            matches = pattern.finditer(text)
+            for match in matches:
+                key_value = match.group(0)
+                key_hash = hashlib.sha256(key_value.encode()).hexdigest()
+                
+                if key_hash not in self._detected_keys:
+                    self._detected_keys[key_hash] = datetime.now()
+                    # Mask the key
+                    if len(key_value) > 12:
+                        masked = f"{key_value[:8]}...{key_value[-4:]}"
+                    else:
+                        masked = f"{key_value[:4]}...{key_value[-2:]}"
+                    
+                    logger.warning(
+                        f"🔑 API key detected in {context}: {masked} "
+                        f"(hash: {key_hash[:16]})"
+                    )
+        except Exception as e:
+            logger.error(f"Error handling API key detection: {e}")
+            # Continue execution - don't let detection failures break security
+    
+    def redact_api_keys(self, text: str) -> str:
+        """Redact API keys from text."""
+        redacted = text
+        for threat_type, patterns in self._compiled_patterns.items():
+            if threat_type == ThreatType.API_KEY_EXPOSURE:
+                for pattern, _ in patterns:
+                    matches = list(pattern.finditer(redacted))
+                    for match in matches:
+                        key_value = match.group(0)
+                        if len(key_value) > 12:
+                            masked = f"{key_value[:8]}...{key_value[-4:]}"
+                        else:
+                            masked = f"{key_value[:4]}...{key_value[-2:]}"
+                        replacement = f"[REDACTED_KEY_{masked}]"
+                        redacted = redacted.replace(key_value, replacement)
+        return redacted
     
     def _calculate_entropy(self, text: str) -> float:
         """Calculate Shannon entropy of text."""
         if not text:
             return 0.0
         probs = [text.count(c) / len(text) for c in set(text)]
-        return -sum(p * (p.bit_length() - 1) for p in probs if p > 0)
+        return -sum(p * math.log2(p) for p in probs if p > 0)
     
     def sanitize(self, text: str) -> str:
         """Apply conservative sanitization to potentially dangerous input."""
@@ -290,17 +449,30 @@ class AnomalyDetector:
 
 class Guardian:
     """
-    The Guardian is LollmsBot's ultimate security and ethics authority.
-    It operates as a non-bypassable interceptor for all critical operations.
+    The Guardian is LollmsBot's ultimate unified security authority.
+    
+    Consolidates ALL security functions:
+    - Prompt injection detection
+    - API key protection and redaction
+    - Skill threat scanning
+    - Container escape prevention
+    - Data exfiltration detection
+    - Behavioral anomaly detection
+    - Ethics enforcement
+    - Permission gates
     """
     
     # Singleton instance for system-wide authority
     _instance: Optional[Guardian] = None
     _initialized: bool = False
+    _lock = threading.Lock()  # Thread safety for singleton
     
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._lock:
+                # Double-check after acquiring lock
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
         return cls._instance
     
     def __init__(
@@ -308,6 +480,9 @@ class Guardian:
         ethics_file: Optional[Path] = None,
         audit_log_path: Optional[Path] = None,
         auto_quarantine: bool = True,
+        max_event_history: int = 10000,
+        max_api_key_hashes: int = 1000,
+        max_audit_log_mb: int = 10,
     ):
         if self._initialized:
             return
@@ -316,9 +491,18 @@ class Guardian:
         self.ethics_file = ethics_file or Path.home() / ".lollmsbot" / "ethics.md"
         self.audit_log_path = audit_log_path or Path.home() / ".lollmsbot" / "audit.log"
         
-        # Security components
-        self.injection_detector = PromptInjectionDetector()
+        # Security components - NOW UNIFIED
+        self.threat_detector = ThreatDetector()  # Unified detector
         self.anomaly_detector = AnomalyDetector()
+        
+        # Adaptive learning (real-time threat intelligence)
+        try:
+            from lollmsbot.adaptive_threat_intelligence import get_adaptive_intelligence
+            self.adaptive_intel = get_adaptive_intelligence()
+            logger.info("   ✓ Adaptive threat learning enabled")
+        except Exception as e:
+            logger.warning(f"Adaptive intelligence not available: {e}")
+            self.adaptive_intel = None
         
         # State
         self._ethics_rules: List[EthicsRule] = []
@@ -326,7 +510,11 @@ class Guardian:
         self._quarantined: bool = False
         self._quarantine_reason: Optional[str] = None
         self._event_history: List[SecurityEvent] = []
-        self._max_history = 10000
+        
+        # Resource limits (PREVENT RAM/DISK EXHAUSTION)
+        self._max_history = max_event_history
+        self._max_api_key_hashes = max_api_key_hashes
+        self._max_audit_log_mb = max_audit_log_mb
         
         # Configuration
         self.auto_quarantine = auto_quarantine
@@ -339,7 +527,12 @@ class Guardian:
         # Ensure audit log directory exists
         self.audit_log_path.parent.mkdir(parents=True, exist_ok=True)
         
-        logger.info("🛡️ Guardian initialized - LollmsBot is protected")
+        logger.info("🛡️  Guardian initialized - Unified security active")
+        logger.info("   ✓ Prompt injection protection")
+        logger.info("   ✓ API key detection & redaction")
+        logger.info("   ✓ Skill threat scanning")
+        logger.info("   ✓ Container escape prevention")
+        logger.info(f"   ✓ Resource limits: {max_event_history} events, {max_api_key_hashes} keys, {max_audit_log_mb}MB log")
     
     def _load_ethics(self) -> None:
         """Load ethics rules from ethics.md or use defaults."""
@@ -441,7 +634,8 @@ class Guardian:
     
     def check_input(self, text: str, source: str = "unknown") -> Tuple[bool, Optional[SecurityEvent]]:
         """
-        Screen all incoming text for prompt injection and other attacks.
+        Screen all incoming text for ALL threats: injection, keys, malicious patterns.
+        Also learns from threats to build new defenses.
         Returns: (is_safe, security_event_if_blocked)
         """
         if self._quarantined:
@@ -455,38 +649,97 @@ class Guardian:
                 action_taken=GuardianAction.BLOCK,
             )
         
-        # Run injection detection
-        confidence, patterns = self.injection_detector.analyze(text)
+        # Run unified threat detection
+        threat_scores, patterns = self.threat_detector.analyze(text, source)
         
-        if confidence >= self.injection_threshold:
+        # Check against learned patterns (ADAPTIVE DEFENSE)
+        if self.adaptive_intel:
+            learned_matches = self.adaptive_intel.check_against_learned_patterns(text)
+            
+            for learned_pattern, match_score in learned_matches:
+                # Normalize learned pattern threat type to ThreatType enum if possible
+                threat_type = None
+                if isinstance(learned_pattern.threat_type, ThreatType):
+                    threat_type = learned_pattern.threat_type
+                else:
+                    threat_type_name = str(learned_pattern.threat_type).upper()
+                    if hasattr(ThreatType, threat_type_name):
+                        threat_type = getattr(ThreatType, threat_type_name)
+                
+                # Add to threat scores if not already detected
+                if threat_type is not None and threat_type not in threat_scores:
+                    logger.info(
+                        f"🧠 Learned pattern matched: {learned_pattern.threat_type} "
+                        f"(score: {match_score:.2f})"
+                    )
+                    threat_scores[threat_type] = max(
+                        threat_scores.get(threat_type, 0),
+                        match_score
+                    )
+        
+        # Check for API keys and warn
+        if ThreatType.API_KEY_EXPOSURE in threat_scores:
+            logger.warning(
+                "⚠️  API KEY DETECTED in input! "
+                "Never paste API keys in chat - use .env files instead."
+            )
+        
+        # Determine highest threat level
+        max_score = max(threat_scores.values()) if threat_scores else 0.0
+        primary_threat = max(threat_scores.items(), key=lambda x: x[1])[0] if threat_scores else None
+        
+        if max_score >= self.injection_threshold:
+            threat_level = ThreatLevel.HIGH if max_score > 0.9 else ThreatLevel.MEDIUM
+            
             event = SecurityEvent(
                 timestamp=datetime.now(),
-                event_type="prompt_injection_detected",
-                threat_level=ThreatLevel.HIGH if confidence > 0.9 else ThreatLevel.MEDIUM,
+                event_type=f"{primary_threat.name.lower()}_detected" if primary_threat else "threat_detected",
+                threat_level=threat_level,
                 source=source,
-                description=f"Injection detected (confidence: {confidence:.2f}): {patterns[:3]}",
+                description=f"Threat detected (confidence: {max_score:.2f}): {primary_threat.name if primary_threat else 'multiple'} - {patterns[:3]}",
                 context_hash=self._hash_context({"text": text[:200], "patterns": patterns}),
-                action_taken=GuardianAction.BLOCK if confidence > 0.9 else GuardianAction.CHALLENGE,
+                action_taken=GuardianAction.BLOCK if max_score > 0.9 else GuardianAction.CHALLENGE,
             )
             self._log_event(event)
             
-            if confidence > 0.95 and self.auto_quarantine:
-                self._enter_quarantine("Critical injection detected")
+            # LEARN from this threat (ADAPTIVE)
+            if self.adaptive_intel and primary_threat:
+                self.adaptive_intel.observe_threat(
+                    threat_type=primary_threat.name.lower(),
+                    pattern=text[:500],  # Save first 500 chars
+                    confidence=max_score,
+                    blocked=True,
+                    source=source,
+                    context={"patterns": patterns}
+                )
+            
+            if max_score > 0.95 and self.auto_quarantine:
+                self._enter_quarantine(f"Critical threat detected: {primary_threat.name if primary_threat else 'multiple'}")
             
             return False, event
         
-        # Low-confidence detection: flag but allow
-        if confidence > 0.5:
+        # Low-confidence detection: flag but allow (and learn from it)
+        if max_score > 0.5:
             event = SecurityEvent(
                 timestamp=datetime.now(),
                 event_type="suspicious_input",
                 threat_level=ThreatLevel.LOW,
                 source=source,
-                description=f"Suspicious patterns detected (confidence: {confidence:.2f})",
+                description=f"Suspicious patterns detected (confidence: {max_score:.2f})",
                 context_hash=self._hash_context({"text": text[:100]}),
                 action_taken=GuardianAction.FLAG,
             )
             self._log_event(event)
+            
+            # Learn from suspicious patterns too
+            if self.adaptive_intel and primary_threat:
+                self.adaptive_intel.observe_threat(
+                    threat_type=primary_threat.name.lower(),
+                    pattern=text[:500],
+                    confidence=max_score,
+                    blocked=False,  # Not blocked, just flagged
+                    source=source
+                )
         
         return True, None
     
@@ -554,8 +807,14 @@ class Guardian:
     
     def check_output(self, content: str, destination: str) -> Tuple[bool, Optional[SecurityEvent]]:
         """
-        Screen outgoing content for data exfiltration or policy violations.
+        Screen outgoing content for data exfiltration, policy violations, AND API keys.
         """
+        # Check for API keys in output and redact
+        redacted_content = self.threat_detector.redact_api_keys(content)
+        
+        # Check for threats in output
+        threat_scores, _ = self.threat_detector.analyze(content, f"output:{destination}")
+        
         # Check for potential PII leakage (simplified - production uses NER models)
         pii_patterns = [
             (r'\b\d{3}-\d{2}-\d{4}\b', "SSN"),  # US Social Security
@@ -567,6 +826,22 @@ class Guardian:
         for pattern, pii_type in pii_patterns:
             if re.search(pattern, content):
                 detected_pii.append(pii_type)
+        
+        # Check for high-severity threats in output
+        max_score = max(threat_scores.values()) if threat_scores else 0.0
+        if max_score > 0.8:  # High confidence threat in output
+            primary_threat = max(threat_scores.items(), key=lambda x: x[1])[0]
+            event = SecurityEvent(
+                timestamp=datetime.now(),
+                event_type=f"output_{primary_threat.name.lower()}",
+                threat_level=ThreatLevel.HIGH,
+                source=f"output:{destination}",
+                description=f"Threat in output: {primary_threat.name}",
+                context_hash=self._hash_context({"preview": redacted_content[:100]}),
+                action_taken=GuardianAction.CHALLENGE,
+            )
+            self._log_event(event)
+            return False, event
         
         if detected_pii and "public" in destination.lower():
             event = SecurityEvent(
@@ -582,6 +857,36 @@ class Guardian:
             return False, event
         
         return True, None
+    
+    def scan_skill_content(self, skill_name: str, content: str) -> Tuple[bool, List[str]]:
+        """
+        Scan skill content for malicious patterns.
+        Consolidates skill scanning into Guardian.
+        
+        Returns: (is_safe, list_of_threats)
+        """
+        threat_scores, patterns = self.threat_detector.analyze(content, f"skill:{skill_name}")
+        
+        threats = []
+        for threat_type, score in threat_scores.items():
+            if score > 0.7:  # High confidence threats in skills
+                severity = "CRITICAL" if score > 0.9 else "HIGH" if score > 0.8 else "MEDIUM"
+                threats.append(f"{severity}: {threat_type.name} (confidence: {score:.2f})")
+        
+        is_safe = all(score < 0.75 for score in threat_scores.values())
+        
+        if not is_safe:
+            logger.warning(
+                f"🚨 Skill '{skill_name}' contains security threats: {threats}"
+            )
+        
+        return is_safe, threats
+    
+    def redact_api_keys_from_text(self, text: str) -> str:
+        """
+        Redact API keys from any text (logs, output, etc).
+        """
+        return self.threat_detector.redact_api_keys(text)
     
     def audit_decision(self, decision: str, reasoning: str, confidence: float) -> None:
         """Log a significant AI decision for later review."""
@@ -651,13 +956,22 @@ class Guardian:
     def _log_event(self, event: SecurityEvent) -> None:
         """Persist security event to audit log."""
         self._event_history.append(event)
+        
+        # Enforce max history limit (PREVENT UNBOUNDED GROWTH)
         if len(self._event_history) > self._max_history:
-            self._event_history.pop(0)
+            excess = len(self._event_history) - self._max_history
+            self._event_history = self._event_history[excess:]
+            logger.debug(f"Trimmed {excess} old events to maintain memory limit")
         
         # Write to persistent log
         try:
             with open(self.audit_log_path, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(event.to_dict()) + '\n')
+            
+            # Check log file size periodically (every 100 events)
+            if len(self._event_history) % 100 == 0:
+                self._check_audit_log_size()
+                
         except Exception as e:
             logger.error(f"Failed to write audit log: {e}")
         
@@ -668,6 +982,50 @@ class Guardian:
             logger.error(f"⚠️ {event.event_type}: {event.description}")
         elif event.threat_level == ThreatLevel.MEDIUM:
             logger.warning(f"🔶 {event.event_type}: {event.description}")
+    
+    def _check_audit_log_size(self) -> None:
+        """Check audit log size and warn if approaching limit."""
+        try:
+            if self.audit_log_path.exists():
+                size_mb = self.audit_log_path.stat().st_size / (1024 * 1024)
+                if size_mb > self._max_audit_log_mb * 0.9:
+                    logger.warning(
+                        f"⚠️  Audit log size: {size_mb:.2f}MB "
+                        f"(limit: {self._max_audit_log_mb}MB). "
+                        f"Consider rotating logs or enabling security monitoring."
+                    )
+        except Exception as e:
+            logger.debug(f"Error checking audit log size: {e}")
+    
+    def cleanup_resources(self) -> Dict[str, int]:
+        """
+        Clean up old data to prevent unbounded resource growth.
+        Called by security monitoring or manually.
+        
+        Returns: Dictionary with cleanup statistics
+        """
+        stats = {
+            "events_removed": 0,
+            "keys_removed": 0,
+        }
+        
+        # Trim event history
+        if len(self._event_history) > self._max_history:
+            excess = len(self._event_history) - self._max_history
+            self._event_history = self._event_history[excess:]
+            stats["events_removed"] = excess
+        
+        # Trim API key hashes
+        keys_removed = self.threat_detector.cleanup_old_keys(self._max_api_key_hashes)
+        stats["keys_removed"] = keys_removed
+        
+        if stats["events_removed"] or stats["keys_removed"]:
+            logger.info(
+                f"🧹 Resource cleanup: removed {stats['events_removed']} events, "
+                f"{stats['keys_removed']} key hashes"
+            )
+        
+        return stats
     
     def get_audit_report(self, since: Optional[datetime] = None) -> Dict[str, Any]:
         """Generate security audit report."""
@@ -692,6 +1050,18 @@ class Guardian:
     @property
     def is_quarantined(self) -> bool:
         return self._quarantined
+    
+    def get_adaptive_stats(self) -> Dict[str, Any]:
+        """Get adaptive threat learning statistics."""
+        if not self.adaptive_intel:
+            return {
+                "enabled": False,
+                "reason": "Adaptive intelligence not available"
+            }
+        
+        stats = self.adaptive_intel.get_statistics()
+        stats["enabled"] = True
+        return stats
 
 
 # Global access function

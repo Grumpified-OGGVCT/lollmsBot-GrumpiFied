@@ -276,8 +276,193 @@ def handle_skills_command(args) -> None:
             # Show repository info
             print_skills_info()
         
+        elif args.skills_command == "scan":
+            # Scan a specific skill for security threats
+            console.print(f"\n[bold cyan]🔒 Scanning skill: {args.skill_name}[/bold cyan]\n")
+            
+            from lollmsbot.guardian import get_guardian
+            
+            # Get skill info
+            skill_info = integration.manager.get_skill(args.skill_name)
+            if not skill_info:
+                console.print(f"[red]❌ Skill not found: {args.skill_name}[/red]")
+                return
+            
+            if not skill_info.skill_md_path or not skill_info.skill_md_path.exists():
+                console.print(f"[red]❌ No skill file found for: {args.skill_name}[/red]")
+                return
+            
+            # Read skill content
+            try:
+                with open(skill_info.skill_md_path, "r", encoding="utf-8") as f:
+                    skill_content = f.read()
+            except OSError as e:
+                console.print(f"[red]❌ Failed to read skill file: {e}[/red]")
+                return
+            
+            # Scan the skill
+            guardian = get_guardian()
+            is_safe, threats = guardian.scan_skill_content(args.skill_name, skill_content)
+            
+            # Display results
+            if is_safe:
+                console.print(f"[green]✅ Skill '{args.skill_name}' passed security scan[/green]\n")
+            else:
+                console.print(
+                    f"[red]❌ Skill '{args.skill_name}' failed security scan[/red]\n"
+                )
+            
+            # Show threats
+            if threats:
+                console.print("[bold]🚨 Threats Detected:[/bold]")
+                threat_table = Table(title=None, box=box.ROUNDED)
+                threat_table.add_column("Threat", style="white")
+                
+                for threat in threats[:10]:  # Show top 10
+                    threat_table.add_row(str(threat))
+                
+                console.print(threat_table)
+                console.print()
+        
+        elif args.skills_command == "scan-all":
+            # Scan all available skills
+            console.print("\n[bold cyan]🔒 Scanning all skills for security threats...[/bold cyan]\n")
+            
+            from lollmsbot.guardian import get_guardian
+            
+            skills = integration.manager.load_skills_index()
+            guardian = get_guardian()
+            
+            results = {}
+            safe_count = 0
+            unsafe_count = 0
+            
+            with console.status("[bold cyan]Scanning...") as status:
+                for skill_name, skill_info in skills.items():
+                    if skill_info.skill_md_path and skill_info.skill_md_path.exists():
+                        status.update(f"[bold cyan]Scanning {skill_name}...")
+                        
+                        # Read skill content
+                        try:
+                            with open(skill_info.skill_md_path, "r", encoding="utf-8") as f:
+                                skill_content = f.read()
+                            
+                            # Scan with Guardian
+                            is_safe, threats = guardian.scan_skill_content(skill_name, skill_content)
+                            
+                            results[skill_name] = {
+                                "is_safe": is_safe,
+                                "threats": threats,
+                                "skill_name": skill_name
+                            }
+                            
+                            if is_safe:
+                                safe_count += 1
+                            else:
+                                unsafe_count += 1
+                        except Exception as e:
+                            console.print(f"[yellow]⚠️  Failed to scan {skill_name}: {e}[/yellow]")
+            
+            # Summary
+            console.print(f"\n[bold]Scan Complete:[/bold]")
+            console.print(f"  ✅ Safe: {safe_count}")
+            console.print(f"  ⚠️  Unsafe: {unsafe_count}")
+            console.print(f"  📊 Total: {len(results)}\n")
+            
+            # Show unsafe skills
+            if unsafe_count > 0:
+                console.print("[bold red]⚠️  UNSAFE SKILLS:[/bold red]")
+                unsafe_table = Table(title=None, box=box.ROUNDED)
+                unsafe_table.add_column("Skill", style="cyan")
+                unsafe_table.add_column("Max Severity", style="red")
+                unsafe_table.add_column("Threats", style="yellow")
+                
+                for skill_name, result in results.items():
+                    if not result.is_safe:
+                        max_severity = result.get_max_severity()
+                        unsafe_table.add_row(
+                            skill_name,
+                            max_severity.name if max_severity else "UNKNOWN",
+                            str(len(result.threats))
+                        )
+                
+                console.print(unsafe_table)
+                console.print()
+                console.print("[dim]Use 'lollmsbot skills scan <skill-name>' for details[/dim]\n")
+        
+        elif args.skills_command == "scan-results":
+            # Show scan results for loaded skills
+            if args.skill_name:
+                # Show results for specific skill
+                result = integration.get_scan_results(args.skill_name)
+                if result:
+                    console.print(f"\n[bold cyan]Scan Results for: {args.skill_name}[/bold cyan]\n")
+                    console.print(json.dumps(result, indent=2))
+                else:
+                    console.print(f"[yellow]No scan results found for: {args.skill_name}[/yellow]")
+            else:
+                # Show all results
+                all_results = integration.get_scan_results()
+                if all_results:
+                    console.print("\n[bold cyan]Security Scan Results[/bold cyan]\n")
+                    
+                    results_table = Table(title=None, box=box.ROUNDED)
+                    results_table.add_column("Skill", style="cyan")
+                    results_table.add_column("Status", style="white")
+                    results_table.add_column("Threats", style="yellow")
+                    results_table.add_column("Max Severity", style="red")
+                    
+                    for skill_name, result in all_results.items():
+                        status_icon = "✅" if result.get("is_safe") else "❌"
+                        threat_count = result.get("threat_count", 0)
+                        max_severity = result.get("max_severity", "N/A")
+                        
+                        results_table.add_row(
+                            skill_name,
+                            status_icon,
+                            str(threat_count),
+                            max_severity
+                        )
+                    
+                    console.print(results_table)
+                    console.print()
+                else:
+                    console.print("[yellow]No scan results available[/yellow]")
+        
+        elif args.skills_command == "security-report":
+            # Generate comprehensive security report
+            console.print("\n[bold cyan]🔒 Generating Security Report...[/bold cyan]\n")
+            
+            from lollmsbot.guardian import get_guardian
+            
+            # Get components
+            guardian = get_guardian()
+            
+            # Generate reports
+            console.print("[bold]🛡️  Guardian Security Status[/bold]")
+            guardian_report = guardian.get_audit_report()
+            console.print(json.dumps(guardian_report, indent=2))
+            console.print()
+            
+            # Adaptive learning stats
+            console.print("[bold]🧠 Adaptive Threat Intelligence[/bold]")
+            adaptive_stats = guardian.get_adaptive_stats()
+            console.print(json.dumps(adaptive_stats, indent=2))
+            console.print()
+            
+            console.print("[bold]🔍 Skill Security Summary[/bold]")
+            scan_results = integration.get_scan_results()
+            if scan_results:
+                safe = sum(1 for r in scan_results.values() if r.get("is_safe"))
+                total = len(scan_results)
+                console.print(f"  Safe Skills: {safe}/{total}")
+                console.print(f"  Security Scanning: {'✅ Enabled' if integration.guardian else '❌ Disabled'}")
+            else:
+                console.print("  No skills scanned yet")
+            console.print()
+        
         else:
-            console.print("[yellow]Please specify a skills command: list, search, install, uninstall, update, or info[/yellow]")
+            console.print("[yellow]Please specify a skills command: list, search, install, uninstall, update, info, scan, scan-all, scan-results, or security-report[/yellow]")
     
     except Exception as e:
         console.print(f"[red]❌ Error: {e}[/red]")
@@ -667,6 +852,20 @@ def main(argv: List[str] | None = None) -> None:
     
     # skills info
     skills_subparsers.add_parser("info", help="Show skills repository info")
+    
+    # skills scan (SECURITY)
+    scan_parser = skills_subparsers.add_parser("scan", help="🔒 Scan a skill for security threats")
+    scan_parser.add_argument("skill_name", type=str, help="Name of skill to scan")
+    
+    # skills scan-all (SECURITY)
+    skills_subparsers.add_parser("scan-all", help="🔒 Scan all skills for security threats")
+    
+    # skills scan-results (SECURITY)
+    scan_results_parser = skills_subparsers.add_parser("scan-results", help="🔒 Show security scan results")
+    scan_results_parser.add_argument("skill_name", type=str, nargs="?", help="Specific skill (optional)")
+    
+    # skills security-report (SECURITY)
+    skills_subparsers.add_parser("security-report", help="🔒 Generate comprehensive security report")
     
     # Self-awareness command
     awareness_parser = subparsers.add_parser(

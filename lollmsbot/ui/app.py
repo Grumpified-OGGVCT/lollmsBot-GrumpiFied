@@ -1065,6 +1065,14 @@ window.chatApp = app;
         except ImportError as e:
             logger.warning(f"RCL-2 routes not available: {e}")
         
+        # Include Security UI routes
+        try:
+            from lollmsbot.ui.routes import ui_router
+            app.include_router(ui_router)
+            logger.info("✅ Security UI routes enabled")
+        except ImportError as e:
+            logger.warning(f"Security UI routes not available: {e}")
+        
         @app.on_event("startup")
         async def startup_event():
             self._file_cleanup_task = asyncio.create_task(self._cleanup_expired_files())
