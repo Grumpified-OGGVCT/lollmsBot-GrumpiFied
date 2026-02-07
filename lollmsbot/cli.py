@@ -280,7 +280,7 @@ def handle_skills_command(args) -> None:
             # Scan a specific skill for security threats
             console.print(f"\n[bold cyan]🔒 Scanning skill: {args.skill_name}[/bold cyan]\n")
             
-            from lollmsbot.skill_scanner import get_skill_scanner
+            from lollmsbot.guardian import get_guardian
             
             # Get skill info
             skill_info = integration.manager.get_skill(args.skill_name)
@@ -293,8 +293,8 @@ def handle_skills_command(args) -> None:
                 return
             
             # Scan the skill
-            scanner = get_skill_scanner()
-            result = scanner.scan_skill_file(skill_info.skill_md_path)
+            guardian = get_guardian()
+            result = guardian.scan_skill_content(skill_info.skill_md_path)
             
             # Display results
             if result.is_safe:
@@ -345,10 +345,10 @@ def handle_skills_command(args) -> None:
             # Scan all available skills
             console.print("\n[bold cyan]🔒 Scanning all skills for security threats...[/bold cyan]\n")
             
-            from lollmsbot.skill_scanner import get_skill_scanner
+            from lollmsbot.guardian import get_guardian
             
             skills = integration.manager.load_skills_index()
-            scanner = get_skill_scanner()
+            guardian = get_guardian()
             
             results = {}
             safe_count = 0
@@ -358,7 +358,7 @@ def handle_skills_command(args) -> None:
                 for skill_name, skill_info in skills.items():
                     if skill_info.skill_md_path and skill_info.skill_md_path.exists():
                         status.update(f"[bold cyan]Scanning {skill_name}...")
-                        result = scanner.scan_skill_file(skill_info.skill_md_path)
+                        result = guardian.scan_skill_content(skill_info.skill_md_path)
                         results[skill_name] = result
                         
                         if result.is_safe:
@@ -436,12 +436,12 @@ def handle_skills_command(args) -> None:
             # Generate comprehensive security report
             console.print("\n[bold cyan]🔒 Generating Security Report...[/bold cyan]\n")
             
-            from lollmsbot.skill_scanner import get_skill_scanner
-            from lollmsbot.api_key_protection import get_api_key_protector
+            from lollmsbot.guardian import get_guardian
+            
             from lollmsbot.guardian import get_guardian
             
             # Get components
-            scanner = get_skill_scanner()
+            guardian = get_guardian()
             protector = get_api_key_protector()
             guardian = get_guardian()
             
