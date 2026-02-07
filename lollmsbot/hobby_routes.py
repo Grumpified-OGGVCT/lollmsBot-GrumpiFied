@@ -260,21 +260,36 @@ async def get_hobby_config() -> Dict[str, Any]:
 
 @router.post(
     "/assign-to-subagent",
-    summary="Assign Hobby to Sub-Agent",
+    summary="Assign Hobby to Sub-Agent (Phase 3 - ACTIVE)",
     description="""
-    **What's in it for you:** Queue learning tasks for sub-agent execution.
+    **Phase 3 Feature: Sub-Agent Integration** ✅ NOW ACTIVE
     
-    **Current Status:** Creates assignment metadata. Sub-agent dispatch requires
-    RC2 META_LEARNING capability integration (Phase 3).
+    Assigns a hobby activity to a specific sub-agent for distributed execution.
+    The sub-agent will execute the hobby independently using its specialized
+    capabilities, then report results back for integration.
     
     **How It Works:**
-    Creates an assignment record that can be used by external sub-agent
-    orchestration systems or future integrated dispatch.
+    1. Assignment created and queued
+    2. Dispatched to RC2 sub-agent with META_LEARNING capability
+    3. Sub-agent executes hobby with specified duration
+    4. Results integrated into main proficiency tracking
+    5. Progress automatically saved
+    
+    **Benefits:**
+    - Parallel learning across multiple agents
+    - Specialized execution for different hobby types
+    - Faster overall improvement
+    - Distributed workload
+    
+    **Sub-Agent Requirements:**
+    - Must support META_LEARNING capability (RC2 does)
+    - Registered with coordinator (auto-registration available)
+    - Has capacity for additional work
     """,
     dependencies=[Depends(rate_limit_dependency)]
 )
 async def assign_hobby_to_subagent(assignment: HobbyAssignment) -> Dict[str, Any]:
-    """Assign a hobby activity to a sub-agent (queues assignment metadata)."""
+    """Assign a hobby activity to a sub-agent (Phase 3 - FULLY FUNCTIONAL)."""
     try:
         # Validate hobby type
         try:
@@ -286,17 +301,24 @@ async def assign_hobby_to_subagent(assignment: HobbyAssignment) -> Dict[str, Any
                        f"Valid types: {[h.name for h in HobbyType]}",
             )
         
+        # Get coordinator
+        from lollmsbot.hobby_subagent import get_coordinator
+        
         manager = get_hobby_manager()
-        result = manager.assign_hobby_to_subagent(
+        coordinator = get_coordinator(manager)
+        
+        # Assign to sub-agent
+        assignment_obj = await coordinator.assign_hobby_to_subagent(
             subagent_id=assignment.subagent_id,
             hobby_type=hobby_enum,
             duration_minutes=assignment.duration_minutes,
         )
         
         return {
-            "status": "queued",
-            "assignment": result,
-            "note": "Assignment metadata created. Requires external dispatch or Phase 3 RC2 integration."
+            "status": "assigned",
+            "assignment": assignment_obj.to_dict(),
+            "message": "Hobby assigned to sub-agent. Execution started.",
+            "phase": "Phase 3 - Sub-Agent Integration Active",
         }
     except HTTPException:
         raise
@@ -388,3 +410,332 @@ async def get_recent_insights(count: int = Query(default=50, ge=1, le=500)) -> D
         return {"insights": insights}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to get insights")
+
+
+@router.get(
+    "/metrics/prometheus",
+    summary="Prometheus Metrics Export",
+    description="""
+    **Phase 3A Feature: Metrics Dashboard**
+    
+    Exports hobby system metrics in Prometheus text format for monitoring
+    and alerting. Use this endpoint as a scrape target in your Prometheus
+    configuration.
+    
+    **Metrics Included:**
+    - System status (enabled, running, idle)
+    - Per-hobby proficiency levels
+    - Time invested per hobby type
+    - Success rates and insights gained
+    - Current activity information
+    
+    **Integration:**
+    Add to prometheus.yml:
+    ```yaml
+    scrape_configs:
+      - job_name: 'lollmsbot-hobbies'
+        static_configs:
+          - targets: ['localhost:8800']
+        metrics_path: '/hobby/metrics/prometheus'
+    ```
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_prometheus_metrics() -> str:
+    """Export metrics in Prometheus format."""
+    try:
+        from lollmsbot.hobby_metrics import create_metrics_collector
+        
+        manager = get_hobby_manager()
+        collector = create_metrics_collector(manager)
+        return collector.get_prometheus_metrics()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to generate metrics")
+
+
+@router.get(
+    "/metrics/summary",
+    summary="Metrics Summary (JSON)",
+    description="""
+    **Phase 3A Feature: Metrics Dashboard**
+    
+    Returns comprehensive metrics in JSON format, optimized for
+    visualization dashboards and monitoring tools.
+    
+    **Includes:**
+    - Real-time system status
+    - Progress summary by hobby type
+    - Activity timeline (hourly/daily)
+    - Proficiency trends
+    - Dashboard-ready chart data
+    
+    **Use Cases:**
+    - Custom dashboards
+    - Mobile apps
+    - Real-time monitoring
+    - Performance analysis
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_metrics_summary() -> Dict[str, Any]:
+    """Get comprehensive metrics summary."""
+    try:
+        from lollmsbot.hobby_metrics import create_metrics_collector
+        
+        manager = get_hobby_manager()
+        collector = create_metrics_collector(manager)
+        return collector.get_metrics_summary()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get metrics summary")
+
+
+@router.get(
+    "/dashboard",
+    summary="Dashboard Visualization Data",
+    description="""
+    **Phase 3A Feature: Metrics Dashboard**
+    
+    Returns data pre-formatted for common visualization charts:
+    - Radar chart (proficiency by hobby type)
+    - Bar chart (time invested)
+    - Line chart (activity timeline)
+    - Pie chart (activities by type)
+    - Current statistics
+    
+    **Perfect for:**
+    - Web dashboards (Chart.js, D3.js, Recharts)
+    - Mobile visualizations
+    - Quick overview displays
+    - Executive summaries
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_dashboard_data() -> Dict[str, Any]:
+    """Get dashboard-ready visualization data."""
+    try:
+        from lollmsbot.hobby_metrics import create_metrics_collector
+        
+        manager = get_hobby_manager()
+        collector = create_metrics_collector(manager)
+        return collector.get_dashboard_data()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get dashboard data")
+
+
+@router.post(
+    "/subagents/register",
+    summary="Register Sub-Agent for Hobby Execution",
+    description="""
+    **Phase 3 Feature: Sub-Agent Registration**
+    
+    Register a sub-agent to participate in distributed hobby execution.
+    Sub-agents can be specialized for specific hobby types or support all types.
+    
+    **Parameters:**
+    - subagent_id: Unique identifier
+    - capabilities: List of hobby types (or ["*"] for all)
+    - metadata: Optional info (version, specialization, etc.)
+    
+    **Example:**
+    ```json
+    {
+      "subagent_id": "rc2-instance-1",
+      "capabilities": ["SKILL_PRACTICE", "KNOWLEDGE_EXPLORATION"],
+      "metadata": {"version": "1.0", "specialization": "coding"}
+    }
+    ```
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def register_subagent(
+    subagent_id: str,
+    capabilities: List[str],
+    metadata: Dict[str, Any] = {}
+) -> Dict[str, str]:
+    """Register a sub-agent for hobby execution."""
+    try:
+        from lollmsbot.hobby_subagent import get_coordinator
+        
+        manager = get_hobby_manager()
+        coordinator = get_coordinator(manager)
+        
+        coordinator.register_subagent(subagent_id, capabilities, metadata)
+        
+        return {
+            "status": "registered",
+            "subagent_id": subagent_id,
+            "message": f"Sub-agent registered with {len(capabilities)} capabilities",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to register sub-agent")
+
+
+@router.delete(
+    "/subagents/{subagent_id}",
+    summary="Unregister Sub-Agent",
+    description="""
+    **Phase 3 Feature: Sub-Agent Management**
+    
+    Unregister a sub-agent from hobby execution pool.
+    Active assignments will complete, but no new work will be assigned.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def unregister_subagent(subagent_id: str) -> Dict[str, str]:
+    """Unregister a sub-agent."""
+    try:
+        from lollmsbot.hobby_subagent import get_coordinator
+        
+        manager = get_hobby_manager()
+        coordinator = get_coordinator(manager)
+        
+        coordinator.unregister_subagent(subagent_id)
+        
+        return {
+            "status": "unregistered",
+            "subagent_id": subagent_id,
+            "message": "Sub-agent unregistered successfully",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to unregister sub-agent")
+
+
+@router.get(
+    "/subagents/stats",
+    summary="Get Sub-Agent Statistics",
+    description="""
+    **Phase 3 Feature: Sub-Agent Monitoring**
+    
+    Get comprehensive statistics about all registered sub-agents:
+    - Total registered sub-agents
+    - Active/completed/failed assignments
+    - Per-agent performance metrics
+    - Capability distribution
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_subagent_stats() -> Dict[str, Any]:
+    """Get sub-agent statistics."""
+    try:
+        from lollmsbot.hobby_subagent import get_coordinator
+        
+        manager = get_hobby_manager()
+        coordinator = get_coordinator(manager)
+        
+        return coordinator.get_subagent_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get sub-agent stats")
+
+
+@router.get(
+    "/assignments/{assignment_id}",
+    summary="Get Assignment Status",
+    description="""
+    **Phase 3 Feature: Assignment Tracking**
+    
+    Get detailed status of a specific hobby assignment including:
+    - Current status (pending, running, completed, failed)
+    - Execution timeline
+    - Results and insights gained
+    - Error information if failed
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_assignment_status(assignment_id: str) -> Dict[str, Any]:
+    """Get status of a specific assignment."""
+    try:
+        from lollmsbot.hobby_subagent import get_coordinator
+        
+        manager = get_hobby_manager()
+        coordinator = get_coordinator(manager)
+        
+        status = coordinator.get_assignment_status(assignment_id)
+        
+        if status is None:
+            raise HTTPException(status_code=404, detail="Assignment not found")
+        
+        return status
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get assignment status")
+
+
+@router.get(
+    "/assignments",
+    summary="List All Assignments",
+    description="""
+    **Phase 3 Feature: Assignment Management**
+    
+    List all hobby assignments, optionally filtered by status.
+    
+    **Query Parameters:**
+    - status: Filter by status (pending, running, completed, failed)
+    
+    **Use Cases:**
+    - Monitor active assignments
+    - Review completed work
+    - Debug failures
+    - Track distribution efficiency
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def list_assignments(status: Optional[str] = Query(None)) -> Dict[str, List[Dict[str, Any]]]:
+    """List all assignments with optional status filter."""
+    try:
+        from lollmsbot.hobby_subagent import get_coordinator
+        
+        manager = get_hobby_manager()
+        coordinator = get_coordinator(manager)
+        
+        assignments = coordinator.get_all_assignments(status_filter=status)
+        
+        return {
+            "assignments": assignments,
+            "count": len(assignments),
+            "filter": status or "all",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to list assignments")
+
+
+@router.post(
+    "/distribute",
+    summary="Auto-Distribute Hobbies to Sub-Agents",
+    description="""
+    **Phase 3 Feature: Intelligent Distribution**
+    
+    Automatically distribute hobby activities to available sub-agents based on:
+    - Current proficiency levels (prioritize weak areas)
+    - Sub-agent capabilities and availability
+    - Load balancing across agents
+    
+    **Parameters:**
+    - num_assignments: Number of hobbies to distribute (default: 3)
+    
+    **Returns:**
+    List of created assignments with their status.
+    
+    **Example Use Case:**
+    Run this periodically to keep sub-agents busy with improvement work.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def auto_distribute_hobbies(num_assignments: int = Query(default=3, ge=1, le=10)) -> Dict[str, Any]:
+    """Automatically distribute hobbies to sub-agents."""
+    try:
+        from lollmsbot.hobby_subagent import get_coordinator
+        
+        manager = get_hobby_manager()
+        coordinator = get_coordinator(manager)
+        
+        assignments = await coordinator.auto_distribute_hobbies(num_assignments=num_assignments)
+        
+        return {
+            "status": "distributed",
+            "assignments": [a.to_dict() for a in assignments],
+            "count": len(assignments),
+            "message": f"Distributed {len(assignments)} hobbies to sub-agents",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to distribute hobbies")
