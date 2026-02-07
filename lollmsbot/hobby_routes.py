@@ -4,7 +4,7 @@ Autonomous Hobby API Routes - FastAPI endpoints for hobby system monitoring and 
 
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from datetime import datetime
 import time
 from collections import defaultdict
