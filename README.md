@@ -1029,7 +1029,7 @@ curl http://localhost:57800/rcl2/audit/verify
 ### Single Container
 
 ```bash
-docker run -p 127.0.0.1:57500:8800 \
+docker run -p 127.0.0.1:57800:8800 \
   -v $(pwd)/.env:/app/.env:ro \
   -v lollmsbot-data:/app/data \
   ghcr.io/parisneo/lollmsbot:latest
@@ -1043,7 +1043,7 @@ version: '3.8'
 services:
   lollmsbot:
     build: .
-    ports: ["57500:8800"]
+    ports: ["57800:8800"]
     environment:
       - LOLLMS_HOST_ADDRESS=http://lollms:57960
       - RCL2_ENABLED=true
