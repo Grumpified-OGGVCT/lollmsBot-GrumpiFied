@@ -1261,3 +1261,249 @@ async def get_subgraph(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to get subgraph")
+
+
+# ========================================================================
+# Phase 3D: RLHF Pipeline Endpoints
+# ========================================================================
+
+class SubmitFeedbackRequest(BaseModel):
+    """Request to submit feedback"""
+    target_type: str = Field(..., description="Type: insight, pattern, or activity")
+    target_id: str = Field(..., description="Target identifier")
+    feedback_type: str = Field(..., description="Feedback type: rating, comment, helpful, suggestion")
+    rating: Optional[int] = Field(default=None, ge=1, le=5, description="Star rating (1-5)")
+    comment: Optional[str] = Field(default=None, description="Text comment")
+    helpful: Optional[bool] = Field(default=None, description="Is helpful flag")
+    user_id: str = Field(default="default_user", description="User identifier")
+
+
+@router.post(
+    "/feedback",
+    summary="Submit Feedback",
+    description="""
+    Submit human feedback on an insight, pattern, or activity.
+    
+    This feedback is used to improve the quality of learning through RLHF.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def submit_feedback(request: SubmitFeedbackRequest) -> Dict[str, Any]:
+    """Submit feedback on an insight or activity."""
+    try:
+        from lollmsbot.hobby_rlhf import get_rlhf_manager, FeedbackType
+        
+        rlhf_manager = get_rlhf_manager()
+        
+        try:
+            feedback_type = FeedbackType(request.feedback_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid feedback type: {request.feedback_type}")
+        
+        feedback = rlhf_manager.submit_feedback(
+            target_type=request.target_type,
+            target_id=request.target_id,
+            feedback_type=feedback_type,
+            user_id=request.user_id,
+            rating=request.rating,
+            comment=request.comment,
+            helpful=request.helpful
+        )
+        
+        return {
+            "status": "submitted",
+            "feedback": feedback.to_dict(),
+            "message": f"Feedback submitted for {request.target_type}:{request.target_id}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to submit feedback")
+
+
+@router.get(
+    "/feedback/pending",
+    summary="Get Pending Feedback Items",
+    description="Get items that need human feedback (have few or no feedback).",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_pending_feedback(
+    target_type: str = Query(default=None, description="Filter by target type"),
+    limit: int = Query(default=20, ge=1, le=100)
+) -> Dict[str, Any]:
+    """Get items needing feedback."""
+    try:
+        from lollmsbot.hobby_rlhf import get_rlhf_manager
+        
+        rlhf_manager = get_rlhf_manager()
+        pending = rlhf_manager.get_pending_feedback_items(target_type=target_type, limit=limit)
+        
+        return {
+            "pending_items": pending,
+            "count": len(pending)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get pending feedback")
+
+
+@router.get(
+    "/feedback/quality",
+    summary="Get Quality Metrics",
+    description="Get quality metrics derived from human feedback.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_quality_metrics() -> Dict[str, Any]:
+    """Get quality metrics."""
+    try:
+        from lollmsbot.hobby_rlhf import get_rlhf_manager
+        
+        rlhf_manager = get_rlhf_manager()
+        metrics = rlhf_manager.get_quality_metrics()
+        
+        return metrics
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get quality metrics")
+
+
+@router.get(
+    "/feedback/stats",
+    summary="Get RLHF Statistics",
+    description="Get overall statistics for RLHF system.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_rlhf_stats() -> Dict[str, Any]:
+    """Get RLHF statistics."""
+    try:
+        from lollmsbot.hobby_rlhf import get_rlhf_manager
+        
+        rlhf_manager = get_rlhf_manager()
+        stats = rlhf_manager.get_statistics()
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get RLHF statistics")
+
+
+# ========================================================================
+# Phase 3E: Activity Archival Endpoints
+# ========================================================================
+
+class ArchiveRequest(BaseModel):
+    """Request to archive activities"""
+    days_old: int = Field(default=90, ge=7, le=365, description="Archive activities older than this")
+    archive_name: Optional[str] = Field(default=None, description="Optional archive name")
+
+
+@router.post(
+    "/archive",
+    summary="Archive Old Activities",
+    description="""
+    Archive old activities with compression for long-term storage.
+    
+    This helps manage storage and improves performance by moving
+    historical data to compressed archives.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def archive_activities(request: ArchiveRequest) -> Dict[str, Any]:
+    """Archive old activities."""
+    try:
+        from lollmsbot.hobby_archive import get_archive_manager
+        
+        manager = get_hobby_manager()
+        archive_manager = get_archive_manager()
+        
+        result = archive_manager.auto_archive_old_activities(
+            manager,
+            days_old=request.days_old
+        )
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to archive activities")
+
+
+@router.get(
+    "/archive/list",
+    summary="List Archives",
+    description="List all activity archives with metadata.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def list_archives() -> Dict[str, Any]:
+    """List all archives."""
+    try:
+        from lollmsbot.hobby_archive import get_archive_manager
+        
+        archive_manager = get_archive_manager()
+        archives = archive_manager.list_archives()
+        
+        return {
+            "archives": archives,
+            "count": len(archives)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to list archives")
+
+
+@router.get(
+    "/archive/{archive_name}/query",
+    summary="Query Archive",
+    description="Query activities from a specific archive with filters.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def query_archive(
+    archive_name: str,
+    hobby_type: str = Query(default=None, description="Filter by hobby type"),
+    start_date: str = Query(default=None, description="Filter by start date (ISO)"),
+    end_date: str = Query(default=None, description="Filter by end date (ISO)"),
+    limit: int = Query(default=100, ge=1, le=1000)
+) -> Dict[str, Any]:
+    """Query activities from archive."""
+    try:
+        from lollmsbot.hobby_archive import get_archive_manager
+        
+        archive_manager = get_archive_manager()
+        activities = archive_manager.query_archive(
+            archive_name=archive_name,
+            hobby_type=hobby_type,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit
+        )
+        
+        return {
+            "archive_name": archive_name,
+            "activities": activities,
+            "count": len(activities)
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to query archive")
+
+
+@router.get(
+    "/archive/stats",
+    summary="Get Archive Statistics",
+    description="Get overall statistics about all archives.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_archive_stats() -> Dict[str, Any]:
+    """Get archive statistics."""
+    try:
+        from lollmsbot.hobby_archive import get_archive_manager
+        
+        archive_manager = get_archive_manager()
+        stats = archive_manager.get_overall_stats()
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get archive statistics")
