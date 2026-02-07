@@ -118,6 +118,8 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 
 ## 🧠 RCL-2: Reflective Consciousness Layer
 
+> 💡 **Full Documentation**: [📖 RCL-2 User Value Guide](RCL2_USER_VALUE_GUIDE.md) | [📊 Implementation Summary](RCL2_COMPLETE_IMPLEMENTATION_SUMMARY.md) | [🎨 GUI Guide](RCL2_GUI_IMPLEMENTATION_SUMMARY.md) | [📋 Status](RCL2_STATUS.md)
+
 **Reflective Consciousness Layer v2.0 (RCL-2)** is the breakthrough feature that transforms lollmsBot from a "chatbot that can introspect" to **a cognitive system that understands and explains its own decision-making**.
 
 ### What's In It For You?
@@ -299,6 +301,8 @@ lollmsbot council deliberate "Should I delete these files?"
 
 ### Cognitive Digital Twin
 
+> 💡 **Full Documentation**: [📖 Cognitive Twin Quick Reference](COGNITIVE_TWIN_QUICK_REFERENCE.md) | [📊 Self-Awareness Guide](SELF_AWARENESS_GUIDE.md)
+
 **Predictive model** of the bot's own performance:
 
 #### What It Predicts
@@ -383,6 +387,8 @@ lollmsbot debt history        # View verification history
 
 ## 🌟 Awesome Claude Skills
 
+> 💡 **Full Documentation**: [📖 Skills Guide](AWESOME_SKILLS_GUIDE.md) | [🔧 Integration Summary](AWESOME_SKILLS_INTEGRATION_SUMMARY.md) | [🌐 Skills Repository](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)
+
 lollmsBot includes **50+ production-ready AI workflows** from the [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills) community:
 
 ### Skill Categories
@@ -430,6 +436,8 @@ integration.install_skill("pdf-processor")
 ---
 
 ## 🔀 Multi-Provider API Routing
+
+> 💡 **Full Documentation**: [📖 Multi-Provider Setup Guide](MULTI_PROVIDER_SETUP.md) | [📊 Implementation Summary](MULTIPROVIDER_IMPLEMENTATION.md) | [🔧 Ollama API Setup](OLLAMA_API_SETUP.md)
 
 **Intelligent routing** optimizes costs and reliability across multiple AI providers with OpenRouter's advanced free tier:
 
@@ -883,6 +891,8 @@ TELEGRAM_ALLOWED_USERS=123456789
 
 ## 🔒 Security & Production Hardening
 
+> 💡 **Full Documentation**: [📖 Production Hardening Summary](PRODUCTION_HARDENING_SUMMARY.md) | [📋 Production Hardening Guide](PRODUCTION_HARDENING.md)
+
 ### Enterprise Security Features
 
 **Input Validation:**
@@ -974,6 +984,8 @@ skill = Skill(
 ---
 
 ## 📊 API Reference
+
+> 💡 **Full Documentation**: [📖 Complete API Reference](API_REFERENCE.md)
 
 ### REST Endpoints
 
@@ -1134,9 +1146,11 @@ you may not use this file except in compliance with the License.
 
 ## 💬 Example Use Cases
 
-# 🔥 Top 50 Strongest Use Cases (Home + Work + Forward AI)
+> 💡 **Quick Links**: [📖 Full Documentation](#-documentation) | [🌟 Skills Library](AWESOME_SKILLS_GUIDE.md) | [🔧 Setup Guide](#-quick-start) | [🛡️ Security Guide](#-security--production-hardening)
 
-## **A. Home / Power‑User (Sovereign AI)**
+### 🔥 Top 50 Strongest Use Cases (Home + Work + Forward AI)
+
+#### **A. Home / Power‑User (Sovereign AI)**
 1. **Personal AI Chief of Staff (private)** — runs fully on your hardware; no vendor lock‑in.
 2. **Family Knowledge Keeper** — memory with "pearl logs" makes home life knowledge persistent.
 3. **AI Household Ops Manager** — schedules, reminders, automation with safety gates.
@@ -1148,7 +1162,7 @@ you may not use this file except in compliance with the License.
 9. **Parenting Coach / Education Tutor** — adjustable transparency/explanation depth.
 10. **Self‑Learning Household AI** — memory + skills + self‑healing.
 
-## **B. Home + Creative + Media**
+#### **B. Home + Creative + Media**
 11. **Game/Prototype Generator** — instant HTML games + export.
 12. **Personal Writing Studio** — iterative drafting with "show reasoning" transparency.
 13. **Long‑Form Book Researcher** — RAG + multi‑model routing.
@@ -1156,7 +1170,7 @@ you may not use this file except in compliance with the License.
 15. **Private Podcast/YouTube Researcher** — multi‑source analysis + bias introspection.
 16. **Creative Partner (Adjustable Risk)** — use restraints to tune "safe vs wild."
 
-## **C. Small Business / Freelance**
+#### **C. Small Business / Freelance**
 17. **AI Ops Manager for Small Biz** — scheduling + ops + document workflows.
 18. **Contract & Proposal Builder** — traceable reasoning + audit trail.
 19. **Email & Client Communication Engine** — consistent voice via Soul.
@@ -1166,7 +1180,7 @@ you may not use this file except in compliance with the License.
 23. **Invoice & Document Automation** — skills library ready to deploy.
 24. **Customer Support Agent (private)** — multi‑channel deployment.
 
-## **D. Enterprise / Governance / Security**
+#### **D. Enterprise / Governance / Security**
 25. **Internal AI with Full Auditability** — pearl logs + cryptographic chain.
 26. **Regulated Industry Assistant** — constitutional restraints enforce compliance.
 27. **Decision Governance AI** — reflective council adds structured debate.
@@ -1175,7 +1189,7 @@ you may not use this file except in compliance with the License.
 30. **Policy‑Bound AI (unbypassable)** — Guardian layer enforces hard stops.
 31. **AI for Sensitive Knowledge Bases** — local + private + introspective reasoning.
 
-## **E. AI Coding / Software Engineering**
+#### **E. AI Coding / Software Engineering**
 32. **Autonomous Coding Agent (multi‑model)** — route coding tasks to best LLMs.
 33. **Code Review + Risk Forecasting** — cognitive twin predicts failures.
 34. **Complex Refactor Planner** — System 2 deep analysis + council debate.
@@ -1183,20 +1197,20 @@ you may not use this file except in compliance with the License.
 36. **Documentation & API Generator** — audit trail + explainable logic.
 37. **Secure DevOps Assistant** — Docker sandbox for command execution.
 
-## **F. Research / Knowledge Work**
+#### **F. Research / Knowledge Work**
 38. **Research Partner with Proofs** — show reasoning + confidence scores.
 39. **Legal/Regulatory Analysis** — hard‑stop controls + audit logs.
 40. **Medical Research Tool (non‑diagnostic)** — high hallucination resistance.
 41. **Academic Literature Synthesizer** — RAG + cognitive debt.
 42. **Strategic Planning Assistant** — 5‑perspective council debates.
 
-## **G. Multi‑Channel Presence**
+#### **G. Multi‑Channel Presence**
 43. **Discord Community Manager** — same brain, different face.
 44. **Telegram Knowledge Agent** — lightweight, private, auditable.
 45. **Web‑UI "Human‑in‑the‑loop" Agent** — real‑time introspection.
 46. **Internal HTTP API Agent** — programmatic orchestration.
 
-## **H. Forward‑Looking / Agentic AI**
+#### **H. Forward‑Looking / Agentic AI**
 47. **Cognitive Digital Twin Ops** — preemptively warns of performance issues.
 48. **Self‑Healing AI Infrastructure** — heartbeat + autonomous upkeep.
 49. **Agentic Workflow Hub** — skills as modular "capabilities marketplace."
@@ -1204,7 +1218,7 @@ you may not use this file except in compliance with the License.
 
 ---
 
-# ⭐ Most Popular Use Cases (Why These Win)
+### ⭐ Most Popular Use Cases (Why These Win)
 These are the **top‑demand** use cases expected to dominate adoption:
 
 1. **Private "ChatGPT‑level" assistant** — people want power without surveillance or lock‑in.  
@@ -1216,43 +1230,43 @@ These are the **top‑demand** use cases expected to dominate adoption:
 
 ---
 
-# 🧬 Unique Differentiators (What makes it "not just another bot")
+### 🧬 Unique Differentiators (What makes it "not just another bot")
 
-## **1) Transparent Cognition (RCL‑2)**
+#### **1) Transparent Cognition (RCL‑2)**
 - **Shows reasoning** + confidence + internal debate  
 - Not a black box → this is a *glass box AI*  
 
-## **2) Constitutional Restraints (User‑Controlled)**
+#### **2) Constitutional Restraints (User‑Controlled)**
 - 12 sliders that hard‑stop risky autonomy  
 - Users can literally define the AI's ethics & behavior  
 
-## **3) Reflective Council**
+#### **3) Reflective Council**
 - 5 internal personas vote on decisions  
 - Built‑in governance & deliberation, rare in competitors  
 
-## **4) Cognitive Debt System**
+#### **4) Cognitive Debt System**
 - It *checks itself later* when uncertain  
 - Eliminates "fast wrong answers" over time  
 
-## **5) Cognitive Digital Twin**
+#### **5) Cognitive Digital Twin**
 - Predicts performance failures *before* they happen  
 - Preemptive, not reactive  
 
-## **6) Guardian + Docker Sandbox**
+#### **6) Guardian + Docker Sandbox**
 - Secure tool execution, prompt injection defense  
 - Real production‑grade safety, not marketing  
 
-## **7) Multi‑Provider Routing**
+#### **7) Multi‑Provider Routing**
 - Fails over between AI vendors, saving 40–70%  
 - That's operationally huge in real deployments  
 
-## **8) Persistent Identity & Memory**
+#### **8) Persistent Identity & Memory**
 - Soul + memory + pearls = coherent long‑term personality  
 - Makes it feel like a *true assistant*, not a stateless bot  
 
 ---
 
-# 🚀 "Max‑Power" Use Cases (No toy examples)
+### 🚀 "Max‑Power" Use Cases (No toy examples)
 These are the **most aggressive, forward, real** uses:
 
 - **Agentic research pipelines** (multi‑model analysis + council validation)  
@@ -1263,114 +1277,114 @@ These are the **most aggressive, forward, real** uses:
 
 ---
 
-# 🧪 25 "Strange‑But‑Essential" Use Cases (Realistic, Non‑Mainstream)
+### 🧪 25 "Strange‑But‑Essential" Use Cases (Realistic, Non‑Mainstream)
 
-## 1) **The "Truth Firewall" for Your Life**
+#### 1) **The "Truth Firewall" for Your Life**
 Every claim you make to yourself (finance decisions, purchases, beliefs) gets passed through a **Council vote + confidence score** with **automatic debt repayment**.  
 **Outcome:** You stop making bad decisions based on half‑truths.  
 **Uses:** budgets, health choices, big purchases.
 
-## 2) **Bias‑Mirror Journal**
+#### 2) **Bias‑Mirror Journal**
 You keep a journal. The bot runs a **cognitive‑bias analysis** on your daily entries, flags patterns, and proposes small corrections.  
 **Uses:** decisions, leadership growth, emotional health.
 
-## 3) **Personal "Counterfactual Advisor"**
+#### 3) **Personal "Counterfactual Advisor"**
 For any decision, it generates **3 counterfactual paths** (optimistic/pessimistic/alternative) and forces you to pick one or revise.  
 **Uses:** business decisions, big career moves.
 
-## 4) **Memory Compression for Your Brain**
+#### 4) **Memory Compression for Your Brain**
 Every week it compresses your life notes into **pearls** and gives you a "core narrative."  
 **Uses:** long‑term clarity, reduces cognitive overload.
 
-## 5) **Self‑Disputing Assistant**
+#### 5) **Self‑Disputing Assistant**
 If it gives a suggestion, it **argues against itself** in a separate channel before you act.  
 **Uses:** contracts, financial advice, strategic moves.
 
 ---
 
-## 6) **Confidence‑Bound Research Bot**
+#### 6) **Confidence‑Bound Research Bot**
 You define a minimum confidence score. Anything below gets auto‑verified in the background.  
 **Uses:** investment research, medical reading, legal references.
 
-## 7) **Latency‑Honest Workflow Manager**
+#### 7) **Latency‑Honest Workflow Manager**
 The Cognitive Twin predicts *how long a task will take* and *whether you'll finish it*.  
 **Uses:** task planning, sprint planning.
 
-## 8) **Invisible QA for Everything You Write**
+#### 8) **Invisible QA for Everything You Write**
 Every email, pitch, or report runs through **Guardian + Council** first.  
 **Uses:** workplace communications, sensitive emails.
 
-## 9) **Explainability‑First AI Tutor**
+#### 9) **Explainability‑First AI Tutor**
 The bot refuses to answer without showing its **System 1 + System 2** chain, with adjustable detail.  
 **Uses:** learning math, coding, science.
 
-## 10) **Crisis‑Mode Advisor**
+#### 10) **Crisis‑Mode Advisor**
 When you're stressed, it automatically shifts to **safe, cautious, slow mode** with high restraint and empathy.  
 **Uses:** conflict, tough decisions, emotional regulation.
 
 ---
 
-## 11) **"Shadow" Project Manager**
+#### 11) **"Shadow" Project Manager**
 It watches your decisions, predicts where your project will fail, and injects counter‑tasks.  
 **Uses:** solo development, startup founders.
 
-## 12) **AI Decision Autopsy**
+#### 12) **AI Decision Autopsy**
 When a project fails, it traces "decision lineage" from Pearl Logs and gives a cause tree.  
 **Uses:** post‑mortems, learning loops.
 
-## 13) **Morality Knob Assistant**
+#### 13) **Morality Knob Assistant**
 You actually tune the 12 constitutional sliders before engaging with a high‑risk topic.  
 **Uses:** sensitive research, controversial topics.
 
-## 14) **Autonomous Skill Curator**
+#### 14) **Autonomous Skill Curator**
 It discovers which skills you need based on your work and auto‑installs them.  
 **Uses:** solo dev automation, workflow expansion.
 
-## 15) **Intent‑Gap Detector**
+#### 15) **Intent‑Gap Detector**
 It detects when your instructions conflict with your stated goals and calls you out.  
 **Uses:** goal drift, inconsistent project plans.
 
 ---
 
-## 16) **"Future‑You" Coach**
+#### 16) **"Future‑You" Coach**
 Your Soul personality represents who you want to become, and it pushes every answer through that lens.  
 **Uses:** habit building, personal growth.
 
-## 17) **Local Trust Layer for AI APIs**
+#### 17) **Local Trust Layer for AI APIs**
 It routes requests to different LLMs, but **logs all reasoning and results** to a private audit trail.  
 **Uses:** regulated environments, QA.
 
-## 18) **Conversation Forensics**
+#### 18) **Conversation Forensics**
 It can replay and explain *why* it responded the way it did at any time in history.  
 **Uses:** debugging behavior, training.
 
-## 19) **Controlled Autonomy Sandbox**
+#### 19) **Controlled Autonomy Sandbox**
 You allow auto‑actions only if **Council passes + Guardian OK + confidence > threshold**.  
 **Uses:** safe agentic automation.
 
-## 20) **"Budget Governor"**
+#### 20) **"Budget Governor"**
 Before any API call, it predicts cost and chooses the cheapest model that meets confidence targets.  
 **Uses:** cost control for AI‑heavy workflows.
 
 ---
 
-## 21) **Failure‑Preventing Code Agent**
+#### 21) **Failure‑Preventing Code Agent**
 It doesn't just write code — it predicts failure cases using Cognitive Twin + debt verification.  
 **Uses:** critical refactors, production deployments.
 
-## 22) **Anti‑Hallucination Pipeline**
+#### 22) **Anti‑Hallucination Pipeline**
 It marks low‑confidence answers, auto‑verifies them later, and notifies you with corrections.  
 **Uses:** research, documentation, API guides.
 
-## 23) **Multi‑Persona Negotiation Engine**
+#### 23) **Multi‑Persona Negotiation Engine**
 You run a negotiation, and each council persona generates a strategy.  
 **Uses:** sales, vendor negotiations, team conflict.
 
-## 24) **Audit‑Ready Thinking Logs**
+#### 24) **Audit‑Ready Thinking Logs**
 You maintain a permanent chain of reasoning for major business decisions.  
 **Uses:** compliance, grants, corporate governance.
 
-## 25) **"Proof‑of‑Thinking" Content Generator**
+#### 25) **"Proof‑of‑Thinking" Content Generator**
 It generates content plus an attachable, human‑readable proof of reasoning.  
 **Uses:** technical writing, trust‑sensitive info.
 
