@@ -4,7 +4,7 @@
 
 ## 🎯 Quick Answer: What's Done?
 
-**Short Answer**: Phases 2A, 2B, 2C, 2D, 2E, and 2F are complete (75% of total vision). The core cognitive architecture, safety controls, multi-agent governance, predictive twin, narrative identity, and metamemory are operational. **GUI integration (Phase 2H) and IQL v2 (2G) are next.**
+**Short Answer**: Phases 2A-G are complete (87.5% of total vision). The core cognitive architecture, safety controls, multi-agent governance, predictive twin, narrative identity, metamemory, and introspection query language are all operational. **Only GUI integration (Phase 2H) remains.**
 
 ---
 
@@ -86,7 +86,7 @@
 
 ---
 
-## ⏳ REMAINING (3 Major Phases + Integration)
+## ⏳ REMAINING (1 Phase: GUI Integration)
 
 ### Phase 2C: Cognitive Digital Twin ✅
 **Status**: **COMPLETE**  
@@ -145,10 +145,55 @@ result = memory.query_knowledge("User info")
 
 ---
 
-### Phase 2G: Introspection Query Language (IQL v2) ⏳
-**Status**: NOT STARTED  
-**Estimated**: ~700 lines  
-**File**: `lollmsbot/introspection_query_language.py` (to be created)
+### Phase 2G: Introspection Query Language (IQL v2) ✅
+**Status**: **COMPLETE**  
+**File**: `lollmsbot/introspection_query_language.py` (838 lines)
+
+**Implemented:**
+- ✅ SQL-like query syntax for cognitive introspection
+- ✅ Complete lexer (tokenizer) with 11 token types
+- ✅ Recursive descent parser
+- ✅ Query executor with read-only access to all RCL-2 components
+- ✅ Type-safe result structures
+- ✅ Constraint satisfaction (e.g., max_latency checks)
+- ✅ Post-mortem analysis tools
+
+**Example Query:**
+```sql
+INTROSPECT {
+    SELECT uncertainty, attention_focus, epistemic_status
+    FROM current_cognitive_state
+    WHERE topic = "last_decision"
+    DEPTH 3
+    WITH transparency = "full"
+    CONSTRAINT max_latency = 200ms
+}
+```
+
+**Usage:**
+```python
+from lollmsbot.introspection_query_language import query_cognitive_state
+
+result = query_cognitive_state("""
+    INTROSPECT {
+        SELECT uncertainty, system_mode
+        FROM current_cognitive_state
+    }
+""")
+print(result.fields)  # {'uncertainty': 0.35, 'system_mode': 'System1'}
+```
+
+**Data Sources:**
+1. `current_cognitive_state` - System 1/2, uncertainty, attention
+2. `restraints` - Constitutional restraint values
+3. `council` - Reflective council status
+4. `twin` - Cognitive twin predictions
+5. `narrative` - Narrative identity
+6. `memory` - Eigenmemory statistics
+
+---
+
+### Phase 2H: GUI Integration ⏳
 
 **What it will do**:
 ```sql

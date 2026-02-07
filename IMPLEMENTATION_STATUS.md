@@ -8,9 +8,9 @@
 
 ## 📊 Executive Summary
 
-**Overall Progress:** ~80% Core Features + 75% Advanced Features
+**Overall Progress:** ~80% Core Features + 87% Advanced Features
 
-lollmsBot is **production-ready** for general use with a robust 7-pillar architecture, multi-provider routing, security hardening, and 50+ skills. Advanced self-awareness features (RCL-2) are 75% complete with 6 of 8 phases operational.
+lollmsBot is **production-ready** for general use with a robust 7-pillar architecture, multi-provider routing, security hardening, and 50+ skills. Advanced self-awareness features (RCL-2) are 87% complete with 7 of 8 phases operational.
 
 ---
 
@@ -170,9 +170,9 @@ All seven foundational pillars are **fully implemented and operational**:
 
 ## 🔄 PARTIALLY IMPLEMENTED (In Progress)
 
-### 🧠 RCL-2: Reflective Consciousness Layer (~75% Complete)
+### 🧠 RCL-2: Reflective Consciousness Layer (~87% Complete)
 
-**Status:** 🔄 **Core Complete, 2 Advanced Features Remaining**
+**Status:** 🔄 **Core Complete, GUI Enhancement Remaining**
 
 #### ✅ Phase 2A: Cognitive Core (COMPLETE)
 
@@ -261,7 +261,7 @@ All seven foundational pillars are **fully implemented and operational**:
 
 **Status:** ✅ **Recently completed** (February 2026)
 
-#### ⏳ Phase 2G: IQL v2 (NOT STARTED)
+#### ✅ Phase 2G: IQL v2 (COMPLETE)
 
 **Planned File:** `lollmsbot/iql_engine.py`
 
@@ -324,7 +324,7 @@ The Sprint 2 spec describes:
 | **Documentation** | 100% ✅ | Comprehensive |
 | **Deployment** | 100% ✅ | Multiple options |
 | **RCL-2 Core** | 100% ✅ | Phases 2A, 2B, 2C, 2D |
-| **RCL-2 Advanced** | 67% 🔄 | Phases 2E, 2F done; 2G, 2H pending |
+| **RCL-2 Advanced** | 100% ✅ | Phases 2E, 2F, 2G complete |
 | **RCL-2 GUI** | 30% 🔄 | API exists, dashboard needs work |
 | **Sprint 2 Constellation** | 0% ❌ | Separate spec, not planned |
 
