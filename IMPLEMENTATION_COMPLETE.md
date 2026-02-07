@@ -31,7 +31,7 @@
    - ✅ Insights accumulation
    - ✅ JSON persistence with auto-save
 
-3. **API Endpoints (7 total)**
+3. **API Endpoints (9 total)**
    - ✅ `GET /hobby/status` - Current learning status
    - ✅ `GET /hobby/progress` - Detailed progress metrics
    - ✅ `GET /hobby/activities` - Recent activities
@@ -40,7 +40,7 @@
    - ✅ `GET /hobby/insights` - Recent learning insights
    - ✅ `POST /hobby/start` - Start learning system
    - ✅ `POST /hobby/stop` - Stop learning system
-   - ✅ `POST /hobby/assign-to-subagent` - Assign to sub-agents
+   - ✅ `POST /hobby/assign-to-subagent` - Queue sub-agent assignments
 
 4. **Integration Points**
    - ✅ Gateway startup/shutdown hooks

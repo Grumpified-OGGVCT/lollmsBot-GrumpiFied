@@ -528,11 +528,14 @@ async def lifespan(app_: FastAPI):
             
             # Load hobby config from environment
             hobby_cfg = AutonomousHobbyConfig.from_env()
-            hobby_manager = await start_autonomous_learning(HobbyConfig(
+            await start_autonomous_learning(HobbyConfig(
                 enabled=hobby_cfg.enabled,
                 interval_minutes=hobby_cfg.interval_minutes,
                 idle_threshold_minutes=hobby_cfg.idle_threshold_minutes,
                 max_hobby_duration_minutes=hobby_cfg.max_hobby_duration_minutes,
+                focus_on_weaknesses=hobby_cfg.focus_on_weaknesses,
+                variety_factor=hobby_cfg.variety_factor,
+                intensity_level=hobby_cfg.intensity_level,
             ))
             console.print("[green]🎓 Autonomous hobby system started - AI will learn when idle[/]")
         except Exception as e:

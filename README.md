@@ -397,7 +397,7 @@ lollmsbot debt history        # View verification history
 **What's Working Now:**
 - 🎓 **8 Hobby Types**: Skill practice, knowledge exploration, pattern recognition, benchmarks, tool mastery, code analysis, research integration, creative problem solving
 - 📊 **Progress Tracking**: Measures proficiency gains, success rates, and insights across all activities
-- 🤖 **Sub-Agent Assignment**: Distribute learning tasks to sub-agents for parallel improvement
+- 🤖 **Sub-Agent Assignment**: Queue learning tasks for distributed execution (requires Phase 3 integration)
 - 🔍 **Full Transparency**: Monitor what your AI learns via `/hobby/status` API
 - 💾 **Persistence**: All progress saved and restored across restarts
 - ⚡ **Automatic Activation**: Starts learning after 5 minutes idle, pauses instantly on user interaction

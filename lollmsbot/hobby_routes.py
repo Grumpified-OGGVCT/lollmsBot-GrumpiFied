@@ -2,10 +2,9 @@
 Autonomous Hobby API Routes - FastAPI endpoints for hobby system monitoring and control
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List
-from datetime import datetime
 import time
 from collections import defaultdict
 import threading
@@ -13,7 +12,6 @@ import threading
 from lollmsbot.autonomous_hobby import (
     get_hobby_manager,
     HobbyType,
-    HobbyConfig,
     start_autonomous_learning,
     stop_autonomous_learning,
 )
@@ -55,10 +53,13 @@ def check_rate_limit(identifier: str, max_requests: int = 100, window_seconds: i
         return True
 
 
-async def rate_limit_dependency(request: Any = None) -> None:
+async def rate_limit_dependency(request: Request) -> None:
     """FastAPI dependency for rate limiting."""
-    # Use a default identifier for now (can be enhanced with request.client.host)
-    identifier = "global"
+    # Use client IP and path for rate limiting
+    client_host = request.client.host if request.client else "unknown"
+    path = request.url.path
+    identifier = f"{client_host}:{path}"
+    
     if not check_rate_limit(identifier, max_requests=100, window_seconds=60):
         raise HTTPException(
             status_code=429,
@@ -131,6 +132,7 @@ async def get_hobby_status() -> Dict[str, Any]:
     - Pattern recognition abilities
     - Tool mastery
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
 async def get_learning_progress() -> Dict[str, Any]:
     """Get detailed learning progress across all hobby types."""
@@ -138,7 +140,7 @@ async def get_learning_progress() -> Dict[str, Any]:
         manager = get_hobby_manager()
         return manager.get_progress_summary()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get progress: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get progress")
 
 
 @router.get(
@@ -154,8 +156,9 @@ async def get_learning_progress() -> Dict[str, Any]:
     - Performance metrics
     - Engagement score (how "interested" the AI was)
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
-async def get_recent_activities(count: int = Field(default=20, ge=1, le=100)) -> List[Dict[str, Any]]:
+async def get_recent_activities(count: int = Query(default=20, ge=1, le=100)) -> List[Dict[str, Any]]:
     """Get recent hobby activities (max 100)."""
     try:
         manager = get_hobby_manager()
@@ -185,7 +188,7 @@ async def get_recent_activities(count: int = Field(default=20, ge=1, le=100)) ->
 async def start_hobby_system() -> Dict[str, str]:
     """Start the autonomous hobby system."""
     try:
-        manager = await start_autonomous_learning()
+        await start_autonomous_learning()
         return {
             "status": "started",
             "message": "Autonomous learning system activated",
@@ -232,6 +235,7 @@ async def stop_hobby_system() -> Dict[str, str]:
     - Learning parameters (intensity, variety, focus)
     - Timing settings (intervals, idle thresholds)
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
 async def get_hobby_config() -> Dict[str, Any]:
     """Get current hobby system configuration."""
@@ -251,33 +255,26 @@ async def get_hobby_config() -> Dict[str, Any]:
             "intensity_level": manager.config.intensity_level,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get config: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get config")
 
 
 @router.post(
     "/assign-to-subagent",
     summary="Assign Hobby to Sub-Agent",
     description="""
-    **What's in it for you:** Distributed learning across multiple agents.
+    **What's in it for you:** Queue learning tasks for sub-agent execution.
     
-    **User Value:**
-    - Parallel learning activities
-    - Faster overall improvement
-    - Specialized sub-agents for different areas
+    **Current Status:** Creates assignment metadata. Sub-agent dispatch requires
+    RC2 META_LEARNING capability integration (Phase 3).
     
     **How It Works:**
-    Assign a specific hobby (skill practice, knowledge exploration, etc.)
-    to a sub-agent for a specified duration. The assignment is queued for
-    the sub-agent to execute when available.
-    
-    **This enables the vision:**
-    "Hobbies can also be assigned to sub-agents" - allowing truly
-    distributed continuous learning.
+    Creates an assignment record that can be used by external sub-agent
+    orchestration systems or future integrated dispatch.
     """,
     dependencies=[Depends(rate_limit_dependency)]
 )
 async def assign_hobby_to_subagent(assignment: HobbyAssignment) -> Dict[str, Any]:
-    """Assign a hobby activity to a sub-agent."""
+    """Assign a hobby activity to a sub-agent (queues assignment metadata)."""
     try:
         # Validate hobby type
         try:
@@ -296,36 +293,10 @@ async def assign_hobby_to_subagent(assignment: HobbyAssignment) -> Dict[str, Any
             duration_minutes=assignment.duration_minutes,
         )
         
-        # Try to dispatch to sub-agent if available
-        try:
-            from lollmsbot.subagents import RC2SubAgent
-            from lollmsbot.subagents.base_subagent import SubAgentRequest, SubAgentCapability
-            
-            # Create a sub-agent request for hobby execution
-            # Note: This requires META_LEARNING capability which RC2 supports
-            request = SubAgentRequest(
-                capability=SubAgentCapability.META_LEARNING,
-                context={
-                    "task": "hobby_execution",
-                    "hobby_type": hobby_enum.name,
-                    "duration_minutes": assignment.duration_minutes,
-                    "assignment_id": result["activity_id"],
-                },
-                user_id="system"
-            )
-            
-            # Note: Actual dispatch would happen here if RC2 is initialized
-            # For now, we queue the assignment for manual dispatch
-            dispatched = False
-            
-        except ImportError:
-            dispatched = False
-        
         return {
-            "status": "assigned",
+            "status": "queued",
             "assignment": result,
-            "dispatched": dispatched,
-            "note": "Assignment created. Sub-agent will execute when available." if not dispatched else "Dispatched to sub-agent."
+            "note": "Assignment metadata created. Requires external dispatch or Phase 3 RC2 integration."
         }
     except HTTPException:
         raise
@@ -353,6 +324,7 @@ async def assign_hobby_to_subagent(assignment: HobbyAssignment) -> Dict[str, Any
     in different ways, implementing the vision of an AI that "genuinely
     gets better every single day."
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
 async def list_hobby_types() -> Dict[str, List[Dict[str, str]]]:
     """List all available hobby types with descriptions."""
@@ -394,16 +366,19 @@ async def list_hobby_types() -> Dict[str, List[Dict[str, str]]]:
     A feed of recent insights gained during hobby activities, showing
     the continuous learning process in action.
     """,
+    dependencies=[Depends(rate_limit_dependency)]
 )
-async def get_recent_insights(count: int = Field(default=50, ge=1, le=500)) -> Dict[str, List[str]]:
+async def get_recent_insights(count: int = Query(default=50, ge=1, le=500)) -> Dict[str, List[Dict[str, Any]]]:
     """Get recent insights from hobby activities (max 500)."""
     try:
         manager = get_hobby_manager()
         activities = manager.get_recent_activities(min(count, 500))
         
-        insights = []
+        insights: List[Dict[str, Any]] = []
         for activity in activities:
-            for insight in activity.get("insights_gained", []):
+            # Get insights from the activity dict
+            activity_insights = activity.get("insights_gained", [])
+            for insight in activity_insights:
                 insights.append({
                     "timestamp": activity.get("started_at", ""),
                     "hobby_type": activity.get("hobby_type", ""),

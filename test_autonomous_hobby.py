@@ -11,7 +11,6 @@ from lollmsbot.autonomous_hobby import (
     HobbyConfig,
     HobbyType,
     HobbyActivity,
-    LearningProgress,
     get_hobby_manager,
     start_autonomous_learning,
     stop_autonomous_learning,
@@ -19,7 +18,7 @@ from lollmsbot.autonomous_hobby import (
 
 
 @pytest.fixture
-async def hobby_config():
+def hobby_config():
     """Create a test hobby configuration."""
     return HobbyConfig(
         enabled=True,
@@ -33,12 +32,13 @@ async def hobby_config():
 
 
 @pytest.fixture
-async def hobby_manager(hobby_config):
+def hobby_manager(hobby_config):
     """Create a hobby manager for testing."""
     manager = HobbyManager(hobby_config)
     yield manager
     # Cleanup
-    await manager.stop()
+    import asyncio
+    asyncio.run(manager.stop())
 
 
 class TestHobbyConfiguration:
@@ -95,8 +95,8 @@ class TestHobbyManager:
     @pytest.mark.asyncio
     async def test_idle_detection(self, hobby_manager):
         """Test idle time detection."""
-        # Initially should be idle (just created)
-        await asyncio.sleep(0.2)  # Wait longer than idle threshold
+        # Initially should be idle after exceeding idle threshold
+        await asyncio.sleep(3.2)  # Wait longer than idle threshold (0.05 minutes ≈ 3 seconds)
         assert hobby_manager.is_idle() == True
         
         # After user interaction, should not be idle
@@ -282,10 +282,11 @@ class TestPersistence:
     """Test persistence of hobby progress."""
     
     @pytest.mark.asyncio
-    async def test_save_progress(self, hobby_manager, tmp_path):
+    async def test_save_progress(self, tmp_path):
         """Test saving progress to disk."""
-        hobby_manager.storage_path = tmp_path / "hobby"
-        hobby_manager.storage_path.mkdir(parents=True, exist_ok=True)
+        # Create manager with test storage path
+        config = HobbyConfig(storage_path=tmp_path / "hobby")
+        hobby_manager = HobbyManager(config)
         
         # Update some progress
         progress = hobby_manager._progress[HobbyType.SKILL_PRACTICE]
@@ -300,10 +301,11 @@ class TestPersistence:
         assert progress_file.exists()
     
     @pytest.mark.asyncio
-    async def test_load_progress(self, hobby_manager, tmp_path):
+    async def test_load_progress(self, tmp_path):
         """Test loading progress from disk."""
-        hobby_manager.storage_path = tmp_path / "hobby"
-        hobby_manager.storage_path.mkdir(parents=True, exist_ok=True)
+        # Create first manager with test storage path
+        config = HobbyConfig(storage_path=tmp_path / "hobby")
+        hobby_manager = HobbyManager(config)
         
         # Set some progress
         progress = hobby_manager._progress[HobbyType.SKILL_PRACTICE]
@@ -313,10 +315,9 @@ class TestPersistence:
         # Save
         hobby_manager._save_progress()
         
-        # Create new manager (will load saved progress)
-        new_manager = HobbyManager(hobby_manager.config)
-        new_manager.storage_path = hobby_manager.storage_path
-        new_manager._load_progress()
+        # Create new manager with same storage (will load saved progress)
+        new_config = HobbyConfig(storage_path=tmp_path / "hobby")
+        new_manager = HobbyManager(new_config)
         
         # Check progress was loaded
         loaded_progress = new_manager._progress[HobbyType.SKILL_PRACTICE]

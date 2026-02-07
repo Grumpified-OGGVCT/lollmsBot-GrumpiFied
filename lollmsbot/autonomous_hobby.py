@@ -26,12 +26,12 @@ import hashlib
 import json
 import logging
 import random
-import time
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("lollmsbot.autonomous_hobby")
 
@@ -117,9 +117,15 @@ class HobbyActivity:
             "duration_seconds": self.duration_seconds,
             "success": self.success,
             "description": self.description,
+            "goal": self.goal,
+            "approach": self.approach,
+            "insights_gained": self.insights_gained,
             "insights_count": len(self.insights_gained),
             "skills_improved": self.skills_improved,
+            "patterns_discovered": self.patterns_discovered,
             "patterns_discovered_count": len(self.patterns_discovered),
+            "performance_metrics": self.performance_metrics,
+            "difficulty_level": self.difficulty_level,
             "engagement_score": self.engagement_score,
             "improvement_delta": self.improvement_delta,
         }
@@ -226,6 +232,10 @@ class HobbyManager:
     
     async def start(self) -> None:
         """Start the autonomous hobby system."""
+        if not self.config.enabled:
+            logger.info("HobbyManager start called but system is disabled")
+            return
+        
         if self._running:
             logger.warning("HobbyManager already running")
             return
@@ -245,7 +255,7 @@ class HobbyManager:
             try:
                 await self._task
             except asyncio.CancelledError:
-                pass
+                logger.debug("HobbyManager stop: hobby loop task cancelled")
         
         # Save progress before stopping
         self._save_progress()
@@ -263,6 +273,12 @@ class HobbyManager:
                 "Activity interrupted by user interaction"
             )
             self._activities.append(self._current_activity)
+            
+            # Apply history cap and save
+            if len(self._activities) > self._max_history:
+                self._activities = self._activities[-self._max_history:]
+            self._save_progress()
+            
             self._current_activity = None
     
     def is_idle(self) -> bool:
@@ -309,23 +325,25 @@ class HobbyManager:
         logger.info(f"Starting hobby: {hobby_type.name}")
         
         try:
-            # Execute the hobby activity
+            # Execute the hobby activity with timeout
+            timeout_seconds = self.config.max_hobby_duration_minutes * 60
+            
             if hobby_type == HobbyType.SKILL_PRACTICE:
-                await self._practice_skills(activity)
+                await asyncio.wait_for(self._practice_skills(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.KNOWLEDGE_EXPLORATION:
-                await self._explore_knowledge(activity)
+                await asyncio.wait_for(self._explore_knowledge(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.PATTERN_RECOGNITION:
-                await self._recognize_patterns(activity)
+                await asyncio.wait_for(self._recognize_patterns(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.BENCHMARK_RUNNING:
-                await self._run_benchmarks(activity)
+                await asyncio.wait_for(self._run_benchmarks(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.TOOL_MASTERY:
-                await self._master_tools(activity)
+                await asyncio.wait_for(self._master_tools(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.CODE_ANALYSIS:
-                await self._analyze_code(activity)
+                await asyncio.wait_for(self._analyze_code(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.RESEARCH_INTEGRATION:
-                await self._integrate_research(activity)
+                await asyncio.wait_for(self._integrate_research(activity), timeout=timeout_seconds)
             elif hobby_type == HobbyType.CREATIVE_PROBLEM_SOLVING:
-                await self._solve_creatively(activity)
+                await asyncio.wait_for(self._solve_creatively(activity), timeout=timeout_seconds)
             
             # Mark as successful
             activity.success = True
@@ -347,6 +365,15 @@ class HobbyManager:
                 f"(duration: {activity.duration_seconds:.1f}s, "
                 f"insights: {len(activity.insights_gained)})"
             )
+            
+        except asyncio.TimeoutError:
+            logger.warning(f"Hobby activity {hobby_type.name} exceeded max duration, terminating")
+            activity.success = False
+            activity.completed_at = datetime.now()
+            activity.insights_gained.append(f"Activity exceeded max duration of {self.config.max_hobby_duration_minutes} minutes")
+            self._activities.append(activity)
+            if len(self._activities) > self._max_history:
+                self._activities = self._activities[-self._max_history:]
             
         except Exception as e:
             logger.error(f"Error during hobby activity: {e}", exc_info=True)
