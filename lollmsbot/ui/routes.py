@@ -2,11 +2,12 @@
 FastAPI router for the LollmsBot Web UI.
 
 Provides API routes for the web interface, including health checks,
-settings management, and conversation endpoints.
+settings management, conversation endpoints, and security status.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
+from datetime import datetime, timedelta
 
 ui_router = APIRouter(
     prefix="/ui-api",
@@ -35,5 +36,91 @@ async def ui_config(request: Request) -> dict:
             "tools": True,
             "settings": True,
             "streaming": True,
+            "security": True,
         },
     }
+
+
+@ui_router.get("/security/status")
+async def security_status() -> dict:
+    """Get Guardian security status."""
+    try:
+        from lollmsbot.guardian import get_guardian
+        
+        guardian = get_guardian()
+        
+        # Get audit report for last 24 hours
+        since = datetime.now() - timedelta(hours=24)
+        audit = guardian.get_audit_report(since=since)
+        
+        return {
+            "status": "active",
+            "quarantine_active": guardian.is_quarantined,
+            "events_24h": audit.get("total_events", 0),
+            "events_by_level": audit.get("events_by_level", {}),
+            "api_key_protection": True,
+            "skill_scanning": True,
+            "container_protection": True,
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "quarantine_active": False,
+            "events_24h": 0,
+        }
+
+
+@ui_router.get("/security/audit")
+async def security_audit(limit: int = 50) -> dict:
+    """Get recent security audit events."""
+    try:
+        from lollmsbot.guardian import get_guardian
+        
+        guardian = get_guardian()
+        
+        # Get recent events
+        events = guardian._event_history[-limit:]
+        
+        return {
+            "events": [e.to_dict() for e in events],
+            "total": len(guardian._event_history),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@ui_router.get("/security/skills")
+async def security_skills() -> dict:
+    """Get skill security scan results."""
+    try:
+        from lollmsbot.skills import get_awesome_skills_integration
+        
+        integration = get_awesome_skills_integration()
+        
+        if not integration or not integration.is_available():
+            return {
+                "available": False,
+                "scanned": [],
+            }
+        
+        scan_results = integration.get_scan_results()
+        
+        return {
+            "available": True,
+            "scanned": [
+                {
+                    "name": name,
+                    "is_safe": result.get("is_safe", False),
+                    "threats": result.get("threats", []),
+                }
+                for name, result in scan_results.items()
+            ],
+            "total": len(scan_results),
+        }
+    except Exception as e:
+        return {
+            "available": False,
+            "error": str(e),
+            "scanned": [],
+        }
