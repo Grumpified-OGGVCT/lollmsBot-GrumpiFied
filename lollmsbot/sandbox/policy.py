@@ -23,18 +23,43 @@ class PermissionMode(Enum):
 def _default_denied_paths():
     """Factory function for default denied paths."""
     return {
+        # System directories - CRITICAL
         Path("/etc"),
         Path("/sys"),
         Path("/proc"),
         Path("/dev"),
         Path("/boot"),
         Path("/root"),
+        # Container escape vectors
+        Path("/var/run/docker.sock"),  # Docker socket - container escape
+        Path("/var/run"),  # Runtime sockets
+        Path("/run"),  # Runtime directory
+        # System binaries that could be abused
+        Path("/bin"),
+        Path("/sbin"),
+        Path("/usr/bin"),
+        Path("/usr/sbin"),
+        # Kernel and system files
+        Path("/vmlinuz"),
+        Path("/initrd"),
+        # Potentially sensitive system locations
+        Path("/lib/modules"),  # Kernel modules
+        Path("/lib/systemd"),  # System services
     }
 
 
 @dataclass
 class MountPolicy:
     """Policy for mounting directories in sandbox.
+    
+    This implements defense against container escape attacks by:
+    - Blocking Docker socket access (/var/run/docker.sock)
+    - Preventing cgroup manipulation
+    - Restricting namespace access
+    - Denying system binary directories
+    - Enforcing least-privilege file system access
+    
+    Addresses OpenClaw-style container escape vulnerabilities.
     
     Attributes:
         allowed_paths: Paths that can be mounted
@@ -58,13 +83,27 @@ class MountPolicy:
         """
         path = path.resolve()
         
-        # Check denied paths
+        # Check denied paths (SECURITY: Critical system paths)
         for denied in self.denied_paths:
             try:
                 path.relative_to(denied)
+                # Path is under denied directory - BLOCK
                 return False
             except ValueError:
                 continue
+        
+        # SECURITY: Additional checks for container escape vectors
+        # Block Docker socket access (major container escape vector)
+        if "docker.sock" in str(path):
+            return False
+        
+        # Block cgroup access (container control)
+        if "/sys/fs/cgroup" in str(path):
+            return False
+        
+        # Block namespace manipulation paths
+        if "/proc/self/ns" in str(path) or "/proc/1/ns" in str(path):
+            return False
         
         # Check allowed paths
         if not self.allowed_paths:
