@@ -390,6 +390,30 @@ lollmsbot debt history        # View verification history
 
 > 💡 **Master Architecture**: lollmsBot as a **truly autonomous, self-improving coding AI** that learns meaningfully every day
 
+### ✅ NOW IMPLEMENTED: Autonomous Hobby & Passion System
+
+**The "insatiable hobby and passion" feature is LIVE!** lollmsBot now continuously learns and improves when idle, implementing the core vision of a self-improving AI.
+
+**What's Working Now:**
+- 🎓 **8 Hobby Types**: Skill practice, knowledge exploration, pattern recognition, benchmarks, tool mastery, code analysis, research integration, creative problem solving
+- 📊 **Progress Tracking**: Measures proficiency gains, success rates, and insights across all activities
+- 🤖 **Sub-Agent Assignment**: Distribute learning tasks to sub-agents for parallel improvement
+- 🔍 **Full Transparency**: Monitor what your AI learns via `/hobby/status` API
+- 💾 **Persistence**: All progress saved and restored across restarts
+- ⚡ **Automatic Activation**: Starts learning after 5 minutes idle, pauses instantly on user interaction
+
+**See it in action:**
+```bash
+# Start lollmsBot
+python -m lollmsbot.gateway
+
+# Wait 5 minutes (or set HOBBY_IDLE_THRESHOLD_MINUTES=0.1 for testing)
+# Check what it's learning
+curl http://localhost:8800/hobby/status
+```
+
+**📖 Full Guide**: [AUTONOMOUS_HOBBY_GUIDE.md](AUTONOMOUS_HOBBY_GUIDE.md)
+
 ### The Core Ambition
 
 lollmsBot isn't just another coding assistant—it's designed with an **insatiable drive to improve at software development**. The system combines RCL-2's transparent cognition with **closed-loop continuous learning** to become the world's first AI that genuinely gets better at coding every single day.
