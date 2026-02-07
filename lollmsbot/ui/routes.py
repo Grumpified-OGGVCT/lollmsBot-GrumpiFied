@@ -79,9 +79,10 @@ async def security_status() -> dict:
             }
         }
     except Exception as e:
+        logger.error(f"Security status error: {e}")
         return {
             "status": "error",
-            "error": str(e),
+            "error": "Failed to retrieve security status",
             "quarantine_active": False,
             "events_24h": 0,
         }
@@ -103,7 +104,8 @@ async def security_audit(limit: int = 50) -> dict:
             "total": len(guardian._event_history),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Security audit error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve audit log")
 
 
 @ui_router.get("/security/skills")

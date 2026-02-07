@@ -292,53 +292,36 @@ def handle_skills_command(args) -> None:
                 console.print(f"[red]❌ No skill file found for: {args.skill_name}[/red]")
                 return
             
+            # Read skill content
+            try:
+                with open(skill_info.skill_md_path, "r", encoding="utf-8") as f:
+                    skill_content = f.read()
+            except OSError as e:
+                console.print(f"[red]❌ Failed to read skill file: {e}[/red]")
+                return
+            
             # Scan the skill
             guardian = get_guardian()
-            result = guardian.scan_skill_content(skill_info.skill_md_path)
+            is_safe, threats = guardian.scan_skill_content(args.skill_name, skill_content)
             
             # Display results
-            if result.is_safe:
+            if is_safe:
                 console.print(f"[green]✅ Skill '{args.skill_name}' passed security scan[/green]\n")
             else:
-                max_severity = result.get_max_severity()
                 console.print(
-                    f"[red]❌ Skill '{args.skill_name}' failed security scan "
-                    f"({max_severity.name if max_severity else 'UNKNOWN'} severity)[/red]\n"
+                    f"[red]❌ Skill '{args.skill_name}' failed security scan[/red]\n"
                 )
             
             # Show threats
-            if result.threats:
+            if threats:
                 console.print("[bold]🚨 Threats Detected:[/bold]")
                 threat_table = Table(title=None, box=box.ROUNDED)
-                threat_table.add_column("Type", style="cyan")
-                threat_table.add_column("Severity", style="yellow")
-                threat_table.add_column("Description", style="white")
-                threat_table.add_column("Location", style="dim")
+                threat_table.add_column("Threat", style="white")
                 
-                for threat in result.threats[:10]:  # Show top 10
-                    severity_color = {
-                        "CRITICAL": "red bold",
-                        "HIGH": "red",
-                        "MEDIUM": "yellow",
-                        "LOW": "blue",
-                        "INFO": "dim"
-                    }.get(threat.severity.name, "white")
-                    
-                    threat_table.add_row(
-                        threat.threat_type.name.replace("_", " "),
-                        f"[{severity_color}]{threat.severity.name}[/{severity_color}]",
-                        threat.description[:60],
-                        threat.location
-                    )
+                for threat in threats[:10]:  # Show top 10
+                    threat_table.add_row(str(threat))
                 
                 console.print(threat_table)
-                console.print()
-            
-            # Show warnings
-            if result.warnings:
-                console.print("[bold yellow]⚠️  Warnings:[/bold yellow]")
-                for warning in result.warnings[:5]:  # Show top 5
-                    console.print(f"  • {warning}")
                 console.print()
         
         elif args.skills_command == "scan-all":
@@ -358,13 +341,27 @@ def handle_skills_command(args) -> None:
                 for skill_name, skill_info in skills.items():
                     if skill_info.skill_md_path and skill_info.skill_md_path.exists():
                         status.update(f"[bold cyan]Scanning {skill_name}...")
-                        result = guardian.scan_skill_content(skill_info.skill_md_path)
-                        results[skill_name] = result
                         
-                        if result.is_safe:
-                            safe_count += 1
-                        else:
-                            unsafe_count += 1
+                        # Read skill content
+                        try:
+                            with open(skill_info.skill_md_path, "r", encoding="utf-8") as f:
+                                skill_content = f.read()
+                            
+                            # Scan with Guardian
+                            is_safe, threats = guardian.scan_skill_content(skill_name, skill_content)
+                            
+                            results[skill_name] = {
+                                "is_safe": is_safe,
+                                "threats": threats,
+                                "skill_name": skill_name
+                            }
+                            
+                            if is_safe:
+                                safe_count += 1
+                            else:
+                                unsafe_count += 1
+                        except Exception as e:
+                            console.print(f"[yellow]⚠️  Failed to scan {skill_name}: {e}[/yellow]")
             
             # Summary
             console.print(f"\n[bold]Scan Complete:[/bold]")
@@ -438,22 +435,19 @@ def handle_skills_command(args) -> None:
             
             from lollmsbot.guardian import get_guardian
             
-            from lollmsbot.guardian import get_guardian
-            
             # Get components
-            guardian = get_guardian()
-            protector = get_api_key_protector()
             guardian = get_guardian()
             
             # Generate reports
-            console.print("[bold]📊 API Key Protection Status[/bold]")
-            api_report = protector.generate_security_report()
-            console.print(api_report)
-            console.print()
-            
             console.print("[bold]🛡️  Guardian Security Status[/bold]")
             guardian_report = guardian.get_audit_report()
             console.print(json.dumps(guardian_report, indent=2))
+            console.print()
+            
+            # Adaptive learning stats
+            console.print("[bold]🧠 Adaptive Threat Intelligence[/bold]")
+            adaptive_stats = guardian.get_adaptive_stats()
+            console.print(json.dumps(adaptive_stats, indent=2))
             console.print()
             
             console.print("[bold]🔍 Skill Security Summary[/bold]")
@@ -462,7 +456,7 @@ def handle_skills_command(args) -> None:
                 safe = sum(1 for r in scan_results.values() if r.get("is_safe"))
                 total = len(scan_results)
                 console.print(f"  Safe Skills: {safe}/{total}")
-                console.print(f"  Security Scanning: {'✅ Enabled' if integration.scanner else '❌ Disabled'}")
+                console.print(f"  Security Scanning: {'✅ Enabled' if integration.guardian else '❌ Disabled'}")
             else:
                 console.print("  No skills scanned yet")
             console.print()

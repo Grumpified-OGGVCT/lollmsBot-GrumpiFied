@@ -16,11 +16,12 @@ This document describes lollmsBot's security architecture and how it protects ag
 
 **Our Mitigations**:
 
-#### Skill Scanner (`lollmsbot/skill_scanner.py`)
-- **Pre-load validation**: All skills are scanned before loading
+#### Guardian Skill Scanning (`lollmsbot/guardian.py`)
+- **Pre-load validation**: All skills are scanned before loading via `Guardian.scan_skill_content()`
 - **Pattern-based detection**: Identifies known malicious patterns
 - **Threat classification**: Categorizes by type and severity
 - **Automatic blocking**: HIGH/CRITICAL threats are blocked immediately
+- **Integrated with Guardian**: All skill security is handled by the unified Guardian module
 
 **Detection Capabilities**:
 - Data exfiltration (curl/wget POST requests, zip of .env files)
@@ -49,11 +50,12 @@ This document describes lollmsBot's security architecture and how it protects ag
 
 **Our Mitigations**:
 
-#### API Key Protection (`lollmsbot/api_key_protection.py`)
-- **Real-time detection**: Scans all inputs/outputs for API keys
-- **Automatic redaction**: Removes keys from logs and chat history
+#### Guardian API Key Protection (`lollmsbot/guardian.py`)
+- **Real-time detection**: Scans all inputs/outputs for API keys via `Guardian.check_input()/check_output()`
+- **Automatic redaction**: Removes keys from logs and chat history via `Guardian.redact_api_keys_from_text()`
 - **User warnings**: Alerts when keys are detected in input
 - **Secure storage recommendations**: Guides users to use .env files
+- **Integrated with Guardian**: All API key protection is handled by the unified Guardian module
 
 **Protected Key Types**:
 - OpenAI (sk-*, sk-proj-*)

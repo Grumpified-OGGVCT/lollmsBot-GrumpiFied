@@ -119,7 +119,8 @@ class AwesomeSkillsIntegration:
         """
         Load a specific skill from awesome-claude-skills.
         
-        Security scanning is ALWAYS performed - cannot be bypassed.
+        Security scanning is performed when Guardian is available.
+        If Guardian is not available, loading proceeds with a warning.
         
         Args:
             skill_name: Name of the skill to load
@@ -144,7 +145,6 @@ class AwesomeSkillsIntegration:
                 return False
             
             # SECURITY: Scan skill for threats before loading (using Guardian)
-            # Security scanning CANNOT be bypassed
             if self.guardian:
                 is_safe, threats = self._scan_skill_with_guardian(skill_info)
                 self.scan_results[skill_name] = {
@@ -161,13 +161,17 @@ class AwesomeSkillsIntegration:
                     for threat in threats:
                         logger.error(f"  - {threat}")
                     
-                    # Block loading of unsafe skills - NO BYPASS POSSIBLE
+                    # Block loading of unsafe skills
                     logger.error(f"❌ Blocking load of unsafe skill: {skill_name}")
                     return False
                 else:
                     logger.info(f"✅ Security scan passed for skill: {skill_name}")
             else:
-                logger.warning(f"⚠️  Guardian not available - loading {skill_name} without security scan")
+                logger.warning(
+                    f"⚠️  SECURITY WARNING: Guardian not available - "
+                    f"loading {skill_name} without security scan. "
+                    f"This is NOT recommended for production use."
+                )
             
             # Convert to lollmsBot skill
             skill = self.converter.convert_skill(skill_info)

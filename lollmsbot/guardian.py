@@ -657,20 +657,25 @@ class Guardian:
             learned_matches = self.adaptive_intel.check_against_learned_patterns(text)
             
             for learned_pattern, match_score in learned_matches:
+                # Normalize learned pattern threat type to ThreatType enum if possible
+                threat_type = None
+                if isinstance(learned_pattern.threat_type, ThreatType):
+                    threat_type = learned_pattern.threat_type
+                else:
+                    threat_type_name = str(learned_pattern.threat_type).upper()
+                    if hasattr(ThreatType, threat_type_name):
+                        threat_type = getattr(ThreatType, threat_type_name)
+                
                 # Add to threat scores if not already detected
-                if learned_pattern.threat_type not in [t.name for t in threat_scores.keys()]:
+                if threat_type is not None and threat_type not in threat_scores:
                     logger.info(
                         f"🧠 Learned pattern matched: {learned_pattern.threat_type} "
                         f"(score: {match_score:.2f})"
                     )
-                    # Use ThreatType enum if possible, otherwise use generic
-                    from lollmsbot.guardian import ThreatType
-                    if hasattr(ThreatType, learned_pattern.threat_type.upper()):
-                        threat_type = getattr(ThreatType, learned_pattern.threat_type.upper())
-                        threat_scores[threat_type] = max(
-                            threat_scores.get(threat_type, 0),
-                            match_score
-                        )
+                    threat_scores[threat_type] = max(
+                        threat_scores.get(threat_type, 0),
+                        match_score
+                    )
         
         # Check for API keys and warn
         if ThreatType.API_KEY_EXPOSURE in threat_scores:
@@ -1045,12 +1050,6 @@ class Guardian:
     @property
     def is_quarantined(self) -> bool:
         return self._quarantined
-
-
-# Global access function
-def get_guardian() -> Guardian:
-    """Get or create the singleton Guardian instance."""
-    return Guardian()
     
     def get_adaptive_stats(self) -> Dict[str, Any]:
         """Get adaptive threat learning statistics."""
@@ -1063,3 +1062,9 @@ def get_guardian() -> Guardian:
         stats = self.adaptive_intel.get_statistics()
         stats["enabled"] = True
         return stats
+
+
+# Global access function
+def get_guardian() -> Guardian:
+    """Get or create the singleton Guardian instance."""
+    return Guardian()

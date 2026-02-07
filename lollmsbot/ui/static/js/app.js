@@ -138,32 +138,62 @@ async function showAuditLog() {
     if (!modal || !content) return;
     
     modal.classList.add('active');
-    content.innerHTML = '<p>Loading audit log...</p>';
+    content.textContent = 'Loading audit log...';
     
     try {
         const response = await fetch('/ui-api/security/audit?limit=50');
         const data = await response.json();
         
         if (data.events && data.events.length > 0) {
-            content.innerHTML = data.events.map(event => `
-                <div class="audit-event">
-                    <div class="audit-event-header">
-                        <span class="audit-event-type">
-                            <span class="audit-event-level ${event.threat_level}">${event.threat_level}</span>
-                            ${event.event_type}
-                        </span>
-                        <span class="audit-event-time">${new Date(event.timestamp).toLocaleString()}</span>
-                    </div>
-                    <div class="audit-event-description">${event.description}</div>
-                    <div class="audit-event-source">Source: ${event.source}</div>
-                </div>
-            `).join('');
+            // Clear previous content before rendering events
+            content.innerHTML = '';
+
+            data.events.forEach(event => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'audit-event';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'audit-event-header';
+
+                const typeSpan = document.createElement('span');
+                typeSpan.className = 'audit-event-type';
+
+                const levelSpan = document.createElement('span');
+                levelSpan.className = 'audit-event-level ' + (event.threat_level || '');
+                levelSpan.textContent = event.threat_level || '';
+
+                const eventTypeText = document.createTextNode(' ' + (event.event_type || ''));
+
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'audit-event-time';
+                timeSpan.textContent = new Date(event.timestamp).toLocaleString();
+
+                typeSpan.appendChild(levelSpan);
+                typeSpan.appendChild(eventTypeText);
+
+                headerDiv.appendChild(typeSpan);
+                headerDiv.appendChild(timeSpan);
+
+                const descriptionDiv = document.createElement('div');
+                descriptionDiv.className = 'audit-event-description';
+                descriptionDiv.textContent = event.description || '';
+
+                const sourceDiv = document.createElement('div');
+                sourceDiv.className = 'audit-event-source';
+                sourceDiv.textContent = 'Source: ' + (event.source || 'unknown');
+
+                eventDiv.appendChild(headerDiv);
+                eventDiv.appendChild(descriptionDiv);
+                eventDiv.appendChild(sourceDiv);
+
+                content.appendChild(eventDiv);
+            });
         } else {
-            content.innerHTML = '<p>No audit events found.</p>';
+            content.textContent = 'No audit events found.';
         }
     } catch (error) {
         console.error('Failed to load audit log:', error);
-        content.innerHTML = '<p>Failed to load audit log.</p>';
+        content.textContent = 'Failed to load audit log.';
     }
 }
 
@@ -186,24 +216,48 @@ async function showSkillScans() {
         }
         
         if (data.scanned && data.scanned.length > 0) {
-            content.innerHTML = data.scanned.map(skill => `
-                <div class="skill-scan-item">
-                    <div class="skill-scan-header">
-                        <span class="skill-scan-name">${skill.name}</span>
-                        <span class="skill-scan-badge ${skill.is_safe ? 'safe' : 'unsafe'}">
-                            ${skill.is_safe ? '✅ Safe' : '⚠️ Unsafe'}
-                        </span>
-                    </div>
-                    ${!skill.is_safe && skill.threats && skill.threats.length > 0 ? `
-                        <div class="skill-scan-threats">
-                            <strong>Threats Detected:</strong>
-                            <ul>
-                                ${skill.threats.map(threat => `<li>${threat}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
+            // Clear existing content and safely build the DOM tree
+            content.innerHTML = '';
+            
+            data.scanned.forEach(skill => {
+                const item = document.createElement('div');
+                item.className = 'skill-scan-item';
+
+                const header = document.createElement('div');
+                header.className = 'skill-scan-header';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'skill-scan-name';
+                nameSpan.textContent = skill.name || '';
+
+                const badgeSpan = document.createElement('span');
+                badgeSpan.className = 'skill-scan-badge ' + (skill.is_safe ? 'safe' : 'unsafe');
+                badgeSpan.textContent = skill.is_safe ? '✅ Safe' : '⚠️ Unsafe';
+
+                header.appendChild(nameSpan);
+                header.appendChild(badgeSpan);
+                item.appendChild(header);
+
+                if (!skill.is_safe && Array.isArray(skill.threats) && skill.threats.length > 0) {
+                    const threatsContainer = document.createElement('div');
+                    threatsContainer.className = 'skill-scan-threats';
+
+                    const strongEl = document.createElement('strong');
+                    strongEl.textContent = 'Threats Detected:';
+                    threatsContainer.appendChild(strongEl);
+
+                    const ul = document.createElement('ul');
+                    skill.threats.forEach(threat => {
+                        const li = document.createElement('li');
+                        li.textContent = threat || '';
+                        ul.appendChild(li);
+                    });
+                    threatsContainer.appendChild(ul);
+                    item.appendChild(threatsContainer);
+                }
+
+                content.appendChild(item);
+            });
         } else {
             content.innerHTML = '<p>No skills have been scanned yet.</p>';
         }

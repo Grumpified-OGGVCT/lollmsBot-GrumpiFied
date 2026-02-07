@@ -94,16 +94,26 @@ class MountPolicy:
         
         # SECURITY: Additional checks for container escape vectors
         # Block Docker socket access (major container escape vector)
-        if "docker.sock" in str(path):
+        docker_socket = Path("/var/run/docker.sock")
+        if path == docker_socket:
             return False
         
         # Block cgroup access (container control)
-        if "/sys/fs/cgroup" in str(path):
+        cgroup_root = Path("/sys/fs/cgroup")
+        try:
+            path.relative_to(cgroup_root)
             return False
+        except ValueError:
+            pass
         
         # Block namespace manipulation paths
-        if "/proc/self/ns" in str(path) or "/proc/1/ns" in str(path):
-            return False
+        namespace_roots = [Path("/proc/self/ns"), Path("/proc/1/ns")]
+        for ns_root in namespace_roots:
+            try:
+                path.relative_to(ns_root)
+                return False
+            except ValueError:
+                continue
         
         # Check allowed paths
         if not self.allowed_paths:
