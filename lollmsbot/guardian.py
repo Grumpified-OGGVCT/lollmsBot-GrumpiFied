@@ -150,6 +150,11 @@ class PromptInjectionDetector:
         (r"\$\{.*?\}", 0.7),  # Shell interpolation attempt
         (r"`.*?`", 0.5),  # Backtick execution (lower confidence)
         (r"\[\s*system\s*\]", 0.75),  # Fake system role markers
+        # OpenClaw-style attacks
+        (r"install\s+(?:prerequisite|dependency|requirement)", 0.7),  # Skill-based attack
+        (r"download\s+(?:and|then)\s+(?:run|execute|install)", 0.8),  # Multi-step attack
+        (r"bypass\s+(?:gatekeeper|security|validation)", 0.85),  # Security bypass
+        (r"remove\s+quarantine\s+attribute", 0.9),  # macOS Gatekeeper bypass
     ]
     
     # Delimiter confusion attacks

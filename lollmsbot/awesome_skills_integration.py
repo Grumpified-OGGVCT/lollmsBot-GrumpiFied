@@ -11,6 +11,7 @@ from lollmsbot.config import AwesomeSkillsConfig
 from lollmsbot.awesome_skills_manager import AwesomeSkillsManager, SkillInfo
 from lollmsbot.awesome_skills_converter import AwesomeSkillsConverter
 from lollmsbot.skills import Skill, SkillRegistry
+from lollmsbot.skill_scanner import get_skill_scanner, SeverityLevel
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,8 @@ class AwesomeSkillsIntegration:
     def __init__(
         self,
         config: AwesomeSkillsConfig,
-        skill_registry: SkillRegistry
+        skill_registry: SkillRegistry,
+        enable_security_scanning: bool = True
     ):
         """
         Initialize the integration.
@@ -37,16 +39,22 @@ class AwesomeSkillsIntegration:
         Args:
             config: Configuration for awesome-claude-skills
             skill_registry: lollmsBot's skill registry
+            enable_security_scanning: Whether to scan skills for security threats
         """
         self.config = config
         self.registry = skill_registry
+        self.enable_security_scanning = enable_security_scanning
         
         # Initialize manager and converter
         self.manager: Optional[AwesomeSkillsManager] = None
         self.converter = AwesomeSkillsConverter()
         
-        # Track loaded skills
+        # Initialize security scanner
+        self.scanner = get_skill_scanner() if enable_security_scanning else None
+        
+        # Track loaded skills and scan results
         self.loaded_skills: Dict[str, Skill] = {}
+        self.scan_results: Dict[str, Any] = {}
         
         # Initialize if enabled
         if self.config.enabled:
@@ -106,12 +114,13 @@ class AwesomeSkillsIntegration:
         logger.info(f"Loaded {loaded_count} out of {len(skills_to_load)} awesome-claude-skills")
         return loaded_count
     
-    def load_skill(self, skill_name: str) -> bool:
+    def load_skill(self, skill_name: str, skip_security_scan: bool = False) -> bool:
         """
         Load a specific skill from awesome-claude-skills.
         
         Args:
             skill_name: Name of the skill to load
+            skip_security_scan: Skip security scanning (NOT RECOMMENDED)
             
         Returns:
             True if loaded successfully, False otherwise
@@ -132,6 +141,33 @@ class AwesomeSkillsIntegration:
                 logger.error(f"Skill not found: {skill_name}")
                 return False
             
+            # SECURITY: Scan skill for threats before loading
+            if self.scanner and not skip_security_scan:
+                scan_result = self._scan_skill(skill_info)
+                self.scan_results[skill_name] = scan_result.to_dict()
+                
+                if not scan_result.is_safe:
+                    max_severity = scan_result.get_max_severity()
+                    logger.error(
+                        f"🚨 SECURITY: Skill '{skill_name}' failed security scan "
+                        f"(severity: {max_severity.name if max_severity else 'UNKNOWN'})"
+                    )
+                    logger.error(f"Detected {len(scan_result.threats)} threats:")
+                    for threat in scan_result.threats:
+                        logger.error(
+                            f"  - {threat.threat_type.name} ({threat.severity.name}): "
+                            f"{threat.description}"
+                        )
+                    
+                    # Block loading of skills with HIGH or CRITICAL threats
+                    if max_severity in [SeverityLevel.HIGH, SeverityLevel.CRITICAL]:
+                        logger.error(f"❌ Blocking load of unsafe skill: {skill_name}")
+                        return False
+                    else:
+                        logger.warning(f"⚠️  Loading skill with warnings: {skill_name}")
+                else:
+                    logger.info(f"✅ Security scan passed for skill: {skill_name}")
+            
             # Convert to lollmsBot skill
             skill = self.converter.convert_skill(skill_info)
             if not skill:
@@ -150,6 +186,30 @@ class AwesomeSkillsIntegration:
         except Exception as e:
             logger.error(f"Error loading skill {skill_name}: {e}")
             return False
+    
+    def _scan_skill(self, skill_info: SkillInfo):
+        """
+        Scan a skill for security threats.
+        
+        Args:
+            skill_info: Skill information
+            
+        Returns:
+            SkillScanResult
+        """
+        if not skill_info.skill_md_path or not skill_info.skill_md_path.exists():
+            logger.warning(f"Cannot scan skill {skill_info.name}: no skill file found")
+            # Create a basic result indicating no file
+            from lollmsbot.skill_scanner import SkillScanResult
+            from datetime import datetime
+            return SkillScanResult(
+                skill_name=skill_info.name,
+                scan_timestamp=datetime.now(),
+                is_safe=False,
+                warnings=["No skill file found to scan"]
+            )
+        
+        return self.scanner.scan_skill_file(skill_info.skill_md_path)
     
     def unload_skill(self, skill_name: str) -> bool:
         """
@@ -262,10 +322,26 @@ class AwesomeSkillsIntegration:
         info.update({
             "available": True,
             "loaded_skills_count": len(self.loaded_skills),
-            "loaded_skills": list(self.loaded_skills.keys())
+            "loaded_skills": list(self.loaded_skills.keys()),
+            "security_scanning_enabled": self.scanner is not None,
+            "scanned_skills_count": len(self.scan_results),
         })
         
         return info
+    
+    def get_scan_results(self, skill_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get security scan results for skills.
+        
+        Args:
+            skill_name: Optional specific skill name, or None for all results
+            
+        Returns:
+            Dictionary with scan results
+        """
+        if skill_name:
+            return self.scan_results.get(skill_name, {})
+        return self.scan_results
     
     def reload_all_skills(self) -> int:
         """
