@@ -1029,3 +1029,235 @@ async def get_lora_stats() -> Dict[str, Any]:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to get LoRA statistics")
+
+
+# ========================================================================
+# Phase 3C: Knowledge Graph Integration Endpoints
+# ========================================================================
+
+class BuildGraphRequest(BaseModel):
+    """Request to build knowledge graph from activities"""
+    days_back: int = Field(default=30, ge=1, le=365, description="Days of activity history")
+
+
+@router.post(
+    "/graph/build",
+    summary="Build Knowledge Graph",
+    description="""
+    Build or update the knowledge graph from hobby activity insights.
+    
+    Extracts concepts, insights, patterns, and skills from activities
+    and creates nodes and relationships in the knowledge graph.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def build_knowledge_graph(request: BuildGraphRequest) -> Dict[str, Any]:
+    """Build knowledge graph from activities."""
+    try:
+        from lollmsbot.hobby_knowledge_graph import get_knowledge_graph, build_graph_from_activities
+        from datetime import timedelta
+        
+        manager = get_hobby_manager()
+        graph = get_knowledge_graph()
+        
+        # Get recent activities
+        activities = manager.get_recent_activities(count=1000)
+        
+        # Filter by date
+        cutoff_date = datetime.now() - timedelta(days=request.days_back)
+        recent_activities = [
+            act for act in activities
+            if datetime.fromisoformat(act.get("started_at", "2000-01-01")) > cutoff_date
+        ]
+        
+        # Build graph
+        stats = build_graph_from_activities(graph, recent_activities)
+        
+        return {
+            "status": "success",
+            "stats": stats,
+            "graph_stats": graph.get_statistics(),
+            "message": f"Built graph from {len(recent_activities)} activities"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to build knowledge graph")
+
+
+@router.get(
+    "/graph/stats",
+    summary="Get Knowledge Graph Statistics",
+    description="Get overall statistics about the knowledge graph.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_graph_stats() -> Dict[str, Any]:
+    """Get knowledge graph statistics."""
+    try:
+        from lollmsbot.hobby_knowledge_graph import get_knowledge_graph
+        
+        graph = get_knowledge_graph()
+        stats = graph.get_statistics()
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get graph statistics")
+
+
+@router.get(
+    "/graph/nodes/{node_id}",
+    summary="Get Knowledge Node",
+    description="Get a specific node from the knowledge graph.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_knowledge_node(node_id: str) -> Dict[str, Any]:
+    """Get knowledge node by ID."""
+    try:
+        from lollmsbot.hobby_knowledge_graph import get_knowledge_graph
+        
+        graph = get_knowledge_graph()
+        node = graph.get_node(node_id)
+        
+        if not node:
+            raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
+        
+        # Get neighbors
+        neighbors = graph.get_neighbors(node_id)
+        
+        return {
+            "node": node.to_dict(),
+            "neighbors": [
+                {
+                    "node": n.to_dict(),
+                    "edge": e.to_dict()
+                }
+                for n, e in neighbors
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get knowledge node")
+
+
+@router.get(
+    "/graph/search",
+    summary="Search Knowledge Graph",
+    description="Search for nodes in the knowledge graph by query string.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def search_knowledge_graph(
+    query: str = Query(..., description="Search query"),
+    node_type: str = Query(default=None, description="Filter by node type"),
+    limit: int = Query(default=50, ge=1, le=100)
+) -> Dict[str, Any]:
+    """Search knowledge graph."""
+    try:
+        from lollmsbot.hobby_knowledge_graph import get_knowledge_graph, NodeType
+        
+        graph = get_knowledge_graph()
+        
+        filter_type = None
+        if node_type:
+            try:
+                filter_type = NodeType(node_type)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid node type: {node_type}")
+        
+        nodes = graph.search_nodes(query, node_type=filter_type, limit=limit)
+        
+        return {
+            "nodes": [node.to_dict() for node in nodes],
+            "count": len(nodes)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to search knowledge graph")
+
+
+@router.get(
+    "/graph/path",
+    summary="Find Path Between Concepts",
+    description="""
+    Find the shortest path between two concepts in the knowledge graph.
+    
+    This reveals how different learnings and insights are connected.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def find_knowledge_path(
+    start_id: str = Query(..., description="Start node ID"),
+    end_id: str = Query(..., description="End node ID"),
+    max_depth: int = Query(default=5, ge=1, le=10)
+) -> Dict[str, Any]:
+    """Find path between two nodes."""
+    try:
+        from lollmsbot.hobby_knowledge_graph import get_knowledge_graph
+        
+        graph = get_knowledge_graph()
+        path = graph.find_path(start_id, end_id, max_depth=max_depth)
+        
+        if not path:
+            return {
+                "found": False,
+                "message": f"No path found between {start_id} and {end_id} within depth {max_depth}"
+            }
+        
+        # Get node details for path
+        path_nodes = []
+        for node_id in path:
+            node = graph.get_node(node_id)
+            if node:
+                path_nodes.append(node.to_dict())
+        
+        return {
+            "found": True,
+            "path": path,
+            "path_nodes": path_nodes,
+            "length": len(path) - 1
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to find path")
+
+
+@router.get(
+    "/graph/subgraph/{node_id}",
+    summary="Get Subgraph",
+    description="""
+    Get a subgraph centered on a specific node.
+    
+    Returns all nodes and edges within the specified depth.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_subgraph(
+    node_id: str,
+    depth: int = Query(default=2, ge=1, le=5)
+) -> Dict[str, Any]:
+    """Get subgraph around a node."""
+    try:
+        from lollmsbot.hobby_knowledge_graph import get_knowledge_graph
+        
+        graph = get_knowledge_graph()
+        
+        if node_id not in graph.nodes:
+            raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
+        
+        subgraph = graph.get_subgraph(node_id, depth=depth)
+        
+        return {
+            "center_node_id": node_id,
+            "depth": depth,
+            "subgraph": subgraph,
+            "node_count": len(subgraph["nodes"]),
+            "edge_count": len(subgraph["edges"])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get subgraph")
