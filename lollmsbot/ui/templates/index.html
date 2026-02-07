@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
     <!-- Use relative paths for static files so they work when mounted as sub-app -->
     <link rel="stylesheet" href="./static/css/style.css">
+    <link rel="stylesheet" href="./static/css/rcl2.css">
 </head>
 <body>
     <div class="app">
@@ -20,6 +21,7 @@
             </div>
             <div class="header-actions">
                 <button class="btn-icon" id="menu-btn" title="Menu">☰</button>
+                <button class="btn-icon" id="cognitive-btn" title="Cognitive Dashboard (Ctrl+K)" aria-label="Open Cognitive Dashboard">🧠</button>
                 <button class="btn-icon" id="settings-btn" title="Settings">⚙</button>
             </div>
         </header>
@@ -114,7 +116,11 @@
         </div>
     </div>
     
-    <!-- Use relative path for JS file -->
+    <!-- Use relative path for JS files -->
     <script src="./static/js/app.js"></script>
+    <script src="./static/js/rcl2-dashboard.js"></script>
+    <script src="./static/js/rcl2-restraints.js"></script>
+    <script src="./static/js/rcl2-council.js"></script>
+    <script src="./static/js/rcl2-debt.js"></script>
 </body>
 </html>

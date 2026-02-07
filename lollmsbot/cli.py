@@ -99,6 +99,191 @@ def print_gateway_banner(host: str, port: int, ui_enabled: bool) -> None:
     console.print()
 
 
+def print_skills_info() -> None:
+    """Print awesome-claude-skills repository info."""
+    try:
+        from lollmsbot.skills import get_awesome_skills_integration
+        
+        console.print("\n[bold cyan]📚 Awesome Claude Skills Integration[/bold cyan]\n")
+        
+        integration = get_awesome_skills_integration()
+        if not integration:
+            console.print("[yellow]⚠️ Awesome-claude-skills integration not available[/yellow]")
+            console.print("[dim]Enable in .env: AWESOME_SKILLS_ENABLED_FLAG=true[/dim]")
+            return
+        
+        info = integration.get_repository_info()
+        
+        if not info.get("available"):
+            console.print(f"[red]❌ {info.get('reason', 'Not available')}[/red]")
+            return
+        
+        # Create info table
+        info_table = Table(box=box.ROUNDED, border_style="cyan")
+        info_table.add_column("Property", style="cyan")
+        info_table.add_column("Value", style="green")
+        
+        info_table.add_row("Repository", info.get("url", "N/A"))
+        info_table.add_row("Local Path", info.get("path", "N/A"))
+        info_table.add_row("Cloned", "✅ Yes" if info.get("cloned") else "❌ No")
+        info_table.add_row("Last Updated", info.get("last_updated", "N/A"))
+        info_table.add_row("Total Skills", str(info.get("skills_count", 0)))
+        info_table.add_row("Loaded Skills", str(info.get("loaded_skills_count", 0)))
+        
+        console.print(info_table)
+        
+        # Show ecosystem note if available
+        if info.get("note"):
+            console.print(f"\n[dim]{info.get('note')}[/dim]")
+        
+        if info.get("loaded_skills"):
+            console.print("\n[bold]Loaded Skills:[/bold]")
+            for skill in info["loaded_skills"]:
+                console.print(f"  • {skill}", style="dim")
+        
+        console.print()
+        
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print_exception(show_locals=True)
+
+
+def handle_skills_command(args) -> None:
+    """Handle skills subcommands."""
+    MAX_DISPLAY_SKILLS = 20  # Maximum skills to display in listings
+    
+    try:
+        from lollmsbot.skills import get_awesome_skills_integration
+        from rich.table import Table
+        
+        integration = get_awesome_skills_integration()
+        if not integration or not integration.is_available():
+            console.print("[red]❌ Awesome-claude-skills not available[/red]")
+            console.print("[dim]Run: lollmsbot wizard to configure[/dim]")
+            return
+        
+        if args.skills_command == "list":
+            # List skills
+            console.print("\n[bold cyan]📚 Available Skills[/bold cyan]\n")
+            
+            if args.loaded:
+                skills = [integration.manager.get_skill(name) for name in integration.loaded_skills.keys()]
+                skills = [s for s in skills if s]  # Filter None
+                console.print(f"[dim]Showing {len(skills)} loaded skills[/dim]\n")
+            else:
+                skills = integration.list_available_skills(category=args.category)
+                if args.category:
+                    console.print(f"[dim]Category: {args.category}[/dim]\n")
+            
+            if not skills:
+                console.print("[yellow]No skills found[/yellow]")
+                return
+            
+            # Create table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Name", style="cyan")
+            table.add_column("Category", style="yellow")
+            table.add_column("Tier", style="magenta")
+            table.add_column("Description", style="dim", max_width=50)
+            table.add_column("Status", style="green")
+            
+            for skill in skills[:MAX_DISPLAY_SKILLS]:
+                status = "✅ Loaded" if skill.name in integration.loaded_skills else "⭕ Available"
+                desc_limit = 47
+                truncated_desc = skill.description[:desc_limit] + "..." if len(skill.description) > desc_limit else skill.description
+                table.add_row(
+                    skill.name,
+                    skill.category,
+                    skill.tier,
+                    truncated_desc,
+                    status
+                )
+            
+            console.print(table)
+            
+            if len(skills) > MAX_DISPLAY_SKILLS:
+                console.print(f"\n[dim]... and {len(skills) - MAX_DISPLAY_SKILLS} more skills[/dim]")
+            
+            console.print()
+        
+        elif args.skills_command == "search":
+            # Search skills
+            console.print(f"\n[bold cyan]🔍 Searching for: {args.query}[/bold cyan]\n")
+            
+            results = integration.search_skills(args.query)
+            
+            if not results:
+                console.print("[yellow]No skills found[/yellow]")
+                return
+            
+            console.print(f"[green]Found {len(results)} skill(s):[/green]\n")
+            
+            for skill in results[:10]:  # Limit to 10
+                console.print(f"[bold cyan]• {skill.name}[/bold cyan]")
+                console.print(f"  Category: {skill.category} | Tier: {skill.tier}")
+                console.print(f"  {skill.description}\n")
+            
+            if len(results) > 10:
+                console.print(f"[dim]... and {len(results) - 10} more results[/dim]")
+            
+            console.print()
+        
+        elif args.skills_command == "install":
+            # Install skill
+            console.print(f"\n[bold cyan]📥 Installing skill: {args.skill_name}[/bold cyan]\n")
+            
+            success = integration.load_skill(args.skill_name)
+            
+            if success:
+                console.print(f"[green]✅ Skill '{args.skill_name}' installed successfully![/green]")
+            else:
+                console.print(f"[red]❌ Failed to install skill '{args.skill_name}'[/red]")
+                console.print("[dim]Check logs for details[/dim]")
+            
+            console.print()
+        
+        elif args.skills_command == "uninstall":
+            # Uninstall skill
+            console.print(f"\n[bold cyan]📤 Uninstalling skill: {args.skill_name}[/bold cyan]\n")
+            
+            success = integration.unload_skill(args.skill_name)
+            
+            if success:
+                console.print(f"[green]✅ Skill '{args.skill_name}' uninstalled successfully![/green]")
+            else:
+                console.print(f"[red]❌ Failed to uninstall skill '{args.skill_name}'[/red]")
+                console.print("[dim]Skill may not be loaded[/dim]")
+            
+            console.print()
+        
+        elif args.skills_command == "update":
+            # Update repository
+            console.print("\n[bold cyan]🔄 Updating skills repository...[/bold cyan]\n")
+            
+            success = integration.update_repository()
+            
+            if success:
+                console.print("[green]✅ Repository updated successfully![/green]")
+                console.print("\n[dim]Reloading skills...[/dim]")
+                reloaded = integration.reload_all_skills()
+                console.print(f"[green]✅ Reloaded {reloaded} skill(s)[/green]")
+            else:
+                console.print("[red]❌ Failed to update repository[/red]")
+            
+            console.print()
+        
+        elif args.skills_command == "info":
+            # Show repository info
+            print_skills_info()
+        
+        else:
+            console.print("[yellow]Please specify a skills command: list, search, install, uninstall, update, or info[/yellow]")
+    
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print_exception(show_locals=True)
+
+
 def print_status() -> None:
     """Print comprehensive system status."""
     from pathlib import Path
@@ -247,6 +432,157 @@ def print_status() -> None:
     console.print()
 
 
+def handle_introspection_command(args) -> None:
+    """Handle introspection subcommands."""
+    try:
+        from lollmsbot.self_awareness import get_awareness_manager, AwarenessLevel
+        from rich.table import Table
+        import asyncio
+        
+        manager = get_awareness_manager()
+        
+        if not manager.config.enabled:
+            console.print("[yellow]⚠️ Self-awareness is disabled[/yellow]")
+            console.print("[dim]Enable in .env: SELF_AWARENESS_ENABLED=true[/dim]")
+            return
+        
+        if args.awareness_command == "status":
+            # Show status
+            console.print("\n[bold cyan]🧠 Self-Awareness Status[/bold cyan]\n")
+            
+            status = manager.get_status_report()
+            
+            # Create status table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Property", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Enabled", "✅ Yes" if status["enabled"] else "❌ No")
+            table.add_row("Awareness Level", status["awareness_level"])
+            table.add_row("Decision Count", str(status["decision_count"]))
+            table.add_row("Pattern Count", str(status["pattern_count"]))
+            table.add_row("Introspection Count", str(status["introspection_count"]))
+            table.add_row("Last Reflection", status["last_reflection"])
+            table.add_row("Reflection Loop", "✅ Active" if status["reflection_loop_active"] else "⭕ Inactive")
+            
+            console.print(table)
+            
+            # Show enabled features
+            console.print("\n[bold]Enabled Features:[/bold]")
+            for feature in status["enabled_features"]:
+                console.print(f"  ✓ {feature.replace('_', ' ').title()}")
+            
+            console.print()
+        
+        elif args.awareness_command == "state":
+            # Show current state
+            console.print("\n[bold cyan]📊 Current Internal State[/bold cyan]\n")
+            
+            state = manager.get_current_state()
+            
+            if not state:
+                console.print("[yellow]No state information available[/yellow]")
+                console.print("[dim]State tracking may be disabled[/dim]")
+                return
+            
+            # Create state table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Property", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Timestamp", state.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+            table.add_row("Active Contexts", str(len(state.active_contexts)))
+            table.add_row("Current Goals", str(len(state.current_goals)))
+            table.add_row("Working Memory Size", str(state.working_memory_size))
+            table.add_row("Active Skills", str(len(state.active_skills)))
+            table.add_row("Active Tools", str(len(state.active_tools)))
+            table.add_row("Attention Focus", state.attention_focus or "None")
+            table.add_row("Processing Load", f"{state.processing_load:.1%}")
+            table.add_row("Confidence Level", f"{state.confidence_level:.1%}")
+            table.add_row("Interaction Mode", state.interaction_mode)
+            
+            console.print(table)
+            console.print()
+        
+        elif args.awareness_command == "decisions":
+            # Show decision history
+            console.print("\n[bold cyan]📝 Recent Decisions[/bold cyan]\n")
+            
+            decisions = manager.get_decision_history(
+                decision_type=args.type,
+                limit=args.limit
+            )
+            
+            if not decisions:
+                console.print("[yellow]No decisions recorded[/yellow]")
+                return
+            
+            for i, decision in enumerate(decisions, 1):
+                console.print(f"[bold cyan]{i}. {decision.decision_type}[/bold cyan]")
+                console.print(f"   Decision: {decision.decision}")
+                console.print(f"   Time: {decision.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+                console.print(f"   Confidence: {decision.confidence:.1%}")
+                if decision.reasoning:
+                    console.print(f"   Reasoning: {decision.reasoning}")
+                if decision.outcome:
+                    console.print(f"   Outcome: {decision.outcome}")
+                console.print()
+        
+        elif args.awareness_command == "patterns":
+            # Show recognized patterns
+            console.print("\n[bold cyan]🔍 Recognized Behavioral Patterns[/bold cyan]\n")
+            
+            patterns = manager.get_recognized_patterns(pattern_type=args.type)
+            
+            if not patterns:
+                console.print("[yellow]No patterns recognized yet[/yellow]")
+                return
+            
+            # Create patterns table
+            table = Table(box=box.ROUNDED, border_style="cyan")
+            table.add_column("Type", style="cyan")
+            table.add_column("Description", style="green", max_width=50)
+            table.add_column("Frequency", style="yellow")
+            table.add_column("Confidence", style="magenta")
+            
+            for pattern in patterns[:20]:
+                table.add_row(
+                    pattern.pattern_type,
+                    pattern.description,
+                    str(pattern.frequency),
+                    f"{pattern.confidence:.1%}"
+                )
+            
+            console.print(table)
+            console.print()
+        
+        elif args.awareness_command == "query":
+            # Perform introspection query
+            console.print(f"\n[bold cyan]🤔 Introspecting: {args.question}[/bold cyan]\n")
+            
+            async def run_query():
+                result = await manager.introspect(args.question, depth=args.depth)
+                return result
+            
+            result = asyncio.run(run_query())
+            
+            console.print(f"[bold]Query:[/bold] {result.query}")
+            console.print(f"[bold]Depth:[/bold] {result.depth}")
+            console.print(f"[bold]Confidence:[/bold] {result.confidence:.1%}")
+            console.print(f"[bold]Time:[/bold] {result.took_seconds:.2f}s\n")
+            
+            console.print("[bold]Findings:[/bold]")
+            console.print(json.dumps(result.findings, indent=2))
+            console.print()
+        
+        else:
+            console.print("[yellow]Please specify an introspection command: status, state, decisions, patterns, or query[/yellow]")
+    
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print_exception(show_locals=True)
+
+
 def main(argv: List[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="lollmsbot",
@@ -274,7 +610,7 @@ def main(argv: List[str] | None = None) -> None:
         description="Start the main API gateway with optional channels and UI"
     )
     gateway_parser.add_argument("--host", type=str, default="0.0.0.0", help="Bind address (default: 0.0.0.0)")
-    gateway_parser.add_argument("--port", type=int, default=8800, help="Port number (default: 8800)")
+    gateway_parser.add_argument("--port", type=int, default=57800, help="Port number (default: 57800)")
     gateway_parser.add_argument("--ui", action="store_true", help="Also start web UI at /ui")
 
     # UI command (standalone)
@@ -284,7 +620,7 @@ def main(argv: List[str] | None = None) -> None:
         description="Start just the web interface without the full gateway"
     )
     ui_parser.add_argument("--host", type=str, default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
-    ui_parser.add_argument("--port", type=int, default=8080, help="Port number (default: 8080)")
+    ui_parser.add_argument("--port", type=int, default=57080, help="Port number (default: 57080)")
     ui_parser.add_argument("--quiet", "-q", action="store_true", help="Minimal console output")
 
     # Wizard command
@@ -300,6 +636,65 @@ def main(argv: List[str] | None = None) -> None:
         help="Show LollmsBot system status",
         description="Display operational status, loaded components, and metrics"
     )
+    
+    # Skills command
+    skills_parser = subparsers.add_parser(
+        "skills",
+        help="Manage awesome-claude-skills",
+        description="Search, install, and manage awesome-claude-skills integration"
+    )
+    skills_subparsers = skills_parser.add_subparsers(dest="skills_command", help="Skills operations")
+    
+    # skills list
+    list_parser = skills_subparsers.add_parser("list", help="List available skills")
+    list_parser.add_argument("--category", type=str, help="Filter by category")
+    list_parser.add_argument("--loaded", action="store_true", help="Show only loaded skills")
+    
+    # skills search
+    search_parser = skills_subparsers.add_parser("search", help="Search for skills")
+    search_parser.add_argument("query", type=str, help="Search query")
+    
+    # skills install
+    install_parser = skills_subparsers.add_parser("install", help="Install/enable a skill")
+    install_parser.add_argument("skill_name", type=str, help="Name of skill to install")
+    
+    # skills uninstall
+    uninstall_parser = skills_subparsers.add_parser("uninstall", help="Uninstall/disable a skill")
+    uninstall_parser.add_argument("skill_name", type=str, help="Name of skill to uninstall")
+    
+    # skills update
+    skills_subparsers.add_parser("update", help="Update skills repository")
+    
+    # skills info
+    skills_subparsers.add_parser("info", help="Show skills repository info")
+    
+    # Self-awareness command
+    awareness_parser = subparsers.add_parser(
+        "introspect",
+        help="Self-awareness and introspection",
+        description="Query lollmsBot's internal state, decisions, and patterns"
+    )
+    awareness_subparsers = awareness_parser.add_subparsers(dest="awareness_command", help="Introspection operations")
+    
+    # introspect status
+    awareness_subparsers.add_parser("status", help="Show self-awareness status")
+    
+    # introspect state
+    awareness_subparsers.add_parser("state", help="Show current internal state")
+    
+    # introspect decisions
+    decisions_parser = awareness_subparsers.add_parser("decisions", help="Show recent decisions")
+    decisions_parser.add_argument("--type", type=str, help="Filter by decision type")
+    decisions_parser.add_argument("--limit", type=int, default=10, help="Number of decisions to show")
+    
+    # introspect patterns
+    patterns_parser = awareness_subparsers.add_parser("patterns", help="Show recognized behavioral patterns")
+    patterns_parser.add_argument("--type", type=str, help="Filter by pattern type")
+    
+    # introspect query
+    query_parser = awareness_subparsers.add_parser("query", help="Ask introspective question")
+    query_parser.add_argument("question", type=str, help="Introspective question")
+    query_parser.add_argument("--depth", type=int, default=1, help="Depth of analysis (1-3)")
 
     args = parser.parse_args(argv)
 
@@ -319,7 +714,7 @@ def main(argv: List[str] | None = None) -> None:
             # Enable UI if requested
             if args.ui:
                 # Use localhost for UI server internally, gateway will mount it
-                gateway.enable_ui(host="127.0.0.1", port=8080)
+                gateway.enable_ui(host="127.0.0.1", port=57080)
             
             # Run server
             uvicorn.run(
@@ -356,6 +751,12 @@ def main(argv: List[str] | None = None) -> None:
         
         elif args.command == "status":
             print_status()
+        
+        elif args.command == "skills":
+            handle_skills_command(args)
+        
+        elif args.command == "introspect":
+            handle_introspection_command(args)
             
         else:
             parser.print_help()

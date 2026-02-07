@@ -1467,13 +1467,38 @@ async def {metadata.name}({param_list}, agent=None, tools=None, call_skill=None)
 # Global registry access
 _skill_registry: Optional[SkillRegistry] = None
 _skill_executor: Optional[SkillExecutor] = None
+_awesome_skills_integration: Optional[Any] = None  # AwesomeSkillsIntegration
 
 def get_skill_registry() -> SkillRegistry:
     """Get or create global skill registry."""
-    global _skill_registry
+    global _skill_registry, _awesome_skills_integration
     if _skill_registry is None:
         _skill_registry = SkillRegistry()
+        
+        # Initialize awesome-claude-skills integration if enabled
+        try:
+            from lollmsbot.config import AwesomeSkillsConfig
+            from lollmsbot.awesome_skills_integration import AwesomeSkillsIntegration
+            
+            config = AwesomeSkillsConfig.from_env()
+            if config.enabled:
+                logger.info("Initializing awesome-claude-skills integration")
+                _awesome_skills_integration = AwesomeSkillsIntegration(
+                    config=config,
+                    skill_registry=_skill_registry
+                )
+                logger.info("Awesome-claude-skills integration initialized")
+        except Exception as e:
+            logger.warning(f"Could not initialize awesome-claude-skills: {e}")
+    
     return _skill_registry
+
+def get_awesome_skills_integration() -> Optional[Any]:
+    """Get awesome-claude-skills integration if available."""
+    global _awesome_skills_integration
+    if _skill_registry is None:
+        get_skill_registry()  # Initialize if not done yet
+    return _awesome_skills_integration
 
 def get_skill_executor(agent: Optional[Agent] = None) -> SkillExecutor:
     """Get or create global skill executor."""

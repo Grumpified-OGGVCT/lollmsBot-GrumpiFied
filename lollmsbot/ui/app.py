@@ -15,16 +15,29 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator, Dict, List, Optional, Set, Any
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from lollmsbot.config import BotConfig, LollmsSettings
 from lollmsbot.agent import Agent
 
 
 logger = logging.getLogger(__name__)
+
+# Rate limiter for API endpoints (configurable via env)
+rate_limit_str = os.getenv("RATE_LIMIT_PER_MINUTE", "100")
+try:
+    rate_limit = f"{int(rate_limit_str)}/minute"
+except ValueError:
+    rate_limit = "100/minute"  # Fallback to default
+limiter = Limiter(key_func=get_remote_address, default_limits=[rate_limit])
 
 
 class ConnectionManager:
@@ -914,12 +927,143 @@ window.chatApp = app;
 """
     
     def _create_app(self) -> FastAPI:
-        """Create FastAPI application with file download endpoints."""
-        app = FastAPI(title="LollmsBot Web UI")
+        """Create FastAPI application with comprehensive security, rate limiting, and API docs."""
+        app = FastAPI(
+            title="LollmsBot Web UI & RCL-2 API",
+            description="""
+            ## 🤖 LollmsBot Reflective Consciousness Layer v2.0
+            
+            **What's in it for you:** Complete control and transparency over your AI assistant.
+            
+            **⚠️ SECURITY NOTE:** This API uses rate limiting and requires HTTPS in production.
+            
+            ### 🎯 User Benefits
+            
+            **Constitutional Restraints** - Fine-tune AI behavior (autonomy, transparency, caution)
+            - 12 adjustable dimensions (0.0-1.0 scale)
+            - Cryptographic safety limits
+            - Complete audit trail
+            
+            **Reflective Council** - See AI's internal "debate" on important decisions
+            - 5 perspectives (Guardian, Epistemologist, Strategist, Empath, Historian)
+            - Vote transparency (APPROVE/REJECT/ABSTAIN/ESCALATE)
+            - Conflict detection
+            
+            **Cognitive Debt** - Ensure AI double-checks uncertain answers
+            - Automatic verification queue
+            - Priority-based repayment
+            - No "fire and forget"
+            
+            **Cognitive Twin** - Predict and prevent problems
+            - Latency forecasting
+            - Memory pressure monitoring
+            - Self-healing triggers
+            
+            **Audit Trail** - Trust but verify
+            - Tamper-proof change log
+            - Hash chain verification
+            - Unauthorized attempt detection
+            
+            ### 📖 How to Use This API
+            
+            1. **Explore** endpoints below (expand each section)
+            2. **Try it out** using the interactive "Try it out" button
+            3. **See examples** in each endpoint's description
+            4. **Copy code** from the generated curl/code samples
+            
+            ### 🔗 Quick Links
+            - [Interactive Chat UI](/) - Main web interface
+            - [API Docs (SwaggerUI)](/docs) - This page
+            - [Alternative Docs (ReDoc)](/redoc) - Cleaner layout
+            - [Health Check](/health) - System status
+            """,
+            version="2.0.0",
+            docs_url="/docs",  # Swagger UI
+            redoc_url="/redoc",  # ReDoc alternative
+            openapi_tags=[
+                {
+                    "name": "rcl2",
+                    "description": "🧠 **Reflective Consciousness Layer v2.0** - AI introspection and control endpoints",
+                },
+                {
+                    "name": "ui",
+                    "description": "🎨 **Web UI** - Frontend configuration and health",
+                },
+            ],
+        )
+        
+        # ===============================
+        # SECURITY MIDDLEWARE (C01, C02, H12)
+        # ===============================
+        
+        # Add rate limiting (C02 fix)
+        app.state.limiter = limiter
+        app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        
+        # Add CORS middleware (C01 fix - secured)
+        allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:57300,http://localhost:57500")
+        allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+        
+        # Security: Disable credentials if wildcard is used
+        use_credentials = "*" not in allowed_origins
+        if "*" in allowed_origins and os.getenv("ENVIRONMENT") == "production":
+            logger.warning("⚠️ SECURITY: CORS wildcard (*) with credentials disabled in production")
+        
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins if allowed_origins else ["http://localhost:57500"],
+            allow_credentials=use_credentials,
+            allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["Content-Disposition"],
+        )
+        
+        # Add trusted host middleware for production
+        if os.getenv("ENVIRONMENT") == "production":
+            allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
+            app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+        
+        # Add security headers (H12 fix)
+        @app.middleware("http")
+        async def add_security_headers(request: Request, call_next):
+            response = await call_next(request)
+            # Content Security Policy (hardened - no unsafe-eval/unsafe-inline)
+            # Use nonces or external scripts only for maximum security
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' https://fonts.googleapis.com; "
+                "style-src 'self' https://fonts.googleapis.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
+                "img-src 'self' data: https:; "
+                "connect-src 'self' ws: wss:;"
+            )
+            # Other security headers
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["X-XSS-Protection"] = "1; mode=block"
+            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+            
+            # HTTPS enforcement warning (C03)
+            if request.url.scheme != "https" and os.getenv("ENVIRONMENT") == "production":
+                logger.warning(f"⚠️  INSECURE: Request over HTTP in production: {request.url}")
+            
+            return response
+        
+        # ===============================
+        # END SECURITY MIDDLEWARE
+        # ===============================
         
         # Mount static files
         app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
         templates = Jinja2Templates(directory=str(self.templates_dir))
+        
+        # Include RCL-2 routes
+        try:
+            from lollmsbot.rcl2_routes import rcl2_router
+            app.include_router(rcl2_router)
+            logger.info("✅ RCL-2 routes enabled")
+        except ImportError as e:
+            logger.warning(f"RCL-2 routes not available: {e}")
         
         @app.on_event("startup")
         async def startup_event():
@@ -939,8 +1083,9 @@ window.chatApp = app;
                 "max_history": self.bot_config.max_history,
             })
         
-        @app.get("/health")
-        async def health():
+        @app.get("/health", tags=["ui"])
+        @limiter.limit("60/minute")  # Rate limit health checks
+        async def health(request: Request):
             return {
                 "status": "ok",
                 "ui": "running",
@@ -950,11 +1095,16 @@ window.chatApp = app;
                 "pending_files": len(self._pending_files),
             }
         
-        @app.get("/download/{file_id}")
-        async def download_file(file_id: str):
+        @app.get("/download/{file_id}", tags=["ui"])
+        @limiter.limit("30/minute")  # Rate limit downloads
+        async def download_file(file_id: str, request: Request):
             """Download a generated file by its temporary ID."""
+            # Input validation (C04 fix)
+            if not file_id.isalnum() or len(file_id) != 16:
+                raise HTTPException(status_code=400, detail="Invalid file ID format")
+            
             if file_id not in self._pending_files:
-                return {"error": "File not found or expired"}, 404
+                raise HTTPException(status_code=404, detail="File not found or expired")
             
             pending = self._pending_files[file_id]
             
@@ -962,12 +1112,12 @@ window.chatApp = app;
             file_path = Path(pending.file_path)
             if not file_path.exists():
                 del self._pending_files[file_id]
-                return {"error": "File no longer available"}, 404
+                raise HTTPException(status_code=404, detail="File no longer available")
             
             # Check expiration
             if pending.is_expired(self._file_ttl_seconds):
                 del self._pending_files[file_id]
-                return {"error": "File download link has expired"}, 410
+                raise HTTPException(status_code=410, detail="File download link has expired")
             
             return FileResponse(
                 path=str(file_path),
@@ -975,9 +1125,14 @@ window.chatApp = app;
                 media_type=pending.content_type or "application/octet-stream",
             )
         
-        @app.get("/files/list")
-        async def list_files(user_id: Optional[str] = Query(None)):
+        @app.get("/files/list", tags=["ui"])
+        @limiter.limit("60/minute")
+        async def list_files(request: Request, user_id: Optional[str] = Query(None)):
             """List pending files."""
+            # Input validation (C04 fix)
+            if user_id and not user_id.replace(":", "").replace("_", "").isalnum():
+                raise HTTPException(status_code=400, detail="Invalid user_id format")
+            
             files = []
             for file_id, pending in self._pending_files.items():
                 if user_id is None or pending.user_id == user_id:

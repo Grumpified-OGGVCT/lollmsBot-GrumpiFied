@@ -2,7 +2,7 @@
 from __future__ import annotations
 import os
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from dotenv import load_dotenv
 import json
@@ -93,7 +93,7 @@ class MultiProviderConfig:
 @dataclass
 class LollmsSettings:
     """LoLLMS connection settings."""
-    host_address: str = field(default="http://localhost:9600")
+    host_address: str = field(default="http://localhost:57960")
     api_key: Optional[str] = field(default=None)
     verify_ssl: bool = field(default=True)
     binding_name: Optional[str] = field(default=None)
@@ -105,7 +105,7 @@ class LollmsSettings:
         """Load from environment variables."""
         global console
         return cls(
-            host_address=os.getenv("LOLLMS_HOST_ADDRESS", "http://localhost:9600"),
+            host_address=os.getenv("LOLLMS_HOST_ADDRESS", "http://localhost:57960"),
             api_key=os.getenv("LOLLMS_API_KEY"),
             verify_ssl=_get_bool("LOLLMS_VERIFY_SSL", True),
             binding_name=os.getenv("LOLLMS_BINDING_NAME"),
@@ -126,7 +126,7 @@ class LollmsSettings:
             if lollms_data.get("host_address"):
                 console.print("[green]📡 Using wizard config![/]" if console else "Using wizard config")
                 return cls(
-                    host_address=lollms_data.get("host_address", "http://localhost:9600"),
+                    host_address=lollms_data.get("host_address", "http://localhost:57960"),
                     api_key=lollms_data.get("api_key"),
                     verify_ssl=_get_bool(str(lollms_data.get("verify_ssl", True))),
                     binding_name=lollms_data.get("binding_name"),
@@ -154,4 +154,35 @@ class GatewaySettings:
             host=os.getenv("LOLLMSBOT_HOST", "localhost"),
             port=int(os.getenv("LOLLMSBOT_PORT", "8800")),
             cors_origins=cors_origins,
+        )
+
+
+@dataclass
+class AwesomeSkillsConfig:
+    """Awesome Claude Skills integration configuration."""
+    enabled: bool = field(default=True)  # Enable awesome-claude-skills integration
+    auto_update: bool = field(default=True)  # Auto-update repository on startup
+    repo_url: str = field(default="https://github.com/Grumpified-OGGVCT/awesome-claude-skills.git")
+    skills_dir: Optional[Path] = field(default=None)  # Directory for skills (default: ~/.lollmsbot/awesome-skills)
+    enabled_skills: List[str] = field(default_factory=list)  # List of enabled skill names
+    auto_load: bool = field(default=True)  # Auto-load enabled skills on startup
+    
+    @classmethod
+    def from_env(cls) -> "AwesomeSkillsConfig":
+        """Load from environment variables."""
+        # Parse enabled skills from comma-separated list
+        enabled_skills_env = os.getenv("AWESOME_SKILLS_ENABLED", "")
+        enabled_skills = [s.strip() for s in enabled_skills_env.split(",") if s.strip()]
+        
+        # Parse skills directory
+        skills_dir_env = os.getenv("AWESOME_SKILLS_DIR")
+        skills_dir = Path(skills_dir_env) if skills_dir_env else None
+        
+        return cls(
+            enabled=_get_bool("AWESOME_SKILLS_ENABLED_FLAG", True),
+            auto_update=_get_bool("AWESOME_SKILLS_AUTO_UPDATE", True),
+            repo_url=os.getenv("AWESOME_SKILLS_REPO_URL", "https://github.com/Grumpified-OGGVCT/awesome-claude-skills.git"),
+            skills_dir=skills_dir,
+            enabled_skills=enabled_skills,
+            auto_load=_get_bool("AWESOME_SKILLS_AUTO_LOAD", True),
         )

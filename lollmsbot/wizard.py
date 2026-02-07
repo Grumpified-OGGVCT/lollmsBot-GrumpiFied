@@ -63,7 +63,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🔗 LoLLMS (Default)",
         category="remote",
         description="LoLLMS WebUI - Local or remote LoLLMS server",
-        default_host="http://localhost:9600",
+        default_host="http://localhost:57960",
         requires_api_key=False,  # Optional for local, required for remote
         supports_ssl_verify=True,
         default_model=None,
@@ -143,7 +143,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🦙 Ollama",
         category="local_server",
         description="Ollama local LLM server",
-        default_host="http://localhost:11434",
+        default_host="http://localhost:57114",
         requires_api_key=False,  # Local by default, key optional for proxy
         supports_ssl_verify=False,  # Usually local
         default_model="llama3.2",
@@ -183,7 +183,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="📡 LiteLLM",
         category="remote",
         description="LiteLLM proxy/gateway",
-        default_host="http://localhost:4000",
+        default_host="http://localhost:57400",
         requires_api_key=True,
         supports_ssl_verify=True,
         default_model=None,
@@ -203,7 +203,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🔧 OpenLLM",
         category="local_server",
         description="BentoML OpenLLM serving",
-        default_host="http://localhost:3000",
+        default_host="http://localhost:57300",
         requires_api_key=False,
         supports_ssl_verify=True,
         default_model=None,
@@ -213,7 +213,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🌟 OpenWebUI",
         category="local_server",
         description="OpenWebUI backend",
-        default_host="http://localhost:8080",
+        default_host="http://localhost:57080",
         requires_api_key=True,  # OpenWebUI uses API keys
         supports_ssl_verify=True,
         default_model=None,
@@ -224,7 +224,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🦙 Llama.cpp (Server)",
         category="local_server",
         description="llama.cpp server mode (local)",
-        default_host="http://localhost:8080",
+        default_host="http://localhost:57080",
         requires_api_key=False,
         supports_ssl_verify=False,
         requires_models_path=True,
@@ -235,7 +235,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🔥 vLLM",
         category="local_server",
         description="vLLM high-throughput inference",
-        default_host="http://localhost:8000",
+        default_host="http://localhost:57000",
         requires_api_key=False,
         supports_ssl_verify=True,
         requires_models_path=False,
@@ -480,7 +480,7 @@ class Wizard:
 
         # Host address (for remote and local_server)
         if binding_info.category in ("remote", "local_server"):
-            default_host = binding_info.default_host or "http://localhost:8080"
+            default_host = binding_info.default_host or "http://localhost:57080"
             current_host = lollms_config.get("host_address", default_host)
             host_address = questionary.text(
                 "Host address / API endpoint",
@@ -1202,9 +1202,17 @@ class Wizard:
             
             console.print(table)
             
+            # Check awesome-claude-skills status
+            awesome_status = self._get_awesome_skills_status()
+            if awesome_status['available']:
+                console.print(f"\n[green]✅ Awesome-Claude-Skills: {awesome_status['loaded']} skills loaded[/green]")
+            else:
+                console.print("\n[yellow]⚠️ Awesome-Claude-Skills: Not configured[/yellow]")
+            
             action = questionary.select(
                 "Skills action:",
                 choices=[
+                    "🌟 Awesome Claude Skills (Integration)",
                     "🔍 Browse & Search Skills",
                     "📖 View Skill Details",
                     "🧪 Test Skill Execution",
@@ -1216,7 +1224,9 @@ class Wizard:
                 ]
             ).ask()
             
-            if action == "🔍 Browse & Search Skills":
+            if action == "🌟 Awesome Claude Skills (Integration)":
+                self._configure_awesome_skills()
+            elif action == "🔍 Browse & Search Skills":
                 self._browse_skills()
             elif action == "📖 View Skill Details":
                 self._view_skill_details()
@@ -1641,6 +1651,307 @@ class Wizard:
         }
         
         self._save_config()
+    
+    def _get_awesome_skills_status(self) -> Dict[str, Any]:
+        """Get status of awesome-claude-skills integration."""
+        try:
+            from lollmsbot.skills import get_awesome_skills_integration
+            
+            integration = get_awesome_skills_integration()
+            if not integration or not integration.is_available():
+                return {"available": False, "loaded": 0}
+            
+            info = integration.get_repository_info()
+            return {
+                "available": True,
+                "loaded": info.get("loaded_skills_count", 0),
+                "total": info.get("skills_count", 0),
+            }
+        except Exception:
+            return {"available": False, "loaded": 0}
+    
+    def _configure_awesome_skills(self) -> None:
+        """Configure awesome-claude-skills integration."""
+        try:
+            from lollmsbot.skills import get_awesome_skills_integration
+            
+            console.print("\n[bold cyan]🌟 Awesome Claude Skills Integration[/bold cyan]")
+            console.print("[dim]27+ production-ready AI workflows from the community[/dim]\n")
+            
+            integration = get_awesome_skills_integration()
+            
+            if not integration or not integration.is_available():
+                # Enable awesome-claude-skills
+                enable = questionary.confirm(
+                    "Awesome-claude-skills is not enabled. Enable it now?",
+                    default=True
+                ).ask()
+                
+                if enable:
+                    console.print("[yellow]Enabling awesome-claude-skills...[/yellow]")
+                    console.print("[dim]This will clone the repository to ~/.lollmsbot/awesome-skills[/dim]")
+                    
+                    # Update config in memory
+                    self.config.setdefault("awesome_skills", {})
+                    self.config["awesome_skills"]["enabled"] = True
+                    self._save_config()
+                    
+                    # Persist to .env file for environment-based loading
+                    env_path = Path.home() / ".lollmsbot" / ".env"
+                    env_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Read existing .env or create new
+                    env_lines = []
+                    if env_path.exists():
+                        with open(env_path, 'r') as f:
+                            env_lines = f.readlines()
+                    
+                    # Update or add AWESOME_SKILLS_ENABLED
+                    found = False
+                    for i, line in enumerate(env_lines):
+                        if line.startswith('AWESOME_SKILLS_ENABLED='):
+                            env_lines[i] = 'AWESOME_SKILLS_ENABLED=true\n'
+                            found = True
+                            break
+                    
+                    if not found:
+                        env_lines.append('AWESOME_SKILLS_ENABLED=true\n')
+                    
+                    # Write back to .env
+                    with open(env_path, 'w') as f:
+                        f.writelines(env_lines)
+                    
+                    console.print("[green]✅ Awesome-claude-skills enabled![/green]")
+                    console.print(f"[dim]Configuration saved to {env_path}[/dim]")
+                    console.print("[yellow]Please restart the wizard to load skills.[/yellow]")
+                    return
+                else:
+                    return
+            
+            # Show current status
+            info = integration.get_repository_info()
+            console.print(f"[green]Repository: {info.get('url')}[/green]")
+            console.print(f"[green]Local path: {info.get('path')}[/green]")
+            console.print(f"[green]Total skills: {info.get('skills_count', 0)}[/green]")
+            console.print(f"[green]Loaded skills: {info.get('loaded_skills_count', 0)}[/green]\n")
+            
+            while True:
+                action = questionary.select(
+                    "What would you like to do?",
+                    choices=[
+                        "🔍 Browse Available Skills",
+                        "🔎 Search for Skills",
+                        "📥 Install/Enable Skills",
+                        "📤 Uninstall/Disable Skills",
+                        "🔄 Update Repository",
+                        "ℹ️ View Repository Info",
+                        "🔙 Back",
+                    ]
+                ).ask()
+                
+                if action == "🔍 Browse Available Skills":
+                    self._browse_awesome_skills(integration)
+                elif action == "🔎 Search for Skills":
+                    self._search_awesome_skills(integration)
+                elif action == "📥 Install/Enable Skills":
+                    self._install_awesome_skills(integration)
+                elif action == "📤 Uninstall/Disable Skills":
+                    self._uninstall_awesome_skills(integration)
+                elif action == "🔄 Update Repository":
+                    self._update_awesome_skills(integration)
+                elif action == "ℹ️ View Repository Info":
+                    self._show_awesome_skills_info(integration)
+                else:
+                    break
+                    
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+    
+    def _browse_awesome_skills(self, integration) -> None:
+        """Browse available awesome-claude-skills."""
+        MAX_DISPLAY_SKILLS = 20
+        
+        # Get categories
+        categories = integration.get_categories()
+        
+        category = questionary.select(
+            "Select a category:",
+            choices=["All"] + categories
+        ).ask()
+        
+        # Get skills
+        if category == "All":
+            skills = integration.list_available_skills()
+        else:
+            skills = integration.list_available_skills(category=category)
+        
+        if not skills:
+            console.print("[yellow]No skills found in this category.[/yellow]")
+            return
+        
+        # Display skills
+        table = Table(title=f"{category} Skills ({len(skills)} total)", box=box.ROUNDED)
+        table.add_column("Name", style="cyan")
+        table.add_column("Tier", style="magenta")
+        table.add_column("Description", style="dim", max_width=50)
+        table.add_column("Status", style="green")
+        
+        desc_limit = 47
+        for skill in skills[:MAX_DISPLAY_SKILLS]:
+            status = "✅" if skill.name in integration.loaded_skills else "⭕"
+            truncated_desc = skill.description[:desc_limit] + "..." if len(skill.description) > desc_limit else skill.description
+            table.add_row(
+                skill.name,
+                skill.tier,
+                truncated_desc,
+                status
+            )
+        
+        console.print(table)
+        
+        if len(skills) > MAX_DISPLAY_SKILLS:
+            console.print(f"\n[dim]... and {len(skills) - MAX_DISPLAY_SKILLS} more skills[/dim]")
+        
+        questionary.press_any_key_to_continue().ask()
+    
+    def _search_awesome_skills(self, integration) -> None:
+        """Search for awesome-claude-skills."""
+        query = questionary.text("Enter search query:").ask()
+        
+        if not query:
+            return
+        
+        results = integration.search_skills(query)
+        
+        if not results:
+            console.print("[yellow]No skills found.[/yellow]")
+            questionary.press_any_key_to_continue().ask()
+            return
+        
+        console.print(f"\n[green]Found {len(results)} skill(s):[/green]\n")
+        
+        for skill in results[:10]:
+            status = "✅ Loaded" if skill.name in integration.loaded_skills else "⭕ Available"
+            console.print(f"[bold cyan]• {skill.name}[/bold cyan] [{status}]")
+            console.print(f"  Category: {skill.category} | Tier: {skill.tier}")
+            console.print(f"  {skill.description}\n")
+        
+        if len(results) > 10:
+            console.print(f"[dim]... and {len(results) - 10} more results[/dim]")
+        
+        questionary.press_any_key_to_continue().ask()
+    
+    def _install_awesome_skills(self, integration) -> None:
+        """Install awesome-claude-skills."""
+        MAX_SELECTABLE_SKILLS = 30
+        
+        # Get available skills (not loaded)
+        all_skills = integration.list_available_skills()
+        available = [s for s in all_skills if s.name not in integration.loaded_skills]
+        
+        if not available:
+            console.print("[yellow]All skills are already loaded.[/yellow]")
+            questionary.press_any_key_to_continue().ask()
+            return
+        
+        # Select skills to install
+        choices = [f"{s.name} ({s.category})" for s in available[:MAX_SELECTABLE_SKILLS]]
+        
+        selected = questionary.checkbox(
+            "Select skills to install:",
+            choices=choices
+        ).ask()
+        
+        if not selected:
+            return
+        
+        # Extract skill names
+        skill_names = [s.split(" (")[0] for s in selected]
+        
+        # Install skills
+        console.print("\n[yellow]Installing skills...[/yellow]")
+        results = integration.batch_load_skills(skill_names)
+        
+        success_count = sum(1 for v in results.values() if v)
+        console.print(f"\n[green]✅ Installed {success_count}/{len(skill_names)} skills![/green]")
+        
+        questionary.press_any_key_to_continue().ask()
+    
+    def _uninstall_awesome_skills(self, integration) -> None:
+        """Uninstall awesome-claude-skills."""
+        loaded = list(integration.loaded_skills.keys())
+        
+        if not loaded:
+            console.print("[yellow]No skills are currently loaded.[/yellow]")
+            questionary.press_any_key_to_continue().ask()
+            return
+        
+        # Select skills to uninstall
+        selected = questionary.checkbox(
+            "Select skills to uninstall:",
+            choices=loaded
+        ).ask()
+        
+        if not selected:
+            return
+        
+        # Uninstall skills
+        console.print("\n[yellow]Uninstalling skills...[/yellow]")
+        success_count = 0
+        for skill_name in selected:
+            if integration.unload_skill(skill_name):
+                success_count += 1
+        
+        console.print(f"\n[green]✅ Uninstalled {success_count}/{len(selected)} skills![/green]")
+        
+        questionary.press_any_key_to_continue().ask()
+    
+    def _update_awesome_skills(self, integration) -> None:
+        """Update awesome-claude-skills repository."""
+        console.print("\n[yellow]Updating repository...[/yellow]")
+        
+        success = integration.update_repository()
+        
+        if success:
+            console.print("[green]✅ Repository updated successfully![/green]")
+            
+            # Reload skills
+            console.print("[yellow]Reloading skills...[/yellow]")
+            reloaded = integration.reload_all_skills()
+            console.print(f"[green]✅ Reloaded {reloaded} skill(s)![/green]")
+        else:
+            console.print("[red]❌ Failed to update repository.[/red]")
+        
+        questionary.press_any_key_to_continue().ask()
+    
+    def _show_awesome_skills_info(self, integration) -> None:
+        """Show awesome-claude-skills repository info."""
+        info = integration.get_repository_info()
+        
+        table = Table(title="Awesome Claude Skills Repository", box=box.ROUNDED)
+        table.add_column("Property", style="cyan")
+        table.add_column("Value", style="green")
+        
+        table.add_row("Repository", info.get("url", "N/A"))
+        table.add_row("Local Path", info.get("path", "N/A"))
+        table.add_row("Last Updated", info.get("last_updated", "N/A"))
+        table.add_row("Total Skills", str(info.get("skills_count", 0)))
+        table.add_row("Loaded Skills", str(info.get("loaded_skills_count", 0)))
+        
+        console.print(table)
+        
+        # Show ecosystem note if available
+        if info.get("note"):
+            console.print(f"\n[dim]{info.get('note')}[/dim]")
+        
+        if info.get("loaded_skills"):
+            console.print("\n[bold]Loaded Skills:[/bold]")
+            for skill in info["loaded_skills"][:10]:
+                console.print(f"  • {skill}")
+            if len(info["loaded_skills"]) > 10:
+                console.print(f"  [dim]... and {len(info['loaded_skills']) - 10} more[/dim]")
+        
+        questionary.press_any_key_to_continue().ask()
 
 
 # Entry point

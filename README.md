@@ -46,6 +46,8 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | Feature | Why It Matters |
 |--------|---------------|
 | **🧬 7-Pillar Architecture** | Soul, Guardian, Heartbeat, Memory, Skills, Tools, Identity — a complete cognitive framework |
+| **🧠 Self-Awareness System** | Introspection, meta-cognition, decision logging, pattern recognition with user-adjustable controls |
+| **🌟 Awesome Claude Skills** | Production-ready AI workflows from the community — dozens of specialized skills and growing |
 | **🔌 17+ LLM Backends** | Freedom to use OpenAI, Claude, Ollama, vLLM, Groq, Gemini, or any OpenAI-compatible API |
 | **🔀 Multi-Provider Routing** | Cost optimization with OpenRouter free tier + Ollama fallback (40-70% savings) |
 | **🧠 RC2 Sub-Agent** | Constitutional review (Byzantine consensus) and deep introspection capabilities |
@@ -61,6 +63,74 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
 | **📚 Skill System** | Reusable, versioned, composable capabilities with dependency management |
 | **🎮 File Generation** | Creates HTML games, Python scripts, data exports — with download delivery |
 | **💬 Multi-Channel** | Discord, Telegram, Web UI, HTTP API — same brain, different faces |
+
+### 🌟 NEW: Awesome Claude Skills Integration
+
+lollmsBot now includes **production-ready AI workflows** from [awesome-claude-skills](https://github.com/Grumpified-OGGVCT/awesome-claude-skills):
+
+- **📄 Document Processing**: PDF, Word, Excel, PowerPoint manipulation
+- **💻 Development Tools**: Changelog generation, MCP builders, code review
+- **💼 Business & Marketing**: Domain brainstorming, lead research, competitive analysis
+- **✍️ Communication**: Meeting analysis, content writing, internal comms
+- **🎨 Creative & Media**: Image enhancement, design, themes
+- **📊 Productivity**: File organization, invoice management, raffle tools
+
+The repository contains dozens of skills with new ones added regularly. The ecosystem includes **50+ total workflows** when including community-contributed external skills.
+
+**Quick Start:**
+```bash
+lollmsbot skills list              # Browse available skills
+lollmsbot skills search pdf         # Find specific skills
+lollmsbot skills install pdf        # Enable a skill
+lollmsbot wizard                    # Interactive management
+```
+
+**[📖 Full Documentation](AWESOME_SKILLS_GUIDE.md)** | **[🌐 Skills Repository](https://github.com/Grumpified-OGGVCT/awesome-claude-skills)**
+
+### 🧠 NEW: Self-Awareness & Introspection
+
+lollmsBot now has comprehensive **self-awareness capabilities** with user-adjustable controls:
+
+**Features:**
+- **State Tracking** - Monitor internal state in real-time
+- **Decision Logging** - Record all decisions with reasoning & confidence
+- **Pattern Recognition** - Identify behavioral patterns automatically
+- **On-Demand Introspection** - Query internal state anytime
+- **Meta-Cognition** - Think about thinking (configurable depth 1-10)
+- **Reflection Loops** - Periodic self-analysis
+- **Goal Tracking** - Awareness of active goals and motivations
+
+**Awareness Levels** (user-selectable):
+- **MINIMAL** (0): Basic state tracking
+- **LOW** (2): + Decision logging
+- **MODERATE** (5): + Pattern recognition (DEFAULT)
+- **HIGH** (7): + Real-time introspection
+- **MAXIMUM** (10): + Full meta-cognition
+
+**Safety Restraints:**
+- Introspection depth limits (prevents infinite loops)
+- Timeout protection (default: 5 seconds)
+- Confidence thresholds (flags low-confidence decisions)
+- Resource limits (caps history size)
+- Per-feature toggles (fine-grained control)
+
+**Quick Start:**
+```bash
+lollmsbot introspect status                  # Show awareness status
+lollmsbot introspect state                   # Current internal state
+lollmsbot introspect decisions               # Recent decisions
+lollmsbot introspect patterns                # Behavioral patterns
+lollmsbot introspect query "Why did I...?"   # Ask introspective questions
+```
+
+**Configuration:**
+```bash
+# In .env
+SELF_AWARENESS_LEVEL=MODERATE    # MINIMAL, LOW, MODERATE, HIGH, MAXIMUM
+SELF_AWARENESS_MAX_DEPTH=3       # Meta-reasoning depth (1-10)
+```
+
+**[📖 Full Documentation](SELF_AWARENESS_GUIDE.md)**
 
 ---
 
@@ -107,8 +177,8 @@ cp .env.example .env
 # Edit .env with your settings, then:
 docker-compose up -d
 
-# lollmsBot: http://localhost:8800
-# LoLLMS UI: http://localhost:9642 (if using bundled stack)
+# lollmsBot: http://localhost:57800
+# LoLLMS UI: http://localhost:57964 (if using bundled stack)
 ```
 
 ### Option 3: One-Line Test
@@ -560,7 +630,7 @@ LOLLMS_MODEL_NAME=gpt-4o-mini
 
 # Ollama (local)
 LOLLMS_BINDING_NAME=ollama
-LOLLMS_HOST_ADDRESS=http://localhost:11434
+LOLLMS_HOST_ADDRESS=http://localhost:57114
 LOLLMS_MODEL_NAME=llama3.2
 
 # Claude (cloud)
@@ -828,7 +898,7 @@ registry.register(skill)
 ### Example API Call
 
 ```bash
-curl -X POST http://localhost:8800/chat \
+curl -X POST http://localhost:57800/chat \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "developer_001",
@@ -1011,7 +1081,7 @@ $ lollmsbot status
 ### Single Container (Local)
 
 ```bash
-docker run -p 127.0.0.1:8800:8800 \
+docker run -p 127.0.0.1:57800:8800 \
   -v $(pwd)/.env:/app/.env:ro \
   -v lollmsbot-data:/app/data \
   ghcr.io/parisneo/lollmsbot:latest
@@ -1027,7 +1097,7 @@ services:
     build: .
     ports: ["8800:8800"]
     environment:
-      - LOLLMS_HOST_ADDRESS=http://lollms:9600
+      - LOLLMS_HOST_ADDRESS=http://lollms:57960
       - DISCORD_BOT_TOKEN=${DISCORD_TOKEN}
   
   lollms:
