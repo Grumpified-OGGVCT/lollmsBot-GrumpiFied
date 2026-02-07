@@ -51,7 +51,7 @@
 
 Most AI assistants are **black boxes** — you send a message, get a response, but have no idea what happened in between. lollmsBot is the **first AI system** that can:
 
-- **Show you its thinking process** (System 1 intuitions + System 2 deliberation)
+- **Show you its thinking process** (System 1 intuition + System 2 deliberation)
 - **Explain its decisions** with full reasoning and confidence scores
 - **Debate with itself** through a 5-member Reflective Council (Guardian, Epistemologist, Strategist, Empath, Historian)
 - **Predict its own performance** using a cognitive digital twin
@@ -1003,24 +1003,24 @@ skill = Skill(
 
 ```bash
 # View cognitive state
-curl http://localhost:57500/rcl2/state
+curl http://localhost:57800/rcl2/state
 
 # Adjust restraint
-curl -X POST http://localhost:57500/rcl2/restraints \
+curl -X POST http://localhost:57800/rcl2/restraints \
   -H "Content-Type: application/json" \
   -d '{"dimension": "hallucination_resistance", "value": 0.9}'
 
 # View council history
-curl http://localhost:57500/rcl2/council?limit=10
+curl http://localhost:57800/rcl2/council?limit=10
 
 # Check cognitive debt
-curl http://localhost:57500/rcl2/debt
+curl http://localhost:57800/rcl2/debt
 
 # Verify audit trail integrity
-curl http://localhost:57500/rcl2/audit/verify
+curl http://localhost:57800/rcl2/audit/verify
 ```
 
-**[📖 Interactive API Docs](http://localhost:57500/docs)** (when running)
+**[📖 Interactive API Docs](http://localhost:57800/docs)** (when running)
 
 ---
 
