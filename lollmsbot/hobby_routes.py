@@ -739,3 +739,293 @@ async def auto_distribute_hobbies(num_assignments: int = Query(default=3, ge=1, 
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to distribute hobbies")
+
+
+# ========================================================================
+# Phase 3B: LoRA Training Pipeline Endpoints
+# ========================================================================
+
+class TrainingJobRequest(BaseModel):
+    """Request to create a training job"""
+    days_back: int = Field(default=30, ge=1, le=365, description="Days of activity history to use")
+    min_quality: float = Field(default=0.6, ge=0.0, le=1.0, description="Minimum quality score")
+    model_name: str = Field(default="base_model", description="Base model name")
+    num_epochs: int = Field(default=3, ge=1, le=10, description="Number of training epochs")
+    learning_rate: float = Field(default=3e-4, ge=1e-6, le=1e-2, description="Learning rate")
+
+
+@router.post(
+    "/lora/train",
+    summary="Start LoRA Training",
+    description="""
+    Create and start a LoRA training job using insights from hobby activities.
+    
+    This extracts training data from recent hobby activities and fine-tunes
+    a LoRA adapter to improve the model's performance on learned patterns.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def start_lora_training(request: TrainingJobRequest) -> Dict[str, Any]:
+    """Start a new LoRA training job."""
+    try:
+        from lollmsbot.hobby_training_data import extract_training_data_from_manager
+        from lollmsbot.hobby_lora import get_lora_manager, TrainingConfig
+        from pathlib import Path
+        
+        manager = get_hobby_manager()
+        lora_manager = get_lora_manager()
+        
+        # Extract training data
+        examples, stats = extract_training_data_from_manager(
+            manager,
+            days_back=request.days_back,
+            min_quality=request.min_quality
+        )
+        
+        if len(examples) < 10:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient training data: only {len(examples)} examples found (minimum 10 required)"
+            )
+        
+        # Export to JSON
+        data_path = lora_manager.storage_path / "training_data" / f"data_{int(time.time())}.json"
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        from lollmsbot.hobby_training_data import TrainingDataExtractor
+        extractor = TrainingDataExtractor()
+        extractor.export_to_json(examples, data_path, format_type="alpaca")
+        
+        # Create training config
+        config = TrainingConfig(
+            model_name=request.model_name,
+            num_epochs=request.num_epochs,
+            learning_rate=request.learning_rate
+        )
+        
+        # Create training job
+        job = lora_manager.create_training_job(
+            data_path=data_path,
+            num_examples=len(examples),
+            config=config,
+            metadata={
+                "days_back": request.days_back,
+                "min_quality": request.min_quality,
+                "data_stats": stats
+            }
+        )
+        
+        # Start training asynchronously
+        import asyncio
+        asyncio.create_task(lora_manager.start_training(job.job_id))
+        
+        return {
+            "status": "started",
+            "job": job.to_dict(),
+            "data_stats": stats,
+            "message": f"Started training job {job.job_id} with {len(examples)} examples"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to start training")
+
+
+@router.get(
+    "/lora/jobs/{job_id}",
+    summary="Get Training Job Status",
+    description="Get detailed status and metrics for a training job.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_training_job_status(job_id: str) -> Dict[str, Any]:
+    """Get training job status."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager
+        
+        lora_manager = get_lora_manager()
+        job = lora_manager.get_training_job(job_id)
+        
+        if not job:
+            raise HTTPException(status_code=404, detail=f"Training job {job_id} not found")
+        
+        return job.to_dict()
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get training job")
+
+
+@router.get(
+    "/lora/jobs",
+    summary="List Training Jobs",
+    description="List all training jobs with optional status filter.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def list_training_jobs(
+    status: str = Query(default=None, description="Filter by status"),
+    limit: int = Query(default=50, ge=1, le=100)
+) -> Dict[str, Any]:
+    """List training jobs."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager, TrainingStatus
+        
+        lora_manager = get_lora_manager()
+        
+        filter_status = None
+        if status:
+            try:
+                filter_status = TrainingStatus(status)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+        
+        jobs = lora_manager.list_training_jobs(status=filter_status, limit=limit)
+        
+        return {
+            "jobs": [job.to_dict() for job in jobs],
+            "count": len(jobs)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to list training jobs")
+
+
+@router.get(
+    "/lora/adapters",
+    summary="List LoRA Adapters",
+    description="List all trained LoRA adapters with optional status filter.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def list_lora_adapters(
+    status: str = Query(default=None, description="Filter by status"),
+    limit: int = Query(default=50, ge=1, le=100)
+) -> Dict[str, Any]:
+    """List LoRA adapters."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager, AdapterStatus
+        
+        lora_manager = get_lora_manager()
+        
+        filter_status = None
+        if status:
+            try:
+                filter_status = AdapterStatus(status)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+        
+        adapters = lora_manager.list_adapters(status=filter_status, limit=limit)
+        
+        return {
+            "adapters": [adapter.to_dict() for adapter in adapters],
+            "count": len(adapters),
+            "active_adapter_id": lora_manager.active_adapter_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to list adapters")
+
+
+@router.post(
+    "/lora/adapters/{adapter_id}/activate",
+    summary="Activate LoRA Adapter",
+    description="Set a LoRA adapter as the active adapter for inference.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def activate_lora_adapter(adapter_id: str) -> Dict[str, Any]:
+    """Activate a LoRA adapter."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager
+        
+        lora_manager = get_lora_manager()
+        lora_manager.set_active_adapter(adapter_id)
+        
+        return {
+            "status": "activated",
+            "adapter_id": adapter_id,
+            "message": f"Activated adapter {adapter_id}"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to activate adapter")
+
+
+@router.post(
+    "/lora/adapters/{adapter_id}/archive",
+    summary="Archive LoRA Adapter",
+    description="Archive a LoRA adapter (removes it from active use).",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def archive_lora_adapter(adapter_id: str) -> Dict[str, Any]:
+    """Archive a LoRA adapter."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager
+        
+        lora_manager = get_lora_manager()
+        lora_manager.archive_adapter(adapter_id)
+        
+        return {
+            "status": "archived",
+            "adapter_id": adapter_id,
+            "message": f"Archived adapter {adapter_id}"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to archive adapter")
+
+
+@router.get(
+    "/lora/compare",
+    summary="Compare LoRA Adapters",
+    description="""
+    Compare two LoRA adapters for A/B testing.
+    
+    Returns metrics comparison and recommendation on which adapter to use.
+    """,
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def compare_lora_adapters(
+    adapter1: str = Query(..., description="First adapter ID"),
+    adapter2: str = Query(..., description="Second adapter ID")
+) -> Dict[str, Any]:
+    """Compare two LoRA adapters."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager
+        
+        lora_manager = get_lora_manager()
+        comparison = lora_manager.compare_adapters(adapter1, adapter2)
+        
+        return comparison
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to compare adapters")
+
+
+@router.get(
+    "/lora/stats",
+    summary="Get LoRA Training Statistics",
+    description="Get overall statistics for LoRA training system.",
+    dependencies=[Depends(rate_limit_dependency)]
+)
+async def get_lora_stats() -> Dict[str, Any]:
+    """Get LoRA training statistics."""
+    try:
+        from lollmsbot.hobby_lora import get_lora_manager
+        
+        lora_manager = get_lora_manager()
+        stats = lora_manager.get_statistics()
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get LoRA statistics")
