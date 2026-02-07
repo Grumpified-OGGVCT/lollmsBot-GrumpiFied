@@ -19,27 +19,27 @@
 
 ## 📋 Table of Contents
 
-- [🎯 What is lollmsBot?](#-what-is-lollmsbot)
-- [🌟 What Makes It Special?](#-what-makes-it-special)
-- [🧠 RCL-2: Reflective Consciousness Layer](#-rcl-2-reflective-consciousness-layer)
+- [🎯 What is lollmsBot?](#what-is-lollmsbot)
+- [🌟 What Makes It Special?](#what-makes-it-special)
+- [🧠 RCL-2: Reflective Consciousness Layer](#rcl-2-reflective-consciousness-layer)
   - [Dual-Process Cognition (System 1 & 2)](#dual-process-cognition-system-1--2)
   - [Constitutional Restraints](#constitutional-restraints)
   - [Reflective Council](#reflective-council)
   - [Cognitive Digital Twin](#cognitive-digital-twin)
   - [Cognitive Debt Management](#cognitive-debt-management)
-- [🌟 Awesome Claude Skills](#-awesome-claude-skills)
-- [🔀 Multi-Provider API Routing](#-multi-provider-api-routing)
-- [🧬 The 7 Pillars](#-the-7-pillars)
-- [🚀 Quick Start](#-quick-start)
-- [🎮 Interactive Examples](#-interactive-examples)
-- [📋 Configuration Guide](#-configuration-guide)
-- [🔒 Security & Production Hardening](#-security--production-hardening)
-- [🛠️ Development & Extension](#-development--extension)
-- [📊 API Reference](#-api-reference)
-- [🐳 Docker Deployment](#-docker-deployment)
-- [🤝 Contributing](#-contributing)
-- [📚 Documentation](#-documentation)
-- [📄 License](#-license)
+- [🌟 Awesome Claude Skills](#awesome-claude-skills)
+- [🔀 Multi-Provider API Routing](#multi-provider-api-routing)
+- [🧬 The 7 Pillars](#the-7-pillars)
+- [🚀 Quick Start](#quick-start)
+- [🎮 Interactive Examples](#interactive-examples)
+- [📋 Configuration Guide](#configuration-guide)
+- [🔒 Security & Production Hardening](#security--production-hardening)
+- [🛠️ Development & Extension](#development--extension)
+- [📊 API Reference](#api-reference)
+- [🐳 Docker Deployment](#docker-deployment)
+- [🤝 Contributing](#contributing)
+- [📚 Documentation](#documentation)
+- [📄 License](#license)
 
 ---
 
@@ -128,8 +128,8 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
    - Peace of mind (cryptographic proof of integrity)
 
 2. **🤝 How do I interact with it?**
-   - GUI Dashboard (6 comprehensive tabs)
-   - CLI Commands (`lollmsbot cognitive`, `lollmsbot council`, etc.)
+   - GUI Dashboard (via Web UI at http://localhost:57800)
+   - CLI Commands (`lollmsbot gateway`, `lollmsbot wizard`, `lollmsbot introspect`, `lollmsbot status`)
    - REST API + WebSocket (programmatic access)
 
 3. **📊 What results will I see?**
@@ -845,25 +845,14 @@ lollmsbot wizard → "🔗 AI Backend"
 ### Step 2: RCL-2 Configuration
 
 ```bash
-# Core RCL-2 settings
-RCL2_ENABLED=true
-RCL2_COGNITIVE_CORE=true
-RCL2_CONSTITUTIONAL_RESTRAINTS=true
-RCL2_REFLECTIVE_COUNCIL=true
-RCL2_COGNITIVE_TWIN=true
-RCL2_COGNITIVE_DEBT_ENABLED=true
-
 # Constitutional Restraints (0.0-1.0)
 RESTRAINT_HALLUCINATION_RESISTANCE=0.7
 RESTRAINT_TRANSPARENCY_LEVEL=0.6
-RESTRAINT_GOAL_INFERENCE_AUTONOMY=0.4
+RESTRAINT_GOAL_AUTONOMY=0.4
 
-# Cognitive Debt
-RCL2_DEBT_REPAYMENT_INTERVAL=300.0  # seconds
-SELF_AWARENESS_MIN_CONFIDENCE=0.8   # threshold
-
-# Council
-RCL2_COUNCIL_ENABLED=true
+# Self-Awareness
+SELF_AWARENESS_ENABLED=true
+SELF_AWARENESS_LEVEL=MODERATE  # MINIMAL, LOW, MODERATE, HIGH, MAXIMUM
 ```
 
 ### Step 3: Multi-Provider (Optional)
@@ -990,11 +979,16 @@ skill = Skill(
 |----------|--------|-------------|
 | `/health` | GET | System status with RCL-2 state |
 | `/chat` | POST | Send message, get response |
-| `/rcl2/state` | GET | Current cognitive state |
-| `/rcl2/restraints` | GET/POST | View/modify restraints |
-| `/rcl2/council` | GET | Council history |
-| `/rcl2/debt` | GET | Cognitive debt queue |
-| `/rcl2/audit` | GET | Audit trail with integrity check |
+| `/rcl2/cognitive-state` | GET | Current cognitive state |
+| `/rcl2/restraints` | GET/POST | View/modify restraints (requires auth for modification) |
+| `/rcl2/council/status` | GET | Council status |
+| `/rcl2/council/deliberations` | GET | Council deliberation history |
+| `/rcl2/debt/repay` | POST | Trigger cognitive debt repayment |
+| `/rcl2/decisions` | GET | Decision history |
+| `/rcl2/cognitive-twin/health` | GET | Cognitive twin health status |
+| `/rcl2/cognitive-twin/predict/*` | GET | Various prediction endpoints |
+| `/rcl2/audit-trail` | GET | Audit trail |
+| `/rcl2/audit-trail/verify` | GET | Verify audit trail integrity |
 | `/rcl2/ws` | WebSocket | Real-time updates |
 | `/docs` | GET | SwaggerUI (interactive API docs) |
 | `/redoc` | GET | ReDoc (alternative docs) |
@@ -1003,21 +997,19 @@ skill = Skill(
 
 ```bash
 # View cognitive state
-curl http://localhost:57800/rcl2/state
+curl http://localhost:57800/rcl2/cognitive-state
 
-# Adjust restraint
-curl -X POST http://localhost:57800/rcl2/restraints \
-  -H "Content-Type: application/json" \
-  -d '{"dimension": "hallucination_resistance", "value": 0.9}'
+# View restraints
+curl http://localhost:57800/rcl2/restraints
 
-# View council history
-curl http://localhost:57800/rcl2/council?limit=10
+# View council deliberations
+curl http://localhost:57800/rcl2/council/deliberations?limit=10
 
 # Check cognitive debt
-curl http://localhost:57800/rcl2/debt
+curl http://localhost:57800/rcl2/decisions
 
 # Verify audit trail integrity
-curl http://localhost:57800/rcl2/audit/verify
+curl http://localhost:57800/rcl2/audit-trail/verify
 ```
 
 **[📖 Interactive API Docs](http://localhost:57800/docs)** (when running)
@@ -1029,11 +1021,13 @@ curl http://localhost:57800/rcl2/audit/verify
 ### Single Container
 
 ```bash
-docker run -p 127.0.0.1:57800:8800 \
+docker run -p 8800:8800 \
   -v $(pwd)/.env:/app/.env:ro \
   -v lollmsbot-data:/app/data \
   ghcr.io/parisneo/lollmsbot:latest
 ```
+
+**Note:** Access at http://localhost:8800
 
 ### Full Stack (with LoLLMS)
 
@@ -1043,17 +1037,19 @@ version: '3.8'
 services:
   lollmsbot:
     build: .
-    ports: ["57800:8800"]
+    ports: ["8800:8800"]
     environment:
-      - LOLLMS_HOST_ADDRESS=http://lollms:57960
-      - RCL2_ENABLED=true
+      - LOLLMSBOT_HOST=0.0.0.0
+      - LOLLMSBOT_PORT=8800
   
   lollms:
     image: ghcr.io/parisneo/lollms-webui:latest
-    ports: ["57964:9600"]
+    ports: ["7860:7860"]
     volumes:
       - lollms-models:/app/models
 ```
+
+**Note:** lollmsBot at http://localhost:8800, LoLLMS UI at http://localhost:7860
 
 ---
 
@@ -1134,15 +1130,19 @@ you may not use this file except in compliance with the License.
 
 ---
 
-## 🌟 What Users Say
+## 💬 Example Use Cases
 
-> "Finally, an AI I can actually understand and control. The council deliberations are fascinating!" - @developer
+**Multi-Channel AI Assistant:**
+> "Perfect for managing Discord communities with intelligent moderation and helpful responses."
 
-> "The cognitive debt feature is a game-changer. No more wondering if that quick answer was correct." - @researcher
+**Cost-Optimized Development:**
+> "The multi-provider routing saves significant costs while maintaining quality - essential for prototyping."
 
-> "Constitutional restraints let me tune the bot perfectly for my use case. Medical researcher here - high hallucination resistance is critical." - @medical_pro
+**Research & Analysis:**
+> "Constitutional restraints let me tune hallucination resistance high for medical research - critical feature."
 
-> "50+ skills ready to use out of the box? And I can adjust 12 personality dimensions? This is what AI should be." - @power_user
+**Production Systems:**
+> "50+ skills out of the box plus 12 configurable parameters means I can adapt it to any use case."
 
 ---
 

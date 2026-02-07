@@ -420,8 +420,8 @@ Transform lollmsBot into the world's most transparent, trustworthy, and user-con
 
 **Roadmap updates:**
 - This document updated monthly
-- Major changes announced in CHANGELOG.md
-- Community notified via GitHub Releases
+- Major changes announced via GitHub Releases
+- Community notified via GitHub Releases and pull requests
 
 ---
 
@@ -431,7 +431,7 @@ Transform lollmsBot into the world's most transparent, trustworthy, and user-con
 - **RCL2_STATUS.md** - Detailed RCL-2 phase breakdown
 - **README.md** - User-facing documentation
 - **CONTRIBUTING.md** - Contribution guidelines
-- **CHANGELOG.md** - Version history
+- **GitHub Releases** - Version history and release notes
 
 ---
 

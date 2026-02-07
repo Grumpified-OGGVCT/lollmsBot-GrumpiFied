@@ -26,7 +26,7 @@ All seven foundational pillars are **fully implemented and operational**:
 | **2. Guardian** | Security, ethics, prompt injection defense | `lollmsbot/guardian.py` | ✅ Complete |
 | **3. Heartbeat** | Self-maintenance, background tasks | `lollmsbot/heartbeat.py` | ✅ Complete |
 | **4. Memory** | Conversation history, compression, RAG | `lollmsbot/memory/` | ✅ Complete |
-| **5. Skills** | Reusable workflows, 50+ awesome-skills | `lollmsbot/skills.py`, `awesome_skills_*.py` | ✅ Complete |
+| **5. Skills** | Reusable workflows, 50+ awesome-skills | `lollmsbot/skills.py`, `lollmsbot/awesome_skills_manager.py`, `lollmsbot/awesome_skills_converter.py`, `lollmsbot/awesome_skills_integration.py` | ✅ Complete |
 | **6. Tools** | Filesystem, HTTP, Shell, Calendar, Browser | `lollmsbot/tools/` | ✅ Complete |
 | **7. Identity** | Multi-channel (Discord, Telegram, HTTP, Web) | `lollmsbot/channels/`, `lollmsbot/ui/` | ✅ Complete |
 
@@ -176,7 +176,7 @@ All seven foundational pillars are **fully implemented and operational**:
 
 #### ✅ Phase 2A: Cognitive Core (COMPLETE)
 
-**File:** `lollmsbot/cognitive_core.py` (620 lines)
+**File:** `lollmsbot/cognitive_core.py` (~507 lines)
 
 **Implemented:**
 - ✅ System 1 (Intuitive): 8 somatic markers (CONFIDENT, UNCERTAIN, ANXIOUS, etc.)
@@ -186,7 +186,7 @@ All seven foundational pillars are **fully implemented and operational**:
 
 #### ✅ Phase 2B: Constitutional Restraints (COMPLETE)
 
-**File:** `lollmsbot/constitutional_restraints.py` (730 lines)
+**File:** `lollmsbot/constitutional_restraints.py` (~636 lines)
 
 **Implemented:**
 - ✅ 12-dimensional control matrix (0.0-1.0 continuous sliders)
@@ -206,12 +206,12 @@ All seven foundational pillars are **fully implemented and operational**:
 8. `transparency_level` - Show reasoning vs black box
 9. `explanation_depth` - Detail level
 10. `self_modification_freedom` - Code rewriting capability 🔒
-11. `goal_inference_autonomy` - Proactive goal setting 🔒
+11. `goal_autonomy` - Proactive goal setting (env: `RESTRAINT_GOAL_AUTONOMY`) 🔒
 12. `memory_consolidation_rate` - Self-model update speed
 
 #### ✅ Phase 2D: Reflective Council (COMPLETE)
 
-**File:** `lollmsbot/reflective_council.py` (650 lines)
+**File:** `lollmsbot/reflective_council.py` (~569 lines)
 
 **Implemented:**
 - ✅ 5-member council (Guardian, Epistemologist, Strategist, Empath, Historian)
@@ -220,9 +220,9 @@ All seven foundational pillars are **fully implemented and operational**:
 - ✅ Escalation protocols for deadlocks
 - ✅ Complete audit trail of deliberations
 
-#### 🔄 Phase 2C: Cognitive Digital Twin (COMPLETE)
+#### ✅ Phase 2C: Cognitive Digital Twin (COMPLETE)
 
-**File:** `lollmsbot/cognitive_twin.py` (607 lines)
+**File:** `lollmsbot/cognitive_twin.py` (~607 lines)
 
 **Implemented:**
 - ✅ Latency predictor
@@ -374,7 +374,7 @@ The Sprint 2 spec describes:
 - Comprehensive guides: 12+
 
 **Tests:**
-- Test files: 10+
+- Test files: 6 root-level `test_*.py` files
 - Coverage: Core features tested
 
 ---
