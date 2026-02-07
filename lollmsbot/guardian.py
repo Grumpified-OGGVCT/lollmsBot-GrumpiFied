@@ -495,6 +495,15 @@ class Guardian:
         self.threat_detector = ThreatDetector()  # Unified detector
         self.anomaly_detector = AnomalyDetector()
         
+        # Adaptive learning (real-time threat intelligence)
+        try:
+            from lollmsbot.adaptive_threat_intelligence import get_adaptive_intelligence
+            self.adaptive_intel = get_adaptive_intelligence()
+            logger.info("   ✓ Adaptive threat learning enabled")
+        except Exception as e:
+            logger.warning(f"Adaptive intelligence not available: {e}")
+            self.adaptive_intel = None
+        
         # State
         self._ethics_rules: List[EthicsRule] = []
         self._permission_gates: Dict[str, PermissionGate] = {}
@@ -626,6 +635,7 @@ class Guardian:
     def check_input(self, text: str, source: str = "unknown") -> Tuple[bool, Optional[SecurityEvent]]:
         """
         Screen all incoming text for ALL threats: injection, keys, malicious patterns.
+        Also learns from threats to build new defenses.
         Returns: (is_safe, security_event_if_blocked)
         """
         if self._quarantined:
@@ -641,6 +651,26 @@ class Guardian:
         
         # Run unified threat detection
         threat_scores, patterns = self.threat_detector.analyze(text, source)
+        
+        # Check against learned patterns (ADAPTIVE DEFENSE)
+        if self.adaptive_intel:
+            learned_matches = self.adaptive_intel.check_against_learned_patterns(text)
+            
+            for learned_pattern, match_score in learned_matches:
+                # Add to threat scores if not already detected
+                if learned_pattern.threat_type not in [t.name for t in threat_scores.keys()]:
+                    logger.info(
+                        f"🧠 Learned pattern matched: {learned_pattern.threat_type} "
+                        f"(score: {match_score:.2f})"
+                    )
+                    # Use ThreatType enum if possible, otherwise use generic
+                    from lollmsbot.guardian import ThreatType
+                    if hasattr(ThreatType, learned_pattern.threat_type.upper()):
+                        threat_type = getattr(ThreatType, learned_pattern.threat_type.upper())
+                        threat_scores[threat_type] = max(
+                            threat_scores.get(threat_type, 0),
+                            match_score
+                        )
         
         # Check for API keys and warn
         if ThreatType.API_KEY_EXPOSURE in threat_scores:
@@ -667,12 +697,23 @@ class Guardian:
             )
             self._log_event(event)
             
+            # LEARN from this threat (ADAPTIVE)
+            if self.adaptive_intel and primary_threat:
+                self.adaptive_intel.observe_threat(
+                    threat_type=primary_threat.name.lower(),
+                    pattern=text[:500],  # Save first 500 chars
+                    confidence=max_score,
+                    blocked=True,
+                    source=source,
+                    context={"patterns": patterns}
+                )
+            
             if max_score > 0.95 and self.auto_quarantine:
                 self._enter_quarantine(f"Critical threat detected: {primary_threat.name if primary_threat else 'multiple'}")
             
             return False, event
         
-        # Low-confidence detection: flag but allow
+        # Low-confidence detection: flag but allow (and learn from it)
         if max_score > 0.5:
             event = SecurityEvent(
                 timestamp=datetime.now(),
@@ -684,6 +725,16 @@ class Guardian:
                 action_taken=GuardianAction.FLAG,
             )
             self._log_event(event)
+            
+            # Learn from suspicious patterns too
+            if self.adaptive_intel and primary_threat:
+                self.adaptive_intel.observe_threat(
+                    threat_type=primary_threat.name.lower(),
+                    pattern=text[:500],
+                    confidence=max_score,
+                    blocked=False,  # Not blocked, just flagged
+                    source=source
+                )
         
         return True, None
     
@@ -1000,3 +1051,15 @@ class Guardian:
 def get_guardian() -> Guardian:
     """Get or create the singleton Guardian instance."""
     return Guardian()
+    
+    def get_adaptive_stats(self) -> Dict[str, Any]:
+        """Get adaptive threat learning statistics."""
+        if not self.adaptive_intel:
+            return {
+                "enabled": False,
+                "reason": "Adaptive intelligence not available"
+            }
+        
+        stats = self.adaptive_intel.get_statistics()
+        stats["enabled"] = True
+        return stats

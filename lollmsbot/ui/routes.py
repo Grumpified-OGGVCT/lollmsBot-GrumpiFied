@@ -58,6 +58,9 @@ async def security_status() -> dict:
         # Get monitoring stats
         monitoring_stats = monitor.get_monitoring_stats()
         
+        # Get adaptive learning stats
+        adaptive_stats = guardian.get_adaptive_stats()
+        
         return {
             "status": "active",
             "quarantine_active": guardian.is_quarantined,
@@ -67,6 +70,7 @@ async def security_status() -> dict:
             "skill_scanning": True,
             "container_protection": True,
             "monitoring": monitoring_stats,
+            "adaptive_learning": adaptive_stats,
             "resource_usage": {
                 "event_history_size": len(guardian._event_history),
                 "max_events": guardian._max_history,
