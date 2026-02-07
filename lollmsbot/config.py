@@ -90,6 +90,31 @@ class MultiProviderConfig:
             ollama_enabled=_get_bool("OLLAMA_ENABLED", True),
         )
 
+
+@dataclass
+class AutonomousHobbyConfig:
+    """Autonomous hobby and continuous learning configuration."""
+    enabled: bool = field(default=True)  # Enable autonomous learning by default
+    interval_minutes: float = field(default=15.0)  # Check for hobby time every 15 minutes
+    idle_threshold_minutes: float = field(default=5.0)  # Start hobby after 5 minutes idle
+    max_hobby_duration_minutes: float = field(default=10.0)  # Max time per hobby session
+    focus_on_weaknesses: bool = field(default=True)  # Prioritize improving weak areas
+    variety_factor: float = field(default=0.3)  # How much to mix different hobbies
+    intensity_level: float = field(default=0.5)  # Learning intensity (0-1)
+    
+    @classmethod
+    def from_env(cls) -> "AutonomousHobbyConfig":
+        """Load from environment variables."""
+        return cls(
+            enabled=_get_bool("AUTONOMOUS_HOBBY_ENABLED", True),
+            interval_minutes=float(os.getenv("HOBBY_INTERVAL_MINUTES", "15.0")),
+            idle_threshold_minutes=float(os.getenv("HOBBY_IDLE_THRESHOLD_MINUTES", "5.0")),
+            max_hobby_duration_minutes=float(os.getenv("HOBBY_MAX_DURATION_MINUTES", "10.0")),
+            focus_on_weaknesses=_get_bool("HOBBY_FOCUS_WEAKNESSES", True),
+            variety_factor=float(os.getenv("HOBBY_VARIETY_FACTOR", "0.3")),
+            intensity_level=float(os.getenv("HOBBY_INTENSITY_LEVEL", "0.5")),
+        )
+
 @dataclass
 class LollmsSettings:
     """LoLLMS connection settings."""

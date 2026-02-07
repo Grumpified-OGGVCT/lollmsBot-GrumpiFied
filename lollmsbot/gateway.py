@@ -32,6 +32,14 @@ from lollmsbot.tools.shell import ShellTool
 console = Console()
 app = FastAPI(title="lollmsBot API")
 
+# Mount autonomous hobby routes
+try:
+    from lollmsbot.hobby_routes import router as hobby_router
+    app.include_router(hobby_router)
+    console.print("[green]✓ Autonomous hobby API routes mounted at /hobby[/]")
+except Exception as e:
+    console.print(f"[yellow]⚠ Could not mount hobby routes: {e}[/]")
+
 # UI instance (optional)
 _ui_instance: Optional[Any] = None
 _ui_enabled: bool = False
@@ -511,9 +519,29 @@ async def lifespan(app_: FastAPI):
     
     await ensure_tools()
     
+    # Initialize and start autonomous hobby system if enabled
+    hobby_enabled = os.getenv("AUTONOMOUS_HOBBY_ENABLED", "true").lower() in ("true", "1", "yes")
+    if hobby_enabled:
+        try:
+            from lollmsbot.autonomous_hobby import start_autonomous_learning, HobbyConfig
+            from lollmsbot.config import AutonomousHobbyConfig
+            
+            # Load hobby config from environment
+            hobby_cfg = AutonomousHobbyConfig.from_env()
+            hobby_manager = await start_autonomous_learning(HobbyConfig(
+                enabled=hobby_cfg.enabled,
+                interval_minutes=hobby_cfg.interval_minutes,
+                idle_threshold_minutes=hobby_cfg.idle_threshold_minutes,
+                max_hobby_duration_minutes=hobby_cfg.max_hobby_duration_minutes,
+            ))
+            console.print("[green]🎓 Autonomous hobby system started - AI will learn when idle[/]")
+        except Exception as e:
+            console.print(f"[yellow]⚠ Could not start hobby system: {e}[/]")
+    
     console.print(f"[green]🚀 Gateway starting on http://{HOST}:{PORT}[/]")
     console.print(f"[dim]  • Chat endpoint: POST /chat[/]")
     console.print(f"[dim]  • File downloads: GET /files/download/<file_id>[/]")
+    console.print(f"[dim]  • Hobby monitoring: GET /hobby/status[/]")
     
     # Auto-enable UI
     if os.getenv("LOLLMSBOT_ENABLE_UI", "").lower() in ("true", "1", "yes"):
@@ -606,7 +634,15 @@ async def lifespan(app_: FastAPI):
     
     yield
     
-    # Cleanup
+    # Cleanup: stop hobby system first
+    try:
+        from lollmsbot.autonomous_hobby import stop_autonomous_learning
+        await stop_autonomous_learning()
+        console.print("[green]🎓 Autonomous hobby system stopped - progress saved[/]")
+    except Exception as e:
+        console.print(f"[dim]Hobby system shutdown: {e}[/]")
+    
+    # Cleanup channels
     console.print("[yellow]🛑 Shutting down...[/]")
     
     for name, channel in _active_channels.items():

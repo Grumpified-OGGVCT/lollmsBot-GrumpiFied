@@ -964,6 +964,15 @@ class Agent:
         context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Internal chat processing with detailed colored logging at every step."""
+        # Notify hobby manager of user interaction (pause hobbies)
+        try:
+            from lollmsbot.autonomous_hobby import get_hobby_manager
+            hobby_manager = get_hobby_manager()
+            hobby_manager.notify_user_interaction()
+        except Exception as e:
+            # Hobby manager is optional, don't fail if it's not available
+            self._logger.debug(f"Could not notify hobby manager: {e}")
+        
         # Log command reception
         self._log_command_received(user_id, message, context)
         
