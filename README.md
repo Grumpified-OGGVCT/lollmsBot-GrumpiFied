@@ -39,6 +39,7 @@
 - [🐳 Docker Deployment](#docker-deployment)
 - [🤝 Contributing](#contributing)
 - [📚 Documentation](#documentation)
+- [🙏 Acknowledgments](#acknowledgments)
 - [📄 License](#license)
 - [💬 Example Use Cases](#-example-use-cases)
 
