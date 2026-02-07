@@ -193,13 +193,16 @@ class HobbyManager:
         # Storage with validation
         self._persist_enabled = True
         base_path = Path.home() / ".lollmsbot" / "hobby"
+        base_resolved = base_path.resolve()
         
         if self.config.storage_path:
             # Validate storage path (prevent path traversal)
             requested = self.config.storage_path.resolve()
-            if str(requested).startswith(str(base_path.resolve())):
+            try:
+                # Ensure requested is truly within the allowed base directory
+                requested.relative_to(base_resolved)
                 self.storage_path = requested
-            else:
+            except ValueError:
                 logger.warning(f"Invalid storage path {requested}, using default")
                 self.storage_path = base_path
         else:
