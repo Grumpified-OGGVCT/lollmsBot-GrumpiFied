@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  lollmsbot:
+    build: .
+    container_name: lollmsbot
+    restart: unless-stopped
+    ports:
+      - "8800:8800"
+    volumes:
+      - ./lollmsbot-data:/app/data  # Persistent storage
+      - ./.env:/app/.env:ro        # Config
+    environment:
+      - LOLLMSBOT_HOST=0.0.0.0
+      - LOLLMSBOT_PORT=8800
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:57800/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - lollms-network
+
+  # Example: LoLLMS companion service (optional)
+  lollms:
+    image: ghcr.io/parisneo/lollms-webui:latest
+    container_name: lollms-webui
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    volumes:
+      - lollms-data:/app/models
+    environment:
+      - BIND_ADDRESS=0.0.0.0
+    networks:
+      - lollms-network
+
+volumes:
+  lollmsbot-data:
+  lollms-data:
+
+networks:
+  lollms-network:
+    driver: bridge
