@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LollmsBot - AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/css/style.css">
+    <link rel="stylesheet" href="./static/css/rcl2.css">
+    <link rel="stylesheet" href="./static/css/hobby.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Global Header -->
+        <header class="global-header">
+            <div class="brand">
+                <div class="logo-icon">AI</div>
+                <span class="brand-name">LollmsBot</span>
+            </div>
+            
+            <nav class="main-nav">
+                <button class="nav-item active" data-view="view-chat" title="Chat Interface">
+                    <span class="icon">💬</span>
+                    <span class="label">Chat</span>
+                </button>
+                <button class="nav-item" data-view="view-hobby" title="Autonomous Hobby System">
+                    <span class="icon">🎨</span>
+                    <span class="label">Hobby</span>
+                </button>
+                <button class="nav-item" data-view="view-security" title="Security & Audit">
+                    <span class="icon">🛡️</span>
+                    <span class="label">Security</span>
+                </button>
+                <button class="nav-item" data-view="view-observability" title="System Health & Metrics">
+                    <span class="icon">📊</span>
+                    <span class="label">Ops</span>
+                </button>
+                <button class="nav-item" data-view="view-rcl2" title="Cognitive Dashboard (RCL-2)">
+                    <span class="icon">🧠</span>
+                    <span class="label">RCL-2</span>
+                </button>
+            </nav>
+
+            <div class="header-tools">
+                <div class="status-indicator online" id="connection-status" title="Connected">●</div>
+                <button class="btn-icon" id="settings-btn" title="Settings">⚙</button>
+            </div>
+        </header>
+
+        <div class="main-workspace">
+            <!-- Sidebar (Persists across views, but context might change) -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <button class="new-chat-btn" id="new-chat-btn">
+                        <span>+</span> New Chat
+                    </button>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Conversations</div>
+                    <div class="conversation-list" id="conversation-list">
+                        <div class="conversation-item active">
+                            <div class="conversation-icon">C</div>
+                            <span>Current Chat</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-status">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Connecting...</span>
+                </div>
+            </aside>
+
+            <!-- Viewport Area -->
+            <main class="viewport">
+                
+                <!-- 1. Chat View (Default) -->
+                <section id="view-chat" class="view-panel active">
+                    <div class="messages-area" id="messages-area">
+                        <div class="welcome-screen" id="welcome-screen">
+                            <div class="welcome-icon">🤖</div>
+                            <div class="welcome-title">Welcome to LollmsBot</div>
+                            <div class="welcome-subtitle">Your AI assistant is ready</div>
+                        </div>
+                    </div>
+                    <div class="input-area">
+                        <div class="input-container">
+                            <textarea class="message-input" id="message-input" placeholder="Message LollmsBot..." rows="1"></textarea>
+                            <button class="send-btn" id="send-btn">➤</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Hobby View -->
+                <section id="view-hobby" class="view-panel">
+                    <div class="panel-header">
+                        <h2>Autonomous Hobby System</h2>
+                        <div class="panel-controls">
+                            <div class="status-badge" id="hobby-status-badge">Idle</div>
+                        </div>
+                    </div>
+                    <!-- Hobby Dashboard Content (Moved from Modal) -->
+                    <div class="dashboard-content-wrapper" id="hobby-dashboard-mount">
+                        <!-- Content injected by hobby-dashboard.js -->
+                         <div class="placeholder-state">
+                            <div class="spinner"></div>
+                            <p>Initializing Hobby System...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Security View -->
+                <section id="view-security" class="view-panel">
+                    <div class="panel-header">
+                        <h2>Security & Audit</h2>
+                    </div>
+                    <div class="dashboard-content-wrapper" id="security-content">
+                         <!-- Content injected by security-dashboard.js -->
+                       <div class="placeholder-state">
+                            <div class="spinner"></div>
+                            <p>Loading Security Modules...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Observability View -->
+                <section id="view-observability" class="view-panel">
+                    <div class="panel-header">
+                        <h2>System Observability</h2>
+                    </div>
+                    <div class="dashboard-content-wrapper" id="observability-content">
+                        <!-- Content injected by observability.js -->
+                         <div class="placeholder-state">
+                            <div class="spinner"></div>
+                            <p>Loading Observability Modules...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. RCL-2 View -->
+                <section id="view-rcl2" class="view-panel">
+                    <div class="panel-header">
+                        <h2>Cognitive Dashboard (RCL-2)</h2>
+                         <div class="panel-controls">
+                            <div class="status-badge">Live</div>
+                        </div>
+                    </div>
+                    <!-- Reuse the inner structure of RCL-2 dashboard -->
+                    <div class="dashboard-nav" id="rcl2-nav-placeholder">
+                        <!-- Will be populated by JS or static HTML -->
+                        <button class="nav-tab active" data-target="tab-restraints">Restraints</button>
+                        <button class="nav-tab" data-target="tab-state">State</button>
+                        <button class="nav-tab" data-target="tab-council">Council</button>
+                        <button class="nav-tab" data-target="tab-debt">Debt</button>
+                        <button class="nav-tab" data-target="tab-audit">Audit</button>
+                        <button class="nav-tab" data-target="tab-logs">Logs</button>
+                        <button class="nav-tab" data-target="tab-narrative">Narrative</button>
+                        <button class="nav-tab" data-target="tab-memory">Memory</button>
+                    </div>
+                    <div class="dashboard-content" id="rcl2-content-mount">
+                        <!-- We need to preserve the tab-panes here for rcl2-dashboard.js to find -->
+                        <div class="tab-pane active" id="tab-restraints">
+                             <div class="placeholder-state"><p>Restraints Matrix Loading...</p></div>
+                        </div>
+                        <div class="tab-pane" id="tab-state"></div>
+                        <div class="tab-pane" id="tab-council"></div>
+                        <div class="tab-pane" id="tab-debt"></div>
+                        <div class="tab-pane" id="tab-audit"></div>
+                        <div class="tab-pane" id="tab-logs"></div>
+                        <div class="tab-pane" id="tab-narrative"></div>
+                        <div class="tab-pane" id="tab-memory"></div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals (Truly floating things like Settings or Alerts) -->
+    <div class="modal-overlay" id="settings-modal">
+         <div class="modal">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close" id="close-settings">x</button>
+            </div>
+            <div class="modal-body">
+                <!-- Settings Content -->
+                 <p>Settings placeholder...</p>
+            </div>
+         </div>
+    </div>
+    
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="./static/js/app.js?v=3"></script>
+    <script src="./static/js/rcl2-dashboard.js?v=3"></script>
+    <script src="./static/js/rcl2-restraints.js?v=4"></script>
+    <script src="./static/js/rcl2-council.js?v=2"></script>
+    <script src="./static/js/rcl2-debt.js?v=2"></script>
+    <script src="./static/js/rcl2-narrative.js?v=3"></script>
+    <script src="./static/js/rcl2-eigenmemory.js?v=3"></script>
+    <script src="./static/js/rcl2-iql.js?v=2"></script>
+    <script src="./static/js/hobby-dashboard.js?v=2"></script>
+    <script src="./static/js/observability.js?v=2"></script>
+    <script src="./static/js/security-dashboard.js?v=2"></script>
+</body>
+</html>
