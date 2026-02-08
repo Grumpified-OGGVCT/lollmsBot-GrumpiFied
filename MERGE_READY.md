@@ -36,11 +36,11 @@ This PR successfully implements **Reflective Consciousness Layer v2.0 (RCL-2)** 
 - ✅ Focus management: Modal focus trap implemented
 - ✅ Screen readers: ARIA roles and labels present
 
-### Port Security
-- ✅ Migration complete: All ports moved to 57000-57999 range
-- ✅ Default ports: 57080 (UI), 57500 (API), 57800 (Gateway)
+### Port Compatibility
+- ✅ Compatibility restored: Ports aligned with lollms ecosystem defaults
+- ✅ Default ports: 57080 (UI), 8800 (Gateway)
 - ✅ Documentation: Updated with new defaults
-- ✅ Backward compatibility: Old ports configurable via env
+- ✅ Custom ports configurable via env
 
 ### Build Plan Integrity
 - ✅ Critical imports preserved: json, timedelta, auto, Path, Tuple, Callable
@@ -74,7 +74,7 @@ This PR successfully implements **Reflective Consciousness Layer v2.0 (RCL-2)** 
 | Documentation | - | 50KB+ | NEW |
 | Accessibility | 0% | 70% | +70% |
 | Files Changed | - | 46 | - |
-| Port Security | Standard | Non-standard | ✅ |
+| Port Compatibility | Standard | Standard | ✅ |
 
 ---
 
@@ -85,7 +85,7 @@ This PR successfully implements **Reflective Consciousness Layer v2.0 (RCL-2)** 
 ```bash
 # === Core Settings ===
 ENVIRONMENT=production
-LOLLMSBOT_PORT=57800
+LOLLMSBOT_PORT=8800
 LOLLMSBOT_UI_PORT=57080
 
 # === Security ===
@@ -127,7 +127,7 @@ AWESOME_SKILLS_REPO_URL=https://github.com/Grumpified-OGGVCT/awesome-claude-skil
 
 1. **TLS/SSL Certificate**: Let's Encrypt recommended
 2. **Reverse Proxy**: nginx or Caddy for HTTPS termination
-3. **Firewall**: Open ports 57000-57999 range
+3. **Firewall**: Open ports 8800 (gateway) and 57080 (UI), plus backend ports (e.g., 9600 for LoLLMS) as needed
 4. **Dependencies**: `pip install -e .` (includes slowapi)
 
 ---
@@ -167,10 +167,10 @@ AWESOME_SKILLS_REPO_URL=https://github.com/Grumpified-OGGVCT/awesome-claude-skil
 curl -H "Origin: http://evil.com" http://localhost:57080/ -I
 
 # Test rate limiting (should throttle after 100 requests)
-ab -n 150 -c 10 http://localhost:57800/rcl2/restraints
+ab -n 150 -c 10 http://localhost:8800/rcl2/restraints
 
 # Test WebSocket auth (should reject without token)
-wscat -c ws://localhost:57000/rcl2/ws
+wscat -c ws://localhost:8800/rcl2/ws
 ```
 
 ### Accessibility Testing
@@ -186,13 +186,13 @@ wscat -c ws://localhost:57000/rcl2/ws
 ### Functionality Testing
 ```bash
 # API endpoints
-curl http://localhost:57800/docs  # SwaggerUI
-curl http://localhost:57800/redoc  # ReDoc
-curl http://localhost:57800/rcl2/restraints  # Get restraints
-curl http://localhost:57800/rcl2/cognitive-state  # Cognitive state
+curl http://localhost:8800/docs  # SwaggerUI
+curl http://localhost:8800/redoc  # ReDoc
+curl http://localhost:8800/rcl2/restraints  # Get restraints
+curl http://localhost:8800/rcl2/cognitive-state  # Cognitive state
 
 # Test with authorization
-curl -X POST http://localhost:57800/rcl2/restraints \
+curl -X POST http://localhost:8800/rcl2/restraints \
   -H "Content-Type: application/json" \
   -d '{"dimension": "recursion_depth", "value": 0.7, "authorized": false}'
 ```

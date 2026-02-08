@@ -486,7 +486,7 @@ def enable_ui(host: str = "127.0.0.1", port: int = 57080) -> None:
 
 # ========== HTTP API ENABLE ==========
 
-def enable_http_api(host: str = "0.0.0.0", port: int = 57800) -> None:
+def enable_http_api(host: str = "0.0.0.0", port: int = 8800) -> None:
     """Enable standalone HTTP API channel (for advanced file delivery)."""
     global _http_api
     

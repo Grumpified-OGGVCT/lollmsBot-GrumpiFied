@@ -133,7 +133,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
    - Peace of mind (cryptographic proof of integrity)
 
 2. **🤝 How do I interact with it?**
-   - GUI Dashboard (via Web UI at http://localhost:57800)
+   - GUI Dashboard (via Web UI at http://localhost:8800/ui)
    - CLI Commands (`lollmsbot gateway`, `lollmsbot wizard`, `lollmsbot introspect`, `lollmsbot status`)
    - REST API + WebSocket (programmatic access)
 
@@ -1190,22 +1190,22 @@ skill = Skill(
 
 ```bash
 # View cognitive state
-curl http://localhost:57800/rcl2/cognitive-state
+curl http://localhost:8800/rcl2/cognitive-state
 
 # View restraints
-curl http://localhost:57800/rcl2/restraints
+curl http://localhost:8800/rcl2/restraints
 
 # View council deliberations
-curl http://localhost:57800/rcl2/council/deliberations?limit=10
+curl http://localhost:8800/rcl2/council/deliberations?limit=10
 
 # Check cognitive debt
-curl http://localhost:57800/rcl2/decisions
+curl http://localhost:8800/rcl2/decisions
 
 # Verify audit trail integrity
-curl http://localhost:57800/rcl2/audit-trail/verify
+curl http://localhost:8800/rcl2/audit-trail/verify
 ```
 
-**[📖 Interactive API Docs](http://localhost:57800/docs)** (when running)
+**[📖 Interactive API Docs](http://localhost:8800/docs)** (when running)
 
 ---
 

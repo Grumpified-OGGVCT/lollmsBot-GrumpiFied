@@ -192,7 +192,7 @@ async def handle_message(...):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LOLLMS_HOST_ADDRESS` | http://localhost:57964 | LoLLMS server URL |
+| `LOLLMS_HOST_ADDRESS` | http://localhost:9600 | LoLLMS server URL |
 | `LOLLMS_API_KEY` | - | LoLLMS API key |
 | `LOLLMS_BINDING_NAME` | lollms | LLM binding name |
 | `LOLLMS_MODEL_NAME` | - | Model name override |
@@ -300,7 +300,7 @@ WORKDIR /app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "import httpx; httpx.get('http://localhost:57800/health')"
+  CMD python -c "import httpx; httpx.get('http://localhost:8800/health')"
 
 CMD ["python", "-m", "lollmsbot.gateway"]
 ```

@@ -795,7 +795,7 @@ def main(argv: List[str] | None = None) -> None:
         description="Start the main API gateway with optional channels and UI"
     )
     gateway_parser.add_argument("--host", type=str, default="0.0.0.0", help="Bind address (default: 0.0.0.0)")
-    gateway_parser.add_argument("--port", type=int, default=57800, help="Port number (default: 57800)")
+    gateway_parser.add_argument("--port", type=int, default=8800, help="Port number (default: 8800)")
     gateway_parser.add_argument("--ui", action="store_true", help="Also start web UI at /ui")
 
     # UI command (standalone)

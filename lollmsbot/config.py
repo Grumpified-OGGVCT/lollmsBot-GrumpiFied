@@ -130,7 +130,7 @@ class AutonomousHobbyConfig:
 @dataclass
 class LollmsSettings:
     """LoLLMS connection settings."""
-    host_address: str = field(default="http://localhost:57960")
+    host_address: str = field(default="http://localhost:9600")
     api_key: Optional[str] = field(default=None)
     verify_ssl: bool = field(default=True)
     binding_name: Optional[str] = field(default=None)
@@ -142,7 +142,7 @@ class LollmsSettings:
         """Load from environment variables."""
         global console
         return cls(
-            host_address=os.getenv("LOLLMS_HOST_ADDRESS", "http://localhost:57960"),
+            host_address=os.getenv("LOLLMS_HOST_ADDRESS", "http://localhost:9600"),
             api_key=os.getenv("LOLLMS_API_KEY"),
             verify_ssl=_get_bool("LOLLMS_VERIFY_SSL", True),
             binding_name=os.getenv("LOLLMS_BINDING_NAME"),
@@ -163,7 +163,7 @@ class LollmsSettings:
             if lollms_data.get("host_address"):
                 console.print("[green]📡 Using wizard config![/]" if console else "Using wizard config")
                 return cls(
-                    host_address=lollms_data.get("host_address", "http://localhost:57960"),
+                    host_address=lollms_data.get("host_address", "http://localhost:9600"),
                     api_key=lollms_data.get("api_key"),
                     verify_ssl=_get_bool(str(lollms_data.get("verify_ssl", True))),
                     binding_name=lollms_data.get("binding_name"),
@@ -178,7 +178,7 @@ class LollmsSettings:
 class GatewaySettings:
     """Gateway server settings."""
     host: str = field(default="localhost")
-    port: int = field(default=57800)
+    port: int = field(default=8800)
     cors_origins: List[str] = field(default_factory=lambda: ["http://localhost", "http://127.0.0.1"])
 
     @classmethod
@@ -189,7 +189,7 @@ class GatewaySettings:
         
         return cls(
             host=os.getenv("LOLLMSBOT_HOST", "localhost"),
-            port=int(os.getenv("LOLLMSBOT_PORT", "57800")),
+            port=int(os.getenv("LOLLMSBOT_PORT", "8800")),
             cors_origins=cors_origins,
         )
 
