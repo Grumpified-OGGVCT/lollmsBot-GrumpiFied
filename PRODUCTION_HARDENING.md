@@ -192,7 +192,7 @@ async def handle_message(...):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LOLLMS_HOST_ADDRESS` | http://localhost:57964 | LoLLMS server URL |
+| `LOLLMS_HOST_ADDRESS` | http://localhost:9600 | LoLLMS server URL |
 | `LOLLMS_API_KEY` | - | LoLLMS API key |
 | `LOLLMS_BINDING_NAME` | lollms | LLM binding name |
 | `LOLLMS_MODEL_NAME` | - | Model name override |

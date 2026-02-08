@@ -133,7 +133,7 @@ Inspired by [Clawd.bot](https://clawd.bot)'s architecture, lollmsBot treats AI n
    - Peace of mind (cryptographic proof of integrity)
 
 2. **🤝 How do I interact with it?**
-   - GUI Dashboard (via Web UI at http://localhost:8800)
+   - GUI Dashboard (via Web UI at http://localhost:8800/ui)
    - CLI Commands (`lollmsbot gateway`, `lollmsbot wizard`, `lollmsbot introspect`, `lollmsbot status`)
    - REST API + WebSocket (programmatic access)
 

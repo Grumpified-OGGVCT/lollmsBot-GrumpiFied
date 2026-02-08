@@ -127,7 +127,7 @@ AWESOME_SKILLS_REPO_URL=https://github.com/Grumpified-OGGVCT/awesome-claude-skil
 
 1. **TLS/SSL Certificate**: Let's Encrypt recommended
 2. **Reverse Proxy**: nginx or Caddy for HTTPS termination
-3. **Firewall**: Open ports 57000-57999 range
+3. **Firewall**: Open ports 8800 (gateway) and 57080 (UI), plus backend ports (e.g., 9600 for LoLLMS) as needed
 4. **Dependencies**: `pip install -e .` (includes slowapi)
 
 ---
