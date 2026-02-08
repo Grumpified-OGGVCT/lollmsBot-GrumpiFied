@@ -213,7 +213,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🌟 OpenWebUI",
         category="local_server",
         description="OpenWebUI backend",
-        default_host="http://localhost:8080",
+        default_host="http://localhost:57080",
         requires_api_key=True,  # OpenWebUI uses API keys
         supports_ssl_verify=True,
         default_model=None,
@@ -224,7 +224,7 @@ AVAILABLE_BINDINGS: Dict[str, BindingInfo] = {
         display_name="🦙 Llama.cpp (Server)",
         category="local_server",
         description="llama.cpp server mode (local)",
-        default_host="http://localhost:8080",
+        default_host="http://localhost:57080",
         requires_api_key=False,
         supports_ssl_verify=False,
         requires_models_path=True,
@@ -480,7 +480,7 @@ class Wizard:
 
         # Host address (for remote and local_server)
         if binding_info.category in ("remote", "local_server"):
-            default_host = binding_info.default_host or "http://localhost:8080"
+            default_host = binding_info.default_host or "http://localhost:57080"
             current_host = lollms_config.get("host_address", default_host)
             host_address = questionary.text(
                 "Host address / API endpoint",

@@ -38,7 +38,7 @@ This PR successfully implements **Reflective Consciousness Layer v2.0 (RCL-2)** 
 
 ### Port Compatibility
 - ✅ Compatibility restored: Ports aligned with lollms ecosystem defaults
-- ✅ Default ports: 8080 (UI), 8800 (Gateway)
+- ✅ Default ports: 57080 (UI), 8800 (Gateway)
 - ✅ Documentation: Updated with new defaults
 - ✅ Custom ports configurable via env
 
@@ -86,7 +86,7 @@ This PR successfully implements **Reflective Consciousness Layer v2.0 (RCL-2)** 
 # === Core Settings ===
 ENVIRONMENT=production
 LOLLMSBOT_PORT=8800
-LOLLMSBOT_UI_PORT=8080
+LOLLMSBOT_UI_PORT=57080
 
 # === Security ===
 ALLOWED_ORIGINS=https://your-domain.com
@@ -164,7 +164,7 @@ AWESOME_SKILLS_REPO_URL=https://github.com/Grumpified-OGGVCT/awesome-claude-skil
 ### Security Testing
 ```bash
 # Test CORS (should reject evil.com)
-curl -H "Origin: http://evil.com" http://localhost:8080/ -I
+curl -H "Origin: http://evil.com" http://localhost:57080/ -I
 
 # Test rate limiting (should throttle after 100 requests)
 ab -n 150 -c 10 http://localhost:8800/rcl2/restraints
@@ -176,7 +176,7 @@ wscat -c ws://localhost:8800/rcl2/ws
 ### Accessibility Testing
 ```bash
 # Manual keyboard test:
-1. Open http://localhost:8080/
+1. Open http://localhost:57080/
 2. Press Ctrl+K → Dashboard should open
 3. Press Tab → Focus should move through controls
 4. Press Escape → Modal should close

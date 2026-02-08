@@ -460,7 +460,7 @@ async def list_files():
 
 # ========== UI ENABLE ==========
 
-def enable_ui(host: str = "127.0.0.1", port: int = 8080) -> None:
+def enable_ui(host: str = "127.0.0.1", port: int = 57080) -> None:
     """Enable the web UI."""
     global _ui_enabled, _ui_instance
     
