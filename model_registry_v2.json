@@ -1,0 +1,999 @@
+{
+  "registry_version": "2.0.0",
+  "last_updated": "2026-02-02T15:23:00Z",
+  "description": "CLAWDBOT Enterprise Model Registry - 22+ Cloud Models",
+  "models": {
+    "kimi-k2.5": {
+      "id": "kimi-k2.5",
+      "name": "Kimi K2.5",
+      "provider": "moonshot",
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "description": "Native multimodal agentic model with instant and thinking modes, conversational and agentic paradigms",
+      "type": "cloud",
+      "capabilities": {
+        "multimodal": true,
+        "thinking_mode": true,
+        "vision": true,
+        "agentic": true,
+        "conversational": true,
+        "code_score": 92,
+        "reasoning_score": 95,
+        "writing_score": 90,
+        "analysis_score": 93,
+        "math_score": 88,
+        "context_length": 200000,
+        "supported_languages": ["zh", "en", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.00002,
+        "output_per_token": 0.00006,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.04
+      },
+      "policies": {
+        "max_concurrent": 10,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 60
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 5000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["complex_reasoning", "multimodal_tasks", "thinking_mode_tasks", "agentic_workflows"]
+    },
+    "kimi-k2-thinking": {
+      "id": "kimi-k2-thinking",
+      "name": "Kimi K2 Thinking",
+      "provider": "moonshot",
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "description": "Specialized thinking model from Moonshot AI",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "code_score": 88,
+        "reasoning_score": 98,
+        "writing_score": 85,
+        "analysis_score": 96,
+        "math_score": 92,
+        "context_length": 200000,
+        "supported_languages": ["zh", "en", "ja", "ko"]
+      },
+      "cost": {
+        "input_per_token": 0.000015,
+        "output_per_token": 0.000045,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.03
+      },
+      "policies": {
+        "max_concurrent": 15,
+        "timeout_ms": 180000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 80
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 6000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["complex_reasoning", "mathematical_problems", "logical_analysis", "extended_deliberation"]
+    },
+    "kimi-k2": {
+      "id": "kimi-k2",
+      "name": "Kimi K2",
+      "provider": "moonshot",
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "description": "State-of-the-art mixture-of-experts language model with significant improvements in coding and agentic tasks",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "code_score": 94,
+        "reasoning_score": 90,
+        "writing_score": 88,
+        "analysis_score": 89,
+        "math_score": 85,
+        "context_length": 200000,
+        "supported_languages": ["zh", "en", "ja", "ko", "fr", "de", "es", "pt"]
+      },
+      "cost": {
+        "input_per_token": 0.00001,
+        "output_per_token": 0.00003,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.02
+      },
+      "policies": {
+        "max_concurrent": 20,
+        "timeout_ms": 90000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 100
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "standard",
+      "best_for": ["code_generation", "code_analysis", "agentic_tasks", "general_purpose"]
+    },
+    "qwen3-next": {
+      "id": "qwen3-next",
+      "name": "Qwen3-Next",
+      "provider": "alibaba",
+      "endpoint": "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+      "description": "First Qwen3 installment with strong performance in parameter efficiency and inference speed, 80B parameters, 1M context",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "code_score": 91,
+        "reasoning_score": 93,
+        "writing_score": 87,
+        "analysis_score": 90,
+        "math_score": 88,
+        "context_length": 1000000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.000008,
+        "output_per_token": 0.000024,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.016
+      },
+      "policies": {
+        "max_concurrent": 25,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 120
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["long_context_tasks", "thinking_mode_tasks", "complex_reasoning", "multilingual"]
+    },
+    "qwen3-vl": {
+      "id": "qwen3-vl",
+      "name": "Qwen3-VL",
+      "provider": "alibaba",
+      "endpoint": "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+      "description": "Most powerful vision-language model in Qwen family to date",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": true,
+        "vision": true,
+        "code_score": 88,
+        "reasoning_score": 89,
+        "writing_score": 86,
+        "analysis_score": 88,
+        "math_score": 84,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko"]
+      },
+      "cost": {
+        "input_per_token": 0.000012,
+        "output_per_token": 0.000036,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.024
+      },
+      "policies": {
+        "max_concurrent": 15,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 80
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 5000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["vision_tasks", "image_understanding", "document_analysis", "visual_reasoning"]
+    },
+    "qwen3-coder": {
+      "id": "qwen3-coder",
+      "name": "Qwen3-Coder",
+      "provider": "alibaba",
+      "endpoint": "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+      "description": "Performant long context models for agentic and coding tasks, 30B-480B parameters",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "tools_enabled": true,
+        "code_score": 96,
+        "reasoning_score": 88,
+        "writing_score": 82,
+        "analysis_score": 87,
+        "math_score": 82,
+        "context_length": 200000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000015,
+        "output_per_token": 0.000045,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.03
+      },
+      "policies": {
+        "max_concurrent": 20,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 100
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 5000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["code_generation", "code_refactoring", "code_analysis", "agentic_coding", "tool_use"]
+    },
+    "deepseek-v3.2": {
+      "id": "deepseek-v3.2",
+      "name": "DeepSeek-V3.2",
+      "provider": "deepseek",
+      "endpoint": "https://api.deepseek.com/chat/completions",
+      "description": "Harmonizes high computational efficiency with superior reasoning and agent performance",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "code_score": 95,
+        "reasoning_score": 96,
+        "writing_score": 88,
+        "analysis_score": 94,
+        "math_score": 93,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.000014,
+        "output_per_token": 0.000042,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.028
+      },
+      "policies": {
+        "max_concurrent": 20,
+        "timeout_ms": 150000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 100
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 5500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["complex_reasoning", "code_generation", "mathematical_reasoning", "thinking_mode_tasks"]
+    },
+    "deepseek-v3.1": {
+      "id": "deepseek-v3.1",
+      "name": "DeepSeek-V3.1-Terminus",
+      "provider": "deepseek",
+      "endpoint": "https://api.deepseek.com/chat/completions",
+      "description": "Hybrid model supporting both thinking mode and non-thinking mode",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "code_score": 93,
+        "reasoning_score": 94,
+        "writing_score": 86,
+        "analysis_score": 92,
+        "math_score": 91,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000012,
+        "output_per_token": 0.000036,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.024
+      },
+      "policies": {
+        "max_concurrent": 25,
+        "timeout_ms": 150000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 120
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 5500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["hybrid_reasoning", "code_tasks", "complex_analysis", "thinking_mode_flexible"]
+    },
+    "devstral-2": {
+      "id": "devstral-2",
+      "name": "Devstral-2",
+      "provider": "mistral",
+      "endpoint": "https://api.mistral.ai/v1/chat/completions",
+      "description": "123B model excels at exploring codebases, editing multiple files and powering software engineering agents",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "tools_enabled": true,
+        "code_score": 98,
+        "reasoning_score": 90,
+        "writing_score": 84,
+        "analysis_score": 91,
+        "math_score": 85,
+        "context_length": 256000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.00002,
+        "output_per_token": 0.00006,
+        "currency": "USD",
+        "min_charge": 0.02,
+        "estimated_cost_per_1k_tokens": 0.04
+      },
+      "policies": {
+        "max_concurrent": 15,
+        "timeout_ms": 180000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 60
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 6000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["codebase_analysis", "multi_file_editing", "software_engineering", "code_refactoring"]
+    },
+    "devstral-small-2": {
+      "id": "devstral-small-2",
+      "name": "Devstral-Small-2",
+      "provider": "mistral",
+      "endpoint": "https://api.mistral.ai/v1/chat/completions",
+      "description": "24B model optimized for exploring codebases and editing multiple files",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "tools_enabled": true,
+        "code_score": 94,
+        "reasoning_score": 85,
+        "writing_score": 80,
+        "analysis_score": 88,
+        "math_score": 80,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000006,
+        "output_per_token": 0.000018,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.012
+      },
+      "policies": {
+        "max_concurrent": 30,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 150
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["code_tasks", "codebase_exploration", "efficient_coding", "code_editing"]
+    },
+    "rnj-1": {
+      "id": "rnj-1",
+      "name": "Rnj-1",
+      "provider": "essential-ai",
+      "endpoint": "https://api.essentialai.com/v1/chat/completions",
+      "description": "8B open-weight model optimized for code and STEM with capabilities on par with SOTA open-weight models",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "code_score": 92,
+        "reasoning_score": 90,
+        "writing_score": 82,
+        "analysis_score": 88,
+        "math_score": 93,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000005,
+        "output_per_token": 0.000015,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.01
+      },
+      "policies": {
+        "max_concurrent": 40,
+        "timeout_ms": 90000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 200
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 3500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["code_generation", "stem_tasks", "efficient_reasoning", "mathematical_computation"]
+    },
+    "ministral-3": {
+      "id": "ministral-3",
+      "name": "Ministral 3",
+      "provider": "mistral",
+      "endpoint": "https://api.mistral.ai/v1/chat/completions",
+      "description": "Designed for edge deployment, 3B/8B/14B variants for various hardware capabilities",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": true,
+        "vision": true,
+        "code_score": 85,
+        "reasoning_score": 82,
+        "writing_score": 80,
+        "analysis_score": 80,
+        "math_score": 78,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt"]
+      },
+      "cost": {
+        "input_per_token": 0.000003,
+        "output_per_token": 0.000009,
+        "currency": "USD",
+        "min_charge": 0.001,
+        "estimated_cost_per_1k_tokens": 0.006
+      },
+      "policies": {
+        "max_concurrent": 50,
+        "timeout_ms": 60000,
+        "retry_count": 2,
+        "rate_limit_per_minute": 300
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 3000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["edge_deployment", "efficient_tasks", "vision_tasks", "lightweight_inference"]
+    },
+    "nemotron-3-nano": {
+      "id": "nemotron-3-nano",
+      "name": "Nemotron 3 Nano",
+      "provider": "nvidia",
+      "endpoint": "https://api.nvidia.com/v1/chat/completions",
+      "description": "30B efficient, open, and intelligent agentic model",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "agentic": true,
+        "code_score": 90,
+        "reasoning_score": 91,
+        "writing_score": 85,
+        "analysis_score": 88,
+        "math_score": 86,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000008,
+        "output_per_token": 0.000024,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.016
+      },
+      "policies": {
+        "max_concurrent": 30,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 150
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["agentic_tasks", "efficient_reasoning", "thinking_mode", "general_agent"]
+    },
+    "gemma3": {
+      "id": "gemma3",
+      "name": "Gemma 3",
+      "provider": "google",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemma-3",
+      "description": "Most capable model running on single GPU, 270M to 27B parameter range",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": true,
+        "vision": true,
+        "code_score": 88,
+        "reasoning_score": 86,
+        "writing_score": 84,
+        "analysis_score": 85,
+        "math_score": 82,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.000002,
+        "output_per_token": 0.000006,
+        "currency": "USD",
+        "min_charge": 0.001,
+        "estimated_cost_per_1k_tokens": 0.004
+      },
+      "policies": {
+        "max_concurrent": 60,
+        "timeout_ms": 60000,
+        "retry_count": 2,
+        "rate_limit_per_minute": 400
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 2500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["single_gpu", "efficient_inference", "vision_tasks", "lightweight_requirements"]
+    },
+    "gpt-oss": {
+      "id": "gpt-oss",
+      "name": "GPT-OSS",
+      "provider": "openai",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "description": "OpenAI's open-weight models designed for powerful reasoning, agentic tasks, and versatile developer use cases, 20B-120B",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "agentic": true,
+        "tools_enabled": true,
+        "code_score": 95,
+        "reasoning_score": 94,
+        "writing_score": 90,
+        "analysis_score": 92,
+        "math_score": 90,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.00001,
+        "output_per_token": 0.00003,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.02
+      },
+      "policies": {
+        "max_concurrent": 25,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 120
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "standard",
+      "best_for": ["reasoning_tasks", "agentic_workflows", "tool_use", "complex_analysis"]
+    },
+    "minimax-m2": {
+      "id": "minimax-m2",
+      "name": "MiniMax M2",
+      "provider": "minimax",
+      "endpoint": "https://api.minimax.chat/v1/text/chatcompletion_v2",
+      "description": "High-efficiency large language model built for coding and agentic workflows",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "code_score": 94,
+        "reasoning_score": 88,
+        "writing_score": 85,
+        "analysis_score": 86,
+        "math_score": 82,
+        "context_length": 256000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "pt", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.000005,
+        "output_per_token": 0.000015,
+        "currency": "USD",
+        "min_charge": 0.001,
+        "estimated_cost_per_1k_tokens": 0.01
+      },
+      "policies": {
+        "max_concurrent": 40,
+        "timeout_ms": 90000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 200
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 3500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["code_generation", "agentic_tasks", "efficient_coding", "long_context"]
+    },
+    "minimax-m2.1": {
+      "id": "minimax-m2.1",
+      "name": "MiniMax M2.1",
+      "provider": "minimax",
+      "endpoint": "https://api.minimax.chat/v1/text/chatcompletion_v2",
+      "description": "Exceptional multilingual capabilities to elevate code engineering",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "code_score": 96,
+        "reasoning_score": 90,
+        "writing_score": 88,
+        "analysis_score": 88,
+        "math_score": 84,
+        "context_length": 256000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru", "ar", "hi", "th", "vi"]
+      },
+      "cost": {
+        "input_per_token": 0.000006,
+        "output_per_token": 0.000018,
+        "currency": "USD",
+        "min_charge": 0.001,
+        "estimated_cost_per_1k_tokens": 0.012
+      },
+      "policies": {
+        "max_concurrent": 35,
+        "timeout_ms": 90000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 180
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 3500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["code_generation", "multilingual_coding", "code_analysis", "internationalization"]
+    },
+    "gemini-3-pro-preview": {
+      "id": "gemini-3-pro-preview",
+      "name": "Gemini 3 Pro Preview",
+      "provider": "google",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro",
+      "description": "Google's most intelligent model with SOTA reasoning and multimodal understanding, powerful agentic and vibe coding capabilities",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": true,
+        "vision": true,
+        "agentic": true,
+        "code_score": 94,
+        "reasoning_score": 95,
+        "writing_score": 90,
+        "analysis_score": 93,
+        "math_score": 91,
+        "context_length": 1000000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru", "ar", "hi"]
+      },
+      "cost": {
+        "input_per_token": 0.0000075,
+        "output_per_token": 0.0000225,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.015
+      },
+      "policies": {
+        "max_concurrent": 30,
+        "timeout_ms": 180000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 100
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 6000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["multimodal_tasks", "reasoning", "agentic_workflows", "long_context", "vision"]
+    },
+    "gemini-3-flash-preview": {
+      "id": "gemini-3-flash-preview",
+      "name": "Gemini 3 Flash Preview",
+      "provider": "google",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash",
+      "description": "Frontier intelligence built for speed at a fraction of the cost",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": true,
+        "vision": true,
+        "code_score": 90,
+        "reasoning_score": 88,
+        "writing_score": 86,
+        "analysis_score": 87,
+        "math_score": 84,
+        "context_length": 1000000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru"]
+      },
+      "cost": {
+        "input_per_token": 0.0000005,
+        "output_per_token": 0.0000015,
+        "currency": "USD",
+        "min_charge": 0.001,
+        "estimated_cost_per_1k_tokens": 0.001
+      },
+      "policies": {
+        "max_concurrent": 100,
+        "timeout_ms": 60000,
+        "retry_count": 2,
+        "rate_limit_per_minute": 1000
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 2000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "budget",
+      "best_for": ["high_volume", "multimodal_speed", "cost_optimization", "fast_inference"]
+    },
+    "glm-4.7": {
+      "id": "glm-4.7",
+      "name": "GLM-4.7",
+      "provider": "zhipu",
+      "endpoint": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "description": "Advancing the coding capability",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": false,
+        "code_score": 93,
+        "reasoning_score": 88,
+        "writing_score": 86,
+        "analysis_score": 86,
+        "math_score": 84,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000006,
+        "output_per_token": 0.000018,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.012
+      },
+      "policies": {
+        "max_concurrent": 35,
+        "timeout_ms": 90000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 180
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "efficient",
+      "best_for": ["code_generation", "chinese_language", "code_assistance"]
+    },
+    "glm-4.6": {
+      "id": "glm-4.6",
+      "name": "GLM-4.6",
+      "provider": "zhipu",
+      "endpoint": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "description": "Advanced agentic, reasoning and coding capabilities",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "agentic": true,
+        "code_score": 91,
+        "reasoning_score": 90,
+        "writing_score": 84,
+        "analysis_score": 88,
+        "math_score": 86,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000008,
+        "output_per_token": 0.000024,
+        "currency": "USD",
+        "min_charge": 0.005,
+        "estimated_cost_per_1k_tokens": 0.016
+      },
+      "policies": {
+        "max_concurrent": 30,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 150
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 4500,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "standard",
+      "best_for": ["reasoning_tasks", "agentic_workflows", "code_tasks", "chinese_language"]
+    },
+    "cogito-2.1": {
+      "id": "cogito-2.1",
+      "name": "Cogito v2.1",
+      "provider": "cogito",
+      "endpoint": "https://api.cogitotech.com/v1/chat/completions",
+      "description": "Instruction tuned generative models, MIT license for commercial use, 671B parameters",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": true,
+        "multimodal": false,
+        "code_score": 92,
+        "reasoning_score": 94,
+        "writing_score": 88,
+        "analysis_score": 92,
+        "math_score": 90,
+        "context_length": 128000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es"]
+      },
+      "cost": {
+        "input_per_token": 0.000014,
+        "output_per_token": "0.000042",
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.028
+      },
+      "policies": {
+        "max_concurrent": 20,
+        "timeout_ms": 150000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 80
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 6000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "premium",
+      "best_for": ["complex_reasoning", "thinking_mode", "mathematical_tasks", "licensed_use"]
+    },
+    "mistral-large-3": {
+      "id": "mistral-large-3",
+      "name": "Mistral Large 3",
+      "provider": "mistral",
+      "endpoint": "https://api.mistral.ai/v1/chat/completions",
+      "description": "General-purpose multimodal mixture-of-experts model for production-grade tasks and enterprise workloads",
+      "type": "cloud",
+      "capabilities": {
+        "thinking_mode": false,
+        "multimodal": true,
+        "vision": true,
+        "code_score": 93,
+        "reasoning_score": 91,
+        "writing_score": 89,
+        "analysis_score": 90,
+        "math_score": 87,
+        "context_length": 256000,
+        "supported_languages": ["en", "zh", "ja", "ko", "fr", "de", "es", "it", "pt", "ru", "ar", "hi"]
+      },
+      "cost": {
+        "input_per_token": 0.00001,
+        "output_per_token": 0.00003,
+        "currency": "USD",
+        "min_charge": 0.01,
+        "estimated_cost_per_1k_tokens": 0.02
+      },
+      "policies": {
+        "max_concurrent": 25,
+        "timeout_ms": 120000,
+        "retry_count": 3,
+        "rate_limit_per_minute": 100
+      },
+      "health": {
+        "check_interval_sec": 30,
+        "latency_threshold_ms": 5000,
+        "error_rate_threshold": 0.05,
+        "status": "active"
+      },
+      "tier": "standard",
+      "best_for": ["enterprise_tasks", "multimodal", "production_grade", "multilingual"]
+    }
+  },
+  "tandem_config": {
+    "primary": "matrix-agent",
+    "cloud_peer": "kimi-k2.3",
+    "collaboration_patterns": [
+      "sequential",
+      "parallel",
+      "consultative"
+    ],
+    "routing_rules": {
+      "task_types_for_tandem": [
+        "complex_reasoning",
+        "multimodal_tasks",
+        "agentic_workflows",
+        "planning_and_strategy"
+      ],
+      "complexity_threshold": 70,
+      "enable_auto_routing": true
+    },
+    "communication_protocol": {
+      "format": "structured_json",
+      "version": "1.0",
+      "features": ["task_specification", "result_exchange", "status_communication", "error_handling"]
+    }
+  },
+  "routing_policies": {
+    "default_weights": {
+      "capability_match": 0.40,
+      "cost_efficiency": 0.25,
+      "latency_score": 0.20,
+      "quality_estimate": 0.15
+    },
+    "constraints": {
+      "max_cost_per_request": 5.00,
+      "max_latency_ms": 300000,
+      "min_quality_score": 70
+    },
+    "budget_tiers": {
+      "daily_limit": 100.00,
+      "alert_threshold": 0.80,
+      "emergency_threshold": 0.95
+    }
+  },
+  "health_config": {
+    "check_interval_sec": 30,
+    "circuit_breaker": {
+      "failure_threshold": 5,
+      "reset_timeout_sec": 60,
+      "half_open_probe_count": 3
+    },
+    "fallback_enabled": true,
+    "alerting": {
+      "channels": ["log", "webhook"],
+      "severity_levels": ["info", "warning", "error", "critical"]
+    }
+  }
+}
