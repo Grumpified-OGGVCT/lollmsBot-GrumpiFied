@@ -49,7 +49,7 @@ class HttpApiChannel:
         self,
         agent: Agent,
         host: str = "localhost",
-        port: int = 57080,
+        port: int = 8080,
         webhook_path: str = "/webhook",
         api_key: Optional[str] = None,
     ):

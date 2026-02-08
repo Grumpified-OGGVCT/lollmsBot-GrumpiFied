@@ -300,7 +300,7 @@ WORKDIR /app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "import httpx; httpx.get('http://localhost:57800/health')"
+  CMD python -c "import httpx; httpx.get('http://localhost:8800/health')"
 
 CMD ["python", "-m", "lollmsbot.gateway"]
 ```

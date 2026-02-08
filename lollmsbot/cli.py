@@ -795,7 +795,7 @@ def main(argv: List[str] | None = None) -> None:
         description="Start the main API gateway with optional channels and UI"
     )
     gateway_parser.add_argument("--host", type=str, default="0.0.0.0", help="Bind address (default: 0.0.0.0)")
-    gateway_parser.add_argument("--port", type=int, default=57800, help="Port number (default: 57800)")
+    gateway_parser.add_argument("--port", type=int, default=8800, help="Port number (default: 8800)")
     gateway_parser.add_argument("--ui", action="store_true", help="Also start web UI at /ui")
 
     # UI command (standalone)
@@ -805,7 +805,7 @@ def main(argv: List[str] | None = None) -> None:
         description="Start just the web interface without the full gateway"
     )
     ui_parser.add_argument("--host", type=str, default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
-    ui_parser.add_argument("--port", type=int, default=57080, help="Port number (default: 57080)")
+    ui_parser.add_argument("--port", type=int, default=8080, help="Port number (default: 8080)")
     ui_parser.add_argument("--quiet", "-q", action="store_true", help="Minimal console output")
 
     # Wizard command
@@ -913,7 +913,7 @@ def main(argv: List[str] | None = None) -> None:
             # Enable UI if requested
             if args.ui:
                 # Use localhost for UI server internally, gateway will mount it
-                gateway.enable_ui(host="127.0.0.1", port=57080)
+                gateway.enable_ui(host="127.0.0.1", port=8080)
             
             # Run server
             uvicorn.run(
